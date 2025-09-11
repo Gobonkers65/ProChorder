@@ -1,0 +1,1696 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Låtredigerare Stable — Vänsterspalt</title>
+    <style>
+        :root {
+            --bg: #f4f5f7;
+            --surface: #ffffff;
+            --text-color: #172b4d;
+            --primary: #0052cc;
+            --border: #dfe1e6;
+            --shadow: 0 1px 1px rgba(9,30,66,0.25), 0 0 1px rgba(9,30,66,0.31);
+            --chord-color: var(--primary);
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-serif: "Georgia", "Times New Roman", serif;
+            --success-bg: #28a745;
+            --danger-bg: #dc3545;
+            --button-text-light: #ffffff;
+            --primary-bg-hover: rgba(0, 82, 204, 0.1);
+            --section-marker-color: #505f79;
+        }
+
+        body.dark-mode {
+            --bg: #1d2125;
+            --surface: #282d33;
+            --text-color: #c1c9d3;
+            --primary: #4c9aff;
+            --border: #454c54;
+            --success-bg: #30c451;
+            --danger-bg: #ff5263;
+            --button-text-light: #1d2125;
+            --chord-color: #ffcb47;
+            --primary-bg-hover: rgba(76, 154, 255, 0.15);
+            --section-marker-color: #97a3b3;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 1em;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        
+        .app-layout {
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 1.5em;
+        }
+
+        .sidebar {
+            flex-basis: 280px; 
+            flex-grow: 1; 
+            flex-shrink: 0;
+            background-color: var(--surface);
+            padding: 1em;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5em; 
+            align-self: flex-start; 
+            position: sticky;
+            top: 1em;
+            height: fit-content;
+        }
+        
+        .sidebar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75em;
+        }
+        
+        .sidebar-group-label {
+            font-size: 0.9em;
+            font-weight: 700;
+            opacity: 0.8;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5em;
+        }
+
+        .sidebar-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5em;
+        }
+        .sidebar-controls.vertical {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .sidebar button, .sidebar select, .sidebar input[type="range"], .sidebar input[type="text"], .sidebar input[type="number"] {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.9em;
+            min-width: 40px;
+            height: 34px;
+            background-color: var(--bg);
+            color: var(--text-color);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0 0.5em;
+            box-sizing: border-box;
+            width: 100%; 
+        }
+        .sidebar .sidebar-controls.horizontal > * {
+            flex: 1; 
+        }
+
+        .sidebar button:hover { transform: translateY(-2px); border-color: var(--primary); }
+        .sidebar button:disabled { transform: none; background-color: var(--border); cursor: not-allowed; opacity: 0.7; }
+        .sidebar input[type="text"] { height: 38px; padding: 0 0.6em; }
+        
+        .sidebar button.btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: var(--button-text-light);
+        }
+        .sidebar button.btn-success {
+            background-color: var(--success-bg);
+            border-color: var(--success-bg);
+            color: var(--button-text-light);
+        }
+        .sidebar button.btn-danger {
+            background-color: var(--danger-bg);
+            border-color: var(--danger-bg);
+            color: var(--button-text-light);
+        }
+        
+        .sidebar-controls.font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 0.8em;
+        }
+        .sidebar-controls.font-size-control > span {
+            font-weight: 600;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        .sidebar-controls.font-size-control > input[type="range"] {
+            flex: 1;
+            width: auto;
+        }
+
+        .main-content {
+            flex-basis: 0;
+            flex-grow: 999; 
+            min-width: 60%; 
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+        }
+
+        .meta-fields {
+            display: flex;
+            gap: 1em;
+            align-items: stretch;
+        }
+        .meta-fields input {
+            padding: 0.75em;
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            color: var(--text-color);
+            font-size: 1.2em;
+            font-weight: 700;
+            outline: none;
+            border-radius: 8px;
+            box-sizing: border-box;
+            box-shadow: var(--shadow);
+        }
+        #song-title { flex: 3; } 
+        #song-author { flex: 2; font-size: 1em; font-weight: 400; }
+
+        #editor {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            min-height: 75vh; 
+            height: auto;
+            font-family: var(--font-serif);
+            line-height: 2.5;
+            outline: none;
+            font-size: 16px; 
+            padding-left: 5em;
+        }
+        #editor * { font-size: inherit; line-height: inherit; }
+        #editor > div { 
+            position: relative;
+        }
+        
+        .chord {
+            display: inline-block;
+            position: relative;
+            user-select: none;
+            cursor: grab;
+            vertical-align: top;
+            margin-top: -1.3em;
+            padding: 0 0.1em;
+            border-radius: 3px;
+            transition: background-color 0.2s;
+        }
+        .chord:hover {
+            background-color: var(--primary-bg-hover);
+        }
+        .chord.selected::after { 
+            content: ''; 
+            position: absolute; 
+            left: -2px; 
+            right: -2px; 
+            top: -2px; 
+            bottom: 0px;
+            border-radius: 6px; 
+            border: 2px dashed rgba(0,82,204,0.25); 
+            pointer-events: none; 
+        }
+
+        .chord-text {
+            display: inline-block;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.85em;
+            color: var(--chord-color);
+            line-height: 1.2;
+            min-width: 1ch;
+            outline: none;
+        }
+    
+        .section-marker {
+            position: absolute;
+            left: -5em;
+            top: 0.4em;
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 0.75em;
+            color: var(--section-marker-color);
+            background-color: var(--bg);
+            padding: 0.1em 0.5em;
+            border-radius: 4px;
+            user-select: none;
+            cursor: default;
+        }
+
+        .custom-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .custom-dialog-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-dialog-box {
+            background-color: var(--surface);
+            color: var(--text-color);
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            min-width: 300px;
+            max-width: 90%;
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .custom-dialog-overlay.visible .custom-dialog-box {
+            transform: scale(1);
+        }
+
+        .custom-dialog-box p {
+            margin: 0 0 1.5em 0;
+            font-size: 1.1em;
+        }
+
+        .custom-dialog-box .dialog-buttons {
+            display: flex;
+            gap: 1em;
+            justify-content: center;
+        }
+
+        .custom-dialog-box button {
+            min-width: 100px;
+            height: 38px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 800px) {
+            .app-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                position: static;
+                width: 100%;
+                flex-basis: auto;
+            }
+            #editor {
+                padding-left: 2em;
+            }
+            .section-marker {
+                left: -1.8em;
+                font-size: 0.65em;
+            }
+        }
+
+        @media print {
+            body {
+                background-color: #fff;
+                color: #000;
+                padding: 0;
+                margin: 0;
+            }
+            .sidebar, .meta-fields {
+                display: none;
+            }
+            .container, .app-layout, .main-content {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+                border: none;
+                max-width: 100%;
+            }
+            #editor {
+                --chord-color: #000;
+                min-height: 0;
+                box-shadow: none;
+                border: none;
+                padding: 1em;
+                padding-left: 5em;
+            }
+             .section-marker {
+                background-color: #eee;
+                color: #333;
+            }
+        }
+
+        /* --- CSS FÖR LIVE-LÄGE --- */
+        #live-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--text-color);
+            z-index: 2000;
+            overflow-y: scroll;
+            font-family: var(--font-sans);
+        }
+
+        body.live-mode-active .app-layout { display: none; }
+        body.live-mode-active #live-view { display: block; }
+        
+        #live-song-content {
+            padding: 4rem 2rem 10rem 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        #live-song-content h1, #live-song-content h2 {
+            font-family: var(--font-sans);
+            text-align: center;
+            margin: 0 auto;
+            padding: 0;
+        }
+        #live-song-content h1 { font-size: 2.5em; margin-bottom: 0.1em; }
+        #live-song-content h2 { font-size: 1.5em; font-weight: 400; opacity: 0.8; margin-bottom: 3em; }
+
+        .live-line {
+            margin-bottom: 2.2em; /* Justerad för bättre radavstånd */
+            position: relative;
+        }
+        
+        .live-section-marker {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 1em;
+            color: var(--section-marker-color);
+            margin-bottom: 0.5em;
+        }
+
+        /* --- UPPDATERADE STILAR FÖR KORREKT ACkORDPLACERING --- */
+        .live-line p {
+            margin: 0;
+            padding: 0;
+            padding-top: 1.5em; /* Ökat utrymme för större ackord */
+            line-height: 1.4;
+            font-size: 1.4em;
+        }
+        .live-line .chunk {
+            display: inline-block;
+            position: relative;
+            vertical-align: bottom;
+            white-space: pre-wrap;
+        }
+        .live-line .chunk .lyric {
+            display: inline-block;
+        }
+        .live-line .chunk .chord {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            
+            /* -- ÄNDRINGAR ENLIGT ÖNSKEMÅL -- */
+            font-family: inherit;      /* Ärv typsnitt från texten */
+            font-size: 1em;            /* Använd samma storlek som texten */
+            font-weight: 700;          /* Behåll fet stil (eller 'normal') */
+            
+            color: var(--chord-color);
+            line-height: 1.2;
+            white-space: nowrap;
+            user-select: none;
+        }
+        /* --- SLUT PÅ UPPDATERADE STILAR --- */
+
+        #live-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.06);
+            backdrop-filter: blur(6px);
+            padding: 0.8em 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1em;
+            z-index: 2001;
+            border-top: 1px solid var(--border);
+        }
+
+        #live-controls button {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 1.2em;
+            width: 80px;
+            height: 46px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-color);
+        }
+        
+        #live-controls .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            color: var(--text-color);
+        }
+        
+        #live-controls input[type="range"] {
+            width: 150px;
+        }
+
+        #live-controls .duration-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+        #live-controls .duration-control input[type="number"] {
+            width: 90px;
+            height: 36px;
+            padding: 0 0.5em;
+        }
+
+        .hidden-file { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-layout">
+        
+        <aside class="sidebar">
+            
+            <div class="sidebar-group">
+                <span class="sidebar-group-label">Ackordbyggare</span>
+                <div class="sidebar-controls vertical">
+                    <div class="sidebar-controls horizontal">
+                        <select id="chord-root">
+                            <option value="">Grundton</option>
+                            <option value="A">A</option><option value="A#">A#</option><option value="Bb">Bb</option><option value="B">B</option><option value="C">C</option><option value="C#">C#</option><option value="Db">Db</option><option value="D">D</option><option value="D#">D#</option><option value="Eb">Eb</option><option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="Gb">Gb</option><option value="G">G</option><option value="G#">G#</option><option value="Ab">Ab</option>
+                        </select>
+                        <select id="chord-type"><option value="">Dur</option><option value="m">m</option><option value="maj">maj</option><option value="dim">dim</option><option value="aug">aug</option><option value="sus2">sus2</option><option value="sus4">sus4</option></select>
+                        <select id="chord-extension"><option value="">—</option><option value="6">6</option><option value="7">7</option><option value="9">9</option><option value="11">11</option><option value="13">13</option></select>
+                    </div>
+                    <div class="sidebar-controls horizontal">
+                        <button id="btn-insert-built">Infoga</button>
+                        <button id="btn-delete-chord" title="Ta bort markerat ackord">Ta bort</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-group">
+                <span class="sidebar-group-label">Låtstruktur</span>
+                <div class="sidebar-controls horizontal">
+                    <button id="btn-insert-verse">Vers</button>
+                    <button id="btn-insert-chorus">Refräng</button>
+                    <button id="btn-insert-bridge">Stick</button>
+                </div>
+            </div>
+
+            <div class="sidebar-group">
+                <span class="sidebar-group-label">Projekthantering</span>
+                <div class="sidebar-controls vertical">
+                    <div class="sidebar-controls horizontal">
+                       <button id="btn-transpose-up" title="Transponera upp">+1 Halvton</button>
+                       <button id="btn-transpose-down" title="Transponera ner">-1 Halvton</button>
+                    </div>
+                    <div class="sidebar-controls font-size-control">
+                        <span>Textstorlek</span>
+                        <input type="range" id="font-size-slider" min="12" max="32" value="16">
+                    </div>
+                    
+                    <select id="project-list" title="Ladda projekt"></select>
+                    
+                    <div class="sidebar-controls horizontal">
+                        <button id="btn-new-project" class="btn-primary" title="Skapa ett nytt tomt projekt">Nytt</button>
+                        <button id="btn-save-project" class="btn-success" title="Spara projekt">Spara</button>
+                        <button id="btn-delete-project" class="btn-danger" title="Ta bort valt projekt">Ta bort</button>
+                    </div>
+
+                    <div style="display:flex; flex-wrap: wrap; gap:.5em; margin-top:.5em">
+                        <button id="btn-export-json" style="flex:1" title="Exportera den nuvarande låten som en JSON-fil">Exportera (1)</button>
+                        <button id="btn-export-all-json" style="flex:1" title="Exportera alla sparade låtar till en enda JSON-fil">Exportera allt</button>
+                        <button id="btn-import-json" style="flex:2" title="Importera en eller flera låtar från en JSON-fil">Importera JSON</button>
+                        <input type="file" id="file-import" accept="application/json" class="hidden-file">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-group">
+                <span class="sidebar-group-label">Export & Tema</span>
+                <div class="sidebar-controls horizontal">
+                    <button id="btn-export-pdf" title="Exportera som PDF">PDF</button>
+                    <button id="btn-export-txt" title="Exportera som TXT">TXT</button>
+                    <button id="btn-export-zip" title="Spara alla låtar som ZIP">ZIP</button>
+                    <button id="btn-toggle-dark-mode" title="Växla mörkt/ljust läge">🌙</button>
+                </div>
+                 <div class="sidebar-controls vertical">
+                    <button id="btn-live-mode" class="btn-primary" title="Aktivera live-läge för uppspelning">▶️ Live-läge</button>
+                </div>
+            </div>
+
+        </aside>
+
+        <main class="main-content">
+            <div class="meta-fields">
+                <input type="text" id="song-title" placeholder="Låttitel">
+                <input type="text" id="song-author" placeholder="Artist / Låtskrivare">
+            </div>
+
+            <div id="editor" contenteditable="true" spellcheck="false"></div>
+        </main>
+
+    </div>
+</div>
+
+<div id="live-view">
+    <div id="live-song-content"></div>
+    <div id="live-controls">
+        <button id="live-btn-play-pause">▶</button>
+
+        <div class="speed-control">
+            <span>Långsamt</span>
+            <input type="range" id="live-speed-slider" min="0" max="100" value="20">
+            <span>Snabbt</span>
+        </div>
+
+        <div class="duration-control">
+            <label for="live-duration">Speltid (sek):</label>
+            <input type="number" id="live-duration" min="10" max="3600" step="10" value="240">
+        </div>
+
+        <button id="live-btn-exit">Avsluta</button>
+    </div>
+</div>
+
+
+<div id="custom-alert" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+        <p id="custom-alert-message"></p>
+        <div class="dialog-buttons">
+            <button id="custom-alert-ok" class="btn-primary">OK</button>
+        </div>
+    </div>
+</div>
+
+<div id="custom-confirm" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+        <p id="custom-confirm-message"></p>
+        <div class="dialog-buttons">
+            <button id="custom-confirm-cancel">Avbryt</button>
+            <button id="custom-confirm-ok" class="btn-danger">OK</button>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+class StableChordEditor {
+    static STORAGE_KEYS = {
+        PROJECTS: 'stableProjects',
+        LAST_PROJECT: 'lastProject',
+        DARK_MODE: 'darkMode'
+    };
+
+    constructor(editorId) {
+        this.editor = document.getElementById(editorId);
+        this.titleInput = document.getElementById('song-title');
+        this.authorInput = document.getElementById('song-author');
+        this.draggedChord = null;
+
+        this.rootSel = document.getElementById('chord-root');
+        this.typeSel = document.getElementById('chord-type');
+        this.extSel = document.getElementById('chord-extension');
+        this.insertBtn = document.getElementById('btn-insert-built');
+        this.btnDeleteChord = document.getElementById('btn-delete-chord');
+        
+        this.btnInsertVerse = document.getElementById('btn-insert-verse');
+        this.btnInsertChorus = document.getElementById('btn-insert-chorus');
+        this.btnInsertBridge = document.getElementById('btn-insert-bridge');
+
+        this.fontSizeSlider = document.getElementById('font-size-slider'); 
+        this.projectList = document.getElementById('project-list'); 
+        this.btnNewProject = document.getElementById('btn-new-project');
+        this.btnSaveProject = document.getElementById('btn-save-project'); 
+        this.btnDeleteProject = document.getElementById('btn-delete-project'); 
+        this.btnTransposeUp = document.getElementById('btn-transpose-up');
+        this.btnTransposeDown = document.getElementById('btn-transpose-down');
+
+        this.btnExportPdf = document.getElementById('btn-export-pdf');
+        this.btnExportTxt = document.getElementById('btn-export-txt');
+        this.btnExportZip = document.getElementById('btn-export-zip');
+        this.btnToggleDarkMode = document.getElementById('btn-toggle-dark-mode');
+
+        this.btnExportJson = document.getElementById('btn-export-json');
+        this.btnExportAllJson = document.getElementById('btn-export-all-json');
+        this.btnImportJson = document.getElementById('btn-import-json');
+        this.fileImport = document.getElementById('file-import');
+
+        this.musicalNotes = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"];
+        this.observer = new MutationObserver(this.handleMutations.bind(this));
+        
+        this.btnLiveMode = document.getElementById('btn-live-mode');
+        this.liveView = document.getElementById('live-view');
+        this.liveSongContent = document.getElementById('live-song-content');
+        this.liveBtnPlayPause = document.getElementById('live-btn-play-pause');
+        this.liveBtnExit = document.getElementById('live-btn-exit');
+        this.liveSpeedSlider = document.getElementById('live-speed-slider');
+        this.liveDurationInput = document.getElementById('live-duration');
+
+        this.scrollInterval = null;
+        this.scrollSpeed = 0.2;
+        this.scrollRemainder = 0;
+
+        this.history = [];
+        this.historyIndex = -1;
+        this.historyMax = 100;
+
+        this.debounceTimer = null;
+
+        this.init();
+    }
+    
+    showCustomAlert(message) {
+        const dialog = document.getElementById('custom-alert');
+        document.getElementById('custom-alert-message').textContent = message;
+        dialog.classList.add('visible');
+        
+        const okBtn = document.getElementById('custom-alert-ok');
+        const close = () => dialog.classList.remove('visible');
+        okBtn.onclick = close;
+    }
+
+    showCustomConfirm(message) {
+        return new Promise(resolve => {
+            const dialog = document.getElementById('custom-confirm');
+            document.getElementById('custom-confirm-message').textContent = message;
+            dialog.classList.add('visible');
+
+            const okBtn = document.getElementById('custom-confirm-ok');
+            const cancelBtn = document.getElementById('custom-confirm-cancel');
+
+            const close = (value) => {
+                dialog.classList.remove('visible');
+                resolve(value);
+            };
+
+            okBtn.onclick = () => close(true);
+            cancelBtn.onclick = () => close(false);
+        });
+    }
+
+    init() {
+        this.applySavedTheme();
+        this.setupEventListeners();
+        this.startObserver();
+        this.loadLastProject(); 
+    }
+    
+    applySavedTheme() {
+        const isDarkMode = localStorage.getItem(StableChordEditor.STORAGE_KEYS.DARK_MODE) === 'enabled';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        }
+        this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙';
+    }
+
+    startObserver() {
+        this.observer.observe(this.editor, { childList: true, subtree: true, characterData: true });
+    }
+
+    stopObserver() { this.observer.disconnect(); }
+
+    setupEventListeners() {
+        const updateInsertButton = () => {
+            let chord = this.rootSel.value || '';
+            if (this.typeSel.value) chord += this.typeSel.value;
+            if (this.extSel.value) chord += this.extSel.value;
+            this.insertBtn.textContent = chord ? `Infoga ${chord}` : 'Infoga';
+        };
+        [this.rootSel, this.typeSel, this.extSel].forEach(sel => sel.addEventListener('change', updateInsertButton));
+        this.insertBtn.addEventListener('click', () => {
+            const chord = (this.rootSel.value||'') + (this.typeSel.value||'') + (this.extSel.value||'');
+            if (!chord) return this.showCustomAlert('Välj minst en grundton.');
+            this.insertChordAtCursor(chord);
+            this.recordHistoryDebounced();
+        });
+        this.btnDeleteChord.addEventListener('click', () => { this.deleteSelectedChord(); this.recordHistoryDebounced(); });
+
+        this.btnInsertVerse.addEventListener('click', () => { this.insertSectionMarker('Vers'); this.recordHistoryDebounced(); });
+        this.btnInsertChorus.addEventListener('click', () => { this.insertSectionMarker('Refräng'); this.recordHistoryDebounced(); });
+        this.btnInsertBridge.addEventListener('click', () => { this.insertSectionMarker('Stick'); this.recordHistoryDebounced(); });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.chord')) {
+                this.clearChordSelection();
+            }
+        });
+        this.editor.addEventListener('keydown', this.handleKeyDown.bind(this));
+        this.editor.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+            document.execCommand('insertText', false, text);
+        });
+        
+        this.editor.addEventListener('input', (e) => {
+            if (e.target.classList && e.target.classList.contains('chord-text')) {
+                const chordTextEl = e.target;
+                const parentChordEl = chordTextEl.closest('.chord');
+                if (parentChordEl) {
+                    parentChordEl.dataset.chord = chordTextEl.textContent;
+                    this.recordHistoryDebounced();
+                }
+            } else {
+                this.recordHistoryDebounced();
+            }
+        });
+
+        this.editor.addEventListener('dragover', (e) => e.preventDefault());
+        this.editor.addEventListener('drop', (e) => this.handleDrop(e));
+        
+        this.btnTransposeUp.addEventListener('click', () => { this.transpose(1); this.recordHistoryDebounced(); });
+        this.btnTransposeDown.addEventListener('click', () => { this.transpose(-1); this.recordHistoryDebounced(); });
+        this.fontSizeSlider.addEventListener('input', (e) => {
+            this.editor.style.fontSize = e.target.value + 'px';
+        });
+        this.projectList.addEventListener('change', () => {
+            const name = this.projectList.value || '';
+            if (name) this.loadProject(name);
+        });
+        this.btnNewProject.addEventListener('click', async () => {
+            if (await this.showCustomConfirm('Är du säker? Osparade ändringar försvinner.')) {
+                this.createNewProject();
+            }
+        });
+        this.btnSaveProject.addEventListener('click', () => {
+            const name = this.titleInput.value.trim();
+            if (!name) return this.showCustomAlert('Ange en låttitel för att kunna spara.');
+            this.saveProject(name);
+        });
+        this.btnDeleteProject.addEventListener('click', async () => {
+            const name = this.projectList.value;
+            if (!name) return this.showCustomAlert('Välj ett projekt att ta bort.');
+            if (await this.showCustomConfirm(`Ta bort projekt "${name}"? Detta går inte att ångra.`)) {
+                this.deleteProject(name);
+            }
+        });
+
+        this.btnExportPdf.addEventListener('click', () => this.exportPdf());
+        this.btnExportTxt.addEventListener('click', () => this.exportTxt());
+        this.btnExportZip.addEventListener('click', () => this.exportAllAsZip());
+        this.btnToggleDarkMode.addEventListener('click', () => this.toggleDarkMode());
+        
+        this.btnLiveMode.addEventListener('click', () => this.toggleLiveMode(true));
+        this.liveBtnExit.addEventListener('click', () => this.toggleLiveMode(false));
+        this.liveBtnPlayPause.addEventListener('click', () => this.toggleScrolling());
+        this.liveSpeedSlider.addEventListener('input', (e) => {
+            this.setScrollSpeed(e.target.value);
+        });
+        this.liveDurationInput.addEventListener('change', (e) => {
+            const seconds = parseInt(e.target.value, 10);
+            if (!isNaN(seconds) && seconds > 0) {
+                this.setScrollForDuration(seconds);
+            }
+        });
+
+        this.btnExportJson.addEventListener('click', () => this.exportJson());
+        this.btnExportAllJson.addEventListener('click', () => this.exportAllJson());
+        this.btnImportJson.addEventListener('click', () => this.fileImport.click());
+        this.fileImport.addEventListener('change', (e) => this.importJsonFromFile(e.target.files[0]));
+
+        document.addEventListener('keydown', (e) => {
+            const active = document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
+                if (active === this.editor || active.closest && active.closest('#editor')) {
+                    // fall through to handle undo/redo
+                } else {
+                    return;
+                }
+            }
+
+            if (document.body.classList.contains('live-mode-active')) {
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    this.toggleScrolling();
+                    return;
+                } 
+                if (e.key === 'Escape') {
+                    this.toggleLiveMode(false);
+                    return;
+                }
+            }
+
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                e.preventDefault();
+                this.undo();
+                return;
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
+                e.preventDefault();
+                this.redo();
+                return;
+            }
+        });
+    }
+
+    handleDrop(e) {
+        e.preventDefault();
+        if (this.draggedChord) {
+            const range = (document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY)) ||
+                          (document.caretPositionFromPoint && (() => { const p = document.caretPositionFromPoint(e.clientX, e.clientY); const r = document.createRange(); r.setStart(p.offsetNode, p.offset); return r; })());
+            if (range && this.editor.contains(range.startContainer)) {
+                range.insertNode(this.draggedChord);
+            }
+            this.draggedChord.style.display = 'inline-block';
+            this.draggedChord = null;
+            this.recordHistoryDebounced();
+        }
+    }
+
+    toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.DARK_MODE, isDarkMode ? 'enabled' : 'disabled');
+        this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙';
+    }
+
+    handleMutations(mutations) {
+        this.stopObserver();
+        mutations.forEach(mutation => {
+            if (mutation.type === 'characterData' && mutation.target.parentNode.id !== 'editor') {
+                 this.formatNode(mutation.target);
+            } else if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(n => {
+                    if (n.nodeType === Node.TEXT_NODE) this.formatNode(n);
+                    else if (n.nodeType === Node.ELEMENT_NODE && n.matches && !n.matches('.chord, .chord-text, .section-marker')) {
+                        n.childNodes.forEach(c => { if (c.nodeType === Node.TEXT_NODE) this.formatNode(c); });
+                    }
+                });
+            }
+        });
+        this.startObserver();
+    }
+
+    formatNode(node) {
+        if (!node.textContent.includes('[')) return;
+      
+        const text = node.textContent;
+        const regex = /\[([^\]]+)\]/g;
+        let match;
+        const frag = document.createDocumentFragment();
+        let lastIndex = 0;
+        let replaced = false;
+
+        while ((match = regex.exec(text)) !== null) {
+            replaced = true;
+            const beforeText = text.substring(lastIndex, match.index);
+            if(beforeText) frag.appendChild(document.createTextNode(beforeText));
+
+            const chord = match[1];
+            const chordSpan = this.createChordSpan(chord);
+            frag.appendChild(chordSpan);
+            
+            lastIndex = regex.lastIndex;
+        }
+
+        if (replaced) {
+            const afterText = text.substring(lastIndex);
+            if(afterText) frag.appendChild(document.createTextNode(afterText));
+            node.parentNode.replaceChild(frag, node);
+        }
+    }
+    
+    createChordSpan(chord) {
+        const span = document.createElement('span');
+        span.className = 'chord';
+        span.dataset.chord = chord;
+        span.draggable = true;
+
+        const chordText = document.createElement('span');
+        chordText.className = 'chord-text';
+        chordText.textContent = chord;
+        chordText.spellcheck = false;
+        span.appendChild(chordText);
+
+        span.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.clearChordSelection();
+            span.classList.add('selected');
+        });
+        span.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            span.remove();
+            this.recordHistoryDebounced();
+        });
+
+        span.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', chord);
+            this.draggedChord = span;
+            setTimeout(() => span.style.display = "none", 0);
+        });
+
+        span.addEventListener('dragend', () => {
+            if (this.draggedChord) {
+                this.draggedChord.style.display = 'inline-block';
+                this.draggedChord = null;
+            }
+        });
+        
+        return span;
+    }
+
+    clearChordSelection() {
+        this.editor.querySelectorAll('.chord.selected').forEach(s => s.classList.remove('selected'));
+    }
+
+    handleKeyDown(e) {
+        if (e.key === 'Backspace') {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            if (range.collapsed && range.startOffset === 0) {
+                let container = range.startContainer;
+                const prev = container.previousSibling;
+                if (prev && prev.nodeType === Node.ELEMENT_NODE && prev.classList.contains('chord')) {
+                    e.preventDefault();
+                    prev.remove();
+                    this.recordHistoryDebounced();
+                }
+            }
+        }
+    }
+
+    insertChordAtCursor(chord) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) {
+            return this.showCustomAlert('Placera markören i texten där du vill infoga ackordet.');
+        }
+        const range = sel.getRangeAt(0);
+        const chordSpan = this.createChordSpan(chord);
+        range.deleteContents();
+        range.insertNode(chordSpan);
+        range.setStartAfter(chordSpan);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    insertSectionMarker(type) {
+        const sel = window.getSelection();
+        if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) {
+            return this.showCustomAlert('Placera markören på den rad där du vill infoga markören.');
+        }
+        let node = sel.anchorNode;
+        while(node && node.parentNode !== this.editor) {
+            node = node.parentNode;
+        }
+        if (!node || node.tagName !== 'DIV') return;
+
+        const existingMarker = node.querySelector('.section-marker');
+        if(existingMarker) existingMarker.remove();
+
+        const markerSpan = document.createElement('span');
+        markerSpan.className = 'section-marker';
+        markerSpan.dataset.section = type;
+        markerSpan.setAttribute('contenteditable', 'false');
+        markerSpan.textContent = type;
+
+        node.insertBefore(markerSpan, node.firstChild);
+    }
+
+    deleteSelectedChord() {
+        const selected = this.editor.querySelector('.chord.selected');
+        if (selected) {
+            selected.remove();
+            this.recordHistoryDebounced();
+        } else {
+            this.showCustomAlert('Klicka på ackordet för att markera det, och tryck sedan på "Ta bort".');
+        }
+    }
+
+    syncChordData() {
+        this.editor.querySelectorAll('.chord-text').forEach(chordTextEl => {
+            const parentChordEl = chordTextEl.closest('.chord');
+            if (parentChordEl) {
+                parentChordEl.dataset.chord = chordTextEl.textContent;
+            }
+        });
+    }
+
+    getContentAsText() {
+        let result = [];
+        this.editor.childNodes.forEach(lineDiv => {
+            let lineText = '';
+            
+            const marker = lineDiv.querySelector && lineDiv.querySelector('.section-marker');
+            if (marker) {
+                lineText += `::${marker.dataset.section}::`;
+            }
+
+            lineDiv.childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) { 
+                    lineText += node.textContent; 
+                } else if (node.classList && node.classList.contains && node.classList.contains('chord')) { 
+                    lineText += `[${node.dataset.chord}]`; 
+                }
+            });
+            
+            result.push(lineText);
+        });
+        return result.join('\n');
+    }
+
+    loadContent(text, recordHistory = false) {
+        this.stopObserver();
+        this.editor.innerHTML = '';
+        const lines = text.split('\n');
+        lines.forEach(lineText => {
+            const lineDiv = document.createElement('div');
+            
+            let sectionType = null;
+            lineText = lineText.replace(/^::(.*?)::/, (match, type) => {
+                sectionType = type;
+                return '';
+            });
+            if (sectionType) {
+                const markerSpan = document.createElement('span');
+                markerSpan.className = 'section-marker';
+                markerSpan.dataset.section = sectionType;
+                markerSpan.setAttribute('contenteditable', 'false');
+                markerSpan.textContent = sectionType;
+                lineDiv.appendChild(markerSpan);
+            }
+
+            if (lineText.trim() === '' && !lineText.includes('[')) {
+                 lineDiv.appendChild(document.createElement('br'));
+            } else {
+                let currentPos = 0;
+                lineText.replace(/\[([^\]]+)\]/g, (match, chord, offset) => {
+                    lineDiv.appendChild(document.createTextNode(lineText.substring(currentPos, offset)));
+                    const chordSpan = this.createChordSpan( chord );
+                    lineDiv.appendChild(chordSpan);
+                    currentPos = offset + match.length;
+                });
+                lineDiv.appendChild(document.createTextNode(lineText.substring(currentPos)));
+            }
+            this.editor.appendChild(lineDiv);
+        });
+        this.startObserver();
+        if (recordHistory) this.recordHistory();
+    }
+
+    transpose(steps) {
+        this.syncChordData();
+        const text = this.getContentAsText();
+        const sharpMap = {'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#'};
+        const transposedText = text.replace(/\[([^\]]+)\]/g, (fullMatch, chord) => {
+            const match = chord.match(/^([A-G](?:#|b)?)(.*)/);
+            if (!match) return fullMatch;
+            let note = match[1];
+            const type = match[2] || '';
+            if (note.includes('b')) note = sharpMap[note] || note;
+            const currentIndex = this.musicalNotes.indexOf(note);
+            if (currentIndex !== -1) {
+                const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length;
+                return `[${this.musicalNotes[newIndex]}${type}]`;
+            }
+            return fullMatch;
+        });
+        this.loadContent(transposedText, true);
+    }
+    
+    generatePdfForProject(projectData) {
+        const { jsPDF } = window.jsPDF ? window.jsPDF : window.jspdf;
+        const doc = new jsPDF();
+        let y = 20;
+        const margin = 15;
+        const contentMargin = 20;
+        const text = projectData.content || '';
+
+        doc.setFontSize(18).setFont(undefined, 'bold');
+        doc.text(projectData.title || 'Låttitel', margin, y);
+        y += 8;
+
+        doc.setFontSize(12).setFont(undefined, 'normal');
+        doc.text(projectData.author || 'Artist', margin, y);
+        y += 12;
+
+        const lines = text.split('\n');
+
+        lines.forEach(lineText => {
+            if (y > 280) { 
+                doc.addPage(); 
+                y = 20; 
+            }
+
+            if (lineText.trim() === '') {
+                y += 4;
+                return;
+            }
+
+            let sectionType = null;
+            lineText = lineText.replace(/^::(.*?)::/, (match, type) => {
+                sectionType = type;
+                return '';
+            });
+
+            const x = margin + contentMargin;
+
+            if (sectionType) {
+                doc.setFontSize(9).setFont(undefined, 'bold');
+                doc.setTextColor(100, 100, 100);
+                doc.text(sectionType, margin, y + 0.5);
+            }
+
+            const currentText = lineText.replace(/\[[^\]]+\]/g, '');
+            const hasChords = /\[[^\]]+\]/.test(lineText);
+
+            if (hasChords) {
+                doc.setFontSize(9).setFont(undefined, 'bold');
+                doc.setTextColor(0, 82, 204);
+                lineText.replace(/\[([^\]]+)\]/g, (match, chord, offset) => {
+                    const textBefore = lineText.substring(0, offset).replace(/\[[^\]]+\]/g, '');
+                    const textBeforeWidth = doc.getTextWidth(textBefore);
+                    doc.text(chord, x + textBeforeWidth, y - 4);
+                });
+            }
+
+            doc.setFontSize(11).setFont(undefined, 'normal');
+            doc.setTextColor(0);
+            doc.text(currentText, x, y);
+            y += 8;
+        });
+        
+        return doc.output('blob');
+    }
+
+    sanitizeFilename = (name) => name.replace(/[\/\\?%*:|"<>]/g, '-') || 'låt';
+    
+    exportPdf() {
+        this.syncChordData();
+        const projectData = {
+            title: this.titleInput.value,
+            author: this.authorInput.value,
+            content: this.getContentAsText()
+        };
+        const pdfBlob = this.generatePdfForProject(projectData);
+        saveAs(pdfBlob, `${this.sanitizeFilename(projectData.title)}.pdf`);
+    }
+
+    exportTxt() {
+        this.syncChordData();
+        const title = this.titleInput.value || 'Titel';
+        const author = this.authorInput.value || 'Artist';
+        const content = this.getContentAsText();
+        const fullText = `${title}\n${author}\n\n${content}`;
+        const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
+        saveAs(blob, `${this.sanitizeFilename(title)}.txt`);
+    }
+
+    async exportAllAsZip() {
+        this.btnExportZip.textContent = 'Genererar...';
+        this.btnExportZip.disabled = true;
+
+        try {
+            const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+            const projectKeys = Object.keys(projects);
+
+            if (projectKeys.length === 0) {
+                return this.showCustomAlert('Det finns inga sparade projekt att exportera.');
+            }
+
+            const zip = new JSZip();
+            for (const key of projectKeys) {
+                const project = projects[key];
+                const pdfBlob = this.generatePdfForProject(project);
+                const filename = `${this.sanitizeFilename(project.title || 'okänd-låt')}.pdf`;
+                zip.file(filename, pdfBlob);
+            }
+
+            const content = await zip.generateAsync({ type: "blob" });
+            saveAs(content, "alla-låtar.zip");
+
+        } catch (error) {
+            console.error("Kunde inte skapa ZIP-fil:", error);
+            this.showCustomAlert('Ett fel uppstod när ZIP-filen skulle skapas.');
+        } finally {
+            this.btnExportZip.textContent = 'ZIP';
+            this.btnExportZip.disabled = false;
+        }
+    }
+
+    createNewProject() {
+        this.titleInput.value = '';
+        this.authorInput.value = '';
+        this.loadContent('');
+        this.projectList.selectedIndex = 0;
+        localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+        const defaultFontSize = 16;
+        this.fontSizeSlider.value = defaultFontSize;
+        this.editor.style.fontSize = defaultFontSize + 'px';
+        this.titleInput.focus();
+        this.recordHistory();
+    }
+    
+    saveProject(name) {
+        this.syncChordData();
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        projects[name] = {
+            title: this.titleInput.value,
+            author: this.authorInput.value,
+            fontSize: this.editor.style.fontSize || (this.fontSizeSlider.value + 'px'),
+            content: this.getContentAsText(),
+            scrollSpeed: this.scrollSpeed,
+            darkMode: document.body.classList.contains('dark-mode'),
+            duration: parseInt(this.liveDurationInput.value, 10) || null
+        };
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
+        this.updateProjectList(name);
+
+        const originalText = this.btnSaveProject.textContent;
+        this.btnSaveProject.textContent = 'Sparat ✓';
+        this.btnSaveProject.disabled = true;
+        setTimeout(() => {
+            this.btnSaveProject.textContent = originalText;
+            this.btnSaveProject.disabled = false;
+        }, 1200);
+
+        this.recordHistory();
+    }
+
+    loadProject(name) {
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        if (projects[name]) {
+            const data = projects[name];
+
+            this.titleInput.value = data.title || '';
+            this.authorInput.value = data.author || '';
+            this.editor.style.fontSize = data.fontSize || (this.fontSizeSlider.value + 'px');
+            const num = parseInt((data.fontSize || '').replace('px',''), 10);
+            if (!isNaN(num)) this.fontSizeSlider.value = num;
+            this.loadContent(data.content || '');
+
+            localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
+
+            if (this.projectList.value !== name) {
+                this.projectList.value = name;
+            }
+
+            if (data.scrollSpeed !== undefined && data.scrollSpeed !== null) {
+                this.scrollSpeed = data.scrollSpeed;
+                try {
+                    const percent = Math.round(( (this.scrollSpeed - 0.02) / (0.5 - 0.02) ) * 100);
+                    this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
+                } catch (e) {
+                    this.liveSpeedSlider.value = 20;
+                }
+            }
+            if (data.darkMode) {
+                document.body.classList.add('dark-mode');
+                this.btnToggleDarkMode.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                this.btnToggleDarkMode.textContent = '🌙';
+            }
+
+            if (data.duration) {
+                this.liveDurationInput.value = data.duration;
+            }
+            this.recordHistory();
+        }
+    }
+
+    deleteProject(name) {
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        if (!projects[name]) return;
+        delete projects[name];
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+        const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+        if (last === name) {
+            localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+            this.createNewProject();
+        }
+        this.updateProjectList();
+        this.showCustomAlert(`Projekt "${name}" borttaget.`);
+    }
+
+    updateProjectList(selectedValue) {
+        const list = this.projectList;
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        const currentProjects = Object.keys(projects).sort();
+        
+        list.innerHTML = '<option value="">Ladda projekt...</option>';
+        currentProjects.forEach(name => {
+            const option = document.createElement('option');
+            option.value = name;
+            option.textContent = name;
+            list.appendChild(option);
+        });
+        
+        const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+        if (last && currentProjects.includes(last)) {
+            list.value = last;
+        } else {
+            list.selectedIndex = 0;
+        }
+    }
+
+    loadLastProject() {
+        this.updateProjectList();
+        const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+        if (last) {
+            this.loadProject(last);
+        } else {
+            const welcomeText = '::Vers::\nVälkommen till redigeraren!\n\n::Refräng::\nSkriv text och infoga ackord med [Am], [G], [C] etc.';
+            this.loadContent(welcomeText);
+        }
+    }
+    
+    // --- METODER FÖR LIVE-LÄGE ---
+    
+    toggleLiveMode(enter) {
+        if (enter) {
+            this.renderLiveView();
+            document.body.classList.add('live-mode-active');
+            this.liveView.scrollTop = 0;
+        } else {
+            this.stopScrolling();
+            document.body.classList.remove('live-mode-active');
+        }
+    }
+
+    renderLiveView() {
+        this.syncChordData();
+        const title = this.titleInput.value || 'Okänd Låt';
+        const author = this.authorInput.value || 'Okänd Artist';
+        const content = this.getContentAsText();
+        
+        this.liveSongContent.innerHTML = '';
+        
+        const titleEl = document.createElement('h1');
+        titleEl.textContent = title;
+        const authorEl = document.createElement('h2');
+        authorEl.textContent = author;
+        this.liveSongContent.appendChild(titleEl);
+        this.liveSongContent.appendChild(authorEl);
+
+        const lines = content.split('\n');
+        lines.forEach(lineText => {
+            if (lineText.trim() === '') {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.innerHTML = '&nbsp;';
+                emptyDiv.style.lineHeight = '1';
+                this.liveSongContent.appendChild(emptyDiv);
+                return;
+            }
+
+            const lineContainer = document.createElement('div');
+            lineContainer.className = 'live-line';
+
+            let sectionType = null;
+            lineText = lineText.replace(/^::(.*?)::/, (match, type) => {
+                sectionType = type;
+                return '';
+            });
+            if (sectionType) {
+                const markerEl = document.createElement('div');
+                markerEl.className = 'live-section-marker';
+                markerEl.textContent = sectionType;
+                lineContainer.appendChild(markerEl);
+            }
+            
+            const contentP = document.createElement('p');
+            const parts = lineText.split(/(\[[^\]]+\])/);
+
+            for (let i = 0; i < parts.length; i++) {
+                const part = parts[i];
+                if (part.startsWith('[') && part.endsWith(']')) {
+                    const chord = part.substring(1, part.length - 1);
+                    const chunkSpan = document.createElement('span');
+                    chunkSpan.className = 'chunk';
+
+                    const chordSpan = document.createElement('span');
+                    chordSpan.className = 'chord';
+                    chordSpan.textContent = chord;
+
+                    const lyricSpan = document.createElement('span');
+                    lyricSpan.className = 'lyric';
+                    
+                    let lyricText = '';
+                    if (i + 1 < parts.length && !parts[i+1].startsWith('[')) {
+                        lyricText = parts[i+1];
+                        i++;
+                    }
+                    lyricSpan.textContent = lyricText || '\u00A0';
+
+                    chunkSpan.appendChild(chordSpan);
+                    chunkSpan.appendChild(lyricSpan);
+                    contentP.appendChild(chunkSpan);
+
+                } else if (part) {
+                    const chunkSpan = document.createElement('span');
+                    chunkSpan.className = 'chunk';
+                    const lyricSpan = document.createElement('span');
+                    lyricSpan.className = 'lyric';
+                    lyricSpan.textContent = part;
+                    chunkSpan.appendChild(lyricSpan);
+                    contentP.appendChild(chunkSpan);
+                }
+            }
+            lineContainer.appendChild(contentP);
+            this.liveSongContent.appendChild(lineContainer);
+        });
+
+        const duration = parseInt(this.liveDurationInput.value, 10);
+        if (!isNaN(duration) && duration > 0) {
+            this.setScrollForDuration(duration);
+        }
+    }
+    
+    toggleScrolling() {
+        if (this.scrollInterval) {
+            this.stopScrolling();
+        } else {
+            this.setScrollSpeed(this.liveSpeedSlider.value);
+            this.startScrolling();
+        }
+    }
+
+    startScrolling() {
+        if (this.scrollInterval || this.scrollSpeed <= 0) return;
+        
+        this.liveBtnPlayPause.textContent = '❚❚';
+        this.scrollRemainder = 0;
+        
+        const scroll = () => {
+            this.scrollRemainder += this.scrollSpeed;
+            const move = Math.floor(this.scrollRemainder);
+
+            if (move > 0) {
+                this.liveView.scrollTop += move;
+                this.scrollRemainder -= move;
+            }
+
+            if (this.liveView.scrollTop + this.liveView.clientHeight >= this.liveView.scrollHeight) {
+                this.stopScrolling();
+            } else {
+                this.scrollInterval = requestAnimationFrame(scroll);
+            }
+        };
+        this.scrollInterval = requestAnimationFrame(scroll);
+    }
+    
+    stopScrolling() {
+        if (this.scrollInterval) {
+            cancelAnimationFrame(this.scrollInterval);
+        }
+        this.scrollInterval = null;
+        this.liveBtnPlayPause.textContent = '▶';
+    }
+    
+    setScrollSpeed(value) {
+        const MIN_MOVE_SPEED = 0.02; 
+        const MAX_SPEED = 0.5;
+        const val = parseFloat(value);
+
+        if (val === 0) {
+            this.scrollSpeed = 0;
+            return;
+        }
+        const percentage = val / 100;
+        this.scrollSpeed = MIN_MOVE_SPEED + percentage * (MAX_SPEED - MIN_MOVE_SPEED);
+    }
+
+    setScrollForDuration(durationSeconds) {
+        setTimeout(() => {
+            const scrollHeight = Math.max(1, this.liveSongContent.scrollHeight - this.liveView.clientHeight);
+            if (scrollHeight <= 0) return;
+
+            const frames = Math.max(1, durationSeconds * 60);
+            this.scrollSpeed = scrollHeight / frames;
+            
+            const MIN = 0.001;
+            const MAX = 5;
+            this.scrollSpeed = Math.max(MIN, Math.min(MAX, this.scrollSpeed));
+
+            const percent = Math.round( ((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100 );
+            this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
+        }, 100);
+    }
+
+    // --- HISTORIK: UNDO/REDO ---
+    recordHistory() {
+        const snapshot = this.getContentAsText();
+        if (this.history[this.historyIndex] === snapshot) return;
+        this.history = this.history.slice(0, this.historyIndex + 1);
+        this.history.push(snapshot);
+        if (this.history.length > this.historyMax) this.history.shift();
+        this.historyIndex = this.history.length - 1;
+    }
+
+    recordHistoryDebounced() {
+        clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(() => this.recordHistory(), 300);
+    }
+
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            const snapshot = this.history[this.historyIndex];
+            this.loadContent(snapshot, false);
+        }
+    }
+
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            const snapshot = this.history[this.historyIndex];
+            this.loadContent(snapshot, false);
+        }
+    }
+
+    // --- EXPORT/IMPORT JSON ---
+    exportJson() {
+        this.syncChordData();
+        const projectData = {
+            title: this.titleInput.value,
+            author: this.authorInput.value,
+            content: this.getContentAsText(),
+            fontSize: this.editor.style.fontSize,
+            scrollSpeed: this.scrollSpeed,
+            darkMode: document.body.classList.contains('dark-mode'),
+            duration: parseInt(this.liveDurationInput.value, 10) || null
+        };
+        const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
+        saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`);
+    }
+
+    exportAllJson() {
+        try {
+            const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+            const projectArray = Object.values(projects);
+
+            if (projectArray.length === 0) {
+                return this.showCustomAlert('Det finns inga sparade projekt att exportera.');
+            }
+            const blob = new Blob([JSON.stringify(projectArray, null, 2)], { type: "application/json" });
+            saveAs(blob, `alla-låtar-backup.json`);
+        } catch (error) {
+            console.error("Kunde inte exportera alla projekt som JSON:", error);
+            this.showCustomAlert('Ett fel uppstod vid export av JSON-fil.');
+        }
+    }
+    
+    importJsonFromFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (Array.isArray(data)) {
+                    const confirmed = await this.showCustomConfirm(`Du är på väg att importera ${data.length} låtar. Detta kommer att skriva över existerande låtar med samma titel. Vill du fortsätta?`);
+                    if (confirmed) this.importMultipleProjects(data);
+                } else if (typeof data === 'object' && data !== null && data.title) {
+                    this.importSingleProject(data);
+                } else {
+                   throw new Error("Okänt JSON-format.");
+                }
+            } catch (err) {
+                console.error("Importfel:", err);
+                this.showCustomAlert('Fel vid inläsning av JSON. Kontrollera att filen är korrekt formaterad.');
+            } finally {
+                this.fileImport.value = '';
+            }
+        };
+        reader.readAsText(file);
+    }
+    
+    importSingleProject(data) {
+        this.titleInput.value = data.title || '';
+        this.authorInput.value = data.author || '';
+        this.editor.style.fontSize = data.fontSize || '16px';
+        this.loadContent(data.content || '', true);
+        if (data.scrollSpeed) {
+            this.scrollSpeed = data.scrollSpeed;
+            const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100);
+            this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
+        }
+        if (data.darkMode) document.body.classList.add('dark-mode');
+        else document.body.classList.remove('dark-mode');
+        
+        if (data.duration) this.liveDurationInput.value = data.duration;
+        this.showCustomAlert(`Projektet "${data.title}" importerades.`);
+        this.saveProject(data.title);
+        this.recordHistory();
+    }
+
+    importMultipleProjects(projectsArray) {
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        let importedCount = 0;
+        let overwrittenCount = 0;
+
+        for (const project of projectsArray) {
+            if (project && project.title) {
+                if (projects[project.title]) overwrittenCount++;
+                else importedCount++;
+                projects[project.title] = project;
+            }
+        }
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+        this.updateProjectList();
+        this.showCustomAlert(`${importedCount} nya låtar importerades. ${overwrittenCount} låtar uppdaterades.`);
+        
+        if (projectsArray.length > 0 && projectsArray[0].title) {
+            this.loadProject(projectsArray[0].title);
+        }
+    }
+}
+
+window.addEventListener('load', () => new StableChordEditor('editor'));
+</script>
+
+</body>
+</html>

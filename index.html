@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ProChorder5.0</title>
+    <title>Låtredigerare Stable — Vänsterspalt</title>
     <style>
         :root {
             --bg: #f4f5f7;
@@ -547,9 +547,10 @@
                     </div>
 
                     <div style="display:flex; flex-wrap: wrap; gap:.5em; margin-top:.5em">
-                        <button id="btn-export-json" style="flex:1" title="Exportera den nuvarande låten som en JSON-fil">Exportera (1)</button>
-                        <button id="btn-export-all-json" style="flex:1" title="Exportera alla sparade låtar till en enda JSON-fil">Exportera allt</button>
-                        <button id="btn-import-json" style="flex:2" title="Importera en eller flera låtar från en JSON-fil">Importera JSON</button>
+                        <button id="btn-export-json" style="flex:1" title="Exportera den nuvarande låten som en JSON-fil">Låt till JSON</button>
+                        <button id="btn-export-all-json" style="flex:1" title=" alla sparade låtar till en enda JSON-fil">Allt till JSON</button>
+                        <button id="btn-import-json" style="flex:1" title="Importera en eller flera låtar från en JSON-fil">Import. JSON</button>
+                        <button id="btn-import-url" style="flex:1" title="Hämta låtar från en fast GitHub URL" class="btn-primary">1313</button>
                         <input type="file" id="file-import" accept="application/json" class="hidden-file">
                     </div>
                 </div>
@@ -627,6 +628,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script>
+// *** VIKTIGT: Byt ut denna URL mot din egen giltiga "Raw" GitHub URL! ***
+const SHARED_SONG_LIST_URL = 'https://raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json';
+
 class StableChordEditor {
     static STORAGE_KEYS = {
         PROJECTS: 'stableProjects',
@@ -667,6 +671,7 @@ class StableChordEditor {
         this.btnExportAllJson = document.getElementById('btn-export-all-json');
         this.btnImportJson = document.getElementById('btn-import-json');
         this.fileImport = document.getElementById('file-import');
+        this.btnImportUrl = document.getElementById('btn-import-url');
 
         this.musicalNotes = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"];
         this.observer = new MutationObserver(this.handleMutations.bind(this));
@@ -839,6 +844,14 @@ class StableChordEditor {
         this.btnExportAllJson.addEventListener('click', () => this.exportAllJson());
         this.btnImportJson.addEventListener('click', () => this.fileImport.click());
         this.fileImport.addEventListener('change', (e) => this.importJsonFromFile(e.target.files[0]));
+
+        // ÄNDRING: Kopplar "Import. URL"-knappen till den fasta URL:en
+        this.btnImportUrl.addEventListener('click', async () => {
+            const confirmed = await this.showCustomConfirm('Vill du ladda den gemensamma låtlistan från GitHub? Detta kommer att skriva över lokala låtar med samma titel.');
+            if (confirmed) {
+                this.importJsonFromUrl(SHARED_SONG_LIST_URL);
+            }
+        });
 
         document.addEventListener('keydown', (e) => {
             const active = document.activeElement;
@@ -1646,6 +1659,39 @@ class StableChordEditor {
             }
         };
         reader.readAsText(file);
+    }
+
+    async importJsonFromUrl(url) {
+        if (!url) {
+            this.showCustomAlert('Ingen URL angiven.');
+            return; 
+        }
+
+        // Enkel validering för att säkerställa att det är en GitHub Raw-länk
+        if (!url.startsWith('https://raw.githubusercontent.com/')) {
+            this.showCustomAlert('Ange en giltig GitHub Raw-URL (den ska börja med "https://raw.githubusercontent.com/").');
+            return;
+        }
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Nätverksfel: ${response.status} ${response.statusText}`);
+            }
+            const data = await response.json();
+
+            // Återanvänd befintlig logik för att hantera datan
+            if (Array.isArray(data)) {
+                 this.importMultipleProjects(data); // Importerar direkt utan bekräftelse här
+            } else if (typeof data === 'object' && data !== null && data.title) {
+                this.importSingleProject(data);
+            } else {
+                throw new Error("Okänt JSON-format från URL.");
+            }
+        } catch (err) {
+            console.error("Importfel från URL:", err);
+            this.showCustomAlert(`Fel vid import från URL. Kontrollera att URL:en är korrekt och att filen är en giltig JSON-fil. Fel: ${err.message}`);
+        }
     }
     
     importSingleProject(data) {

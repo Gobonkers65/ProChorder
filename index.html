@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ProChorder5.0</title>
+    <title>Låtredigerare Stable — Vänsterspalt</title>
     <style>
         :root {
             --bg: #f4f5f7;
@@ -103,14 +103,14 @@
             font-weight: 600;
             font-size: 0.9em;
             min-width: 40px;
-            height: 34px;
+            height: 38px; 
             background-color: var(--bg);
             color: var(--text-color);
             border: 1px solid var(--border);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
-            padding: 0 0.5em;
+            padding: 0 0.8em;
             box-sizing: border-box;
             width: 100%; 
         }
@@ -323,7 +323,26 @@
             }
             .section-marker {
                 left: -1.8em;
-                font-size: 0.65em;
+            }
+
+            /* ÄNDRING: Ny, robust metod för att förkorta sektionsmarkörer */
+            .section-marker {
+                background: none;
+                padding: 0;
+            }
+            .section-marker-text {
+                display: none; /* Dölj originaltexten helt */
+            }
+            .section-marker::before {
+                content: attr(data-abbreviation);
+                /* Återskapa utseendet på pseudo-elementet */
+                background-color: var(--bg);
+                color: var(--section-marker-color);
+                padding: 0.1em 0.5em;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                font-family: var(--font-sans);
             }
         }
 
@@ -358,7 +377,6 @@
             }
         }
 
-        /* --- CSS FÖR LIVE-LÄGE --- */
         #live-view {
             display: none;
             position: fixed;
@@ -392,7 +410,7 @@
         #live-song-content h2 { font-size: 1.5em; font-weight: 400; opacity: 0.8; margin-bottom: 3em; }
 
         .live-line {
-            margin-bottom: 2.2em; /* Justerad för bättre radavstånd */
+            margin-bottom: 2.2em;
             position: relative;
         }
         
@@ -404,12 +422,11 @@
             margin-bottom: 0.5em;
         }
 
-        /* --- UPPDATERADE STILAR FÖR KORREKT ACkORDPLACERING --- */
         .live-line p {
             margin: 0;
             padding: 0;
-            padding-top: 1.5em; /* Ökat utrymme för större ackord */
-            line-height: 1.4;
+            padding-top: 1.6em;
+            line-height: 1.6;
             font-size: 1.4em;
         }
         .live-line .chunk {
@@ -417,6 +434,7 @@
             position: relative;
             vertical-align: bottom;
             white-space: pre-wrap;
+            min-width: 3ch;
         }
         .live-line .chunk .lyric {
             display: inline-block;
@@ -425,18 +443,14 @@
             position: absolute;
             bottom: 100%;
             left: 0;
-            
-            /* -- ÄNDRINGAR ENLIGT ÖNSKEMÅL -- */
-            font-family: inherit;      /* Ärv typsnitt från texten */
-            font-size: 1em;            /* Använd samma storlek som texten */
-            font-weight: 700;          /* Behåll fet stil (eller 'normal') */
-            
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: 700;
             color: var(--chord-color);
             line-height: 1.2;
             white-space: nowrap;
             user-select: none;
         }
-        /* --- SLUT PÅ UPPDATERADE STILAR --- */
 
         #live-controls {
             position: fixed;
@@ -490,6 +504,96 @@
         }
 
         .hidden-file { display: none; }
+
+        .sidebar-group-label {
+            position: relative;
+            cursor: pointer;
+            padding: 0.5em;
+            padding-right: 25px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+
+        .sidebar-group-label:hover {
+            background-color: var(--primary-bg-hover);
+        }
+        
+        .sidebar-group-label::after {
+            content: '›';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            transition: transform 0.3s ease;
+            font-size: 1.5em;
+            font-weight: 300;
+        }
+
+        .sidebar-group-label.is-open::after {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        .sidebar-group-content {
+            max-height: 500px;
+            overflow: hidden;
+            opacity: 1;
+            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
+        }
+
+        .sidebar-group-content.is-collapsed {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), opacity 0.1s;
+        }
+        
+        @media (max-width: 600px) {
+            #live-controls {
+                display: grid;
+                grid-template-rows: auto auto;
+                grid-template-columns: 80px 1fr 80px;
+                gap: 0.8em;
+                padding: 0.8em;
+            }
+
+            #live-controls .speed-control {
+                grid-row: 1;
+                grid-column: 1 / -1;
+            }
+
+            #live-controls .speed-control span {
+                display: none;
+            }
+            #live-controls input[type="range"] {
+                width: 100%;
+            }
+
+            #live-btn-play-pause {
+                grid-row: 2;
+                grid-column: 1;
+            }
+
+            #live-controls .duration-control {
+                grid-row: 2;
+                grid-column: 2;
+                justify-self: center;
+            }
+            #live-controls .duration-control label {
+                display: none;
+            }
+            
+            #live-btn-exit {
+                grid-row: 2;
+                grid-column: 3;
+            }
+
+            .live-line p {
+                font-size: 1.2em;
+                line-height: 1.6;
+                padding-top: 1.6em;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -501,71 +605,88 @@
             
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Ackordbyggare</span>
-                <div class="sidebar-controls vertical">
-                    <div class="sidebar-controls horizontal">
-                        <select id="chord-root">
-                            <option value="">Grundton</option>
-                            <option value="A">A</option><option value="A#">A#</option><option value="Bb">Bb</option><option value="B">B</option><option value="C">C</option><option value="C#">C#</option><option value="Db">Db</option><option value="D">D</option><option value="D#">D#</option><option value="Eb">Eb</option><option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="Gb">Gb</option><option value="G">G</option><option value="G#">G#</option><option value="Ab">Ab</option>
-                        </select>
-                        <select id="chord-type"><option value="">Dur</option><option value="m">m</option><option value="maj">maj</option><option value="dim">dim</option><option value="aug">aug</option><option value="sus2">sus2</option><option value="sus4">sus4</option></select>
-                        <select id="chord-extension"><option value="">—</option><option value="6">6</option><option value="7">7</option><option value="9">9</option><option value="11">11</option><option value="13">13</option></select>
-                    </div>
-                    <div class="sidebar-controls horizontal">
-                        <button id="btn-insert-built">Infoga</button>
-                        <button id="btn-delete-chord" title="Ta bort markerat ackord">Ta bort</button>
+                <div class="sidebar-group-content is-collapsed">
+                    <div class="sidebar-controls vertical">
+                        <div class="sidebar-controls horizontal">
+                            <select id="chord-root">
+                                <option value="">Grundton</option>
+                                <option value="A">A</option><option value="A#">A#</option><option value="Bb">Bb</option><option value="B">B</option><option value="C">C</option><option value="C#">C#</option><option value="Db">Db</option><option value="D">D</option><option value="D#">D#</option><option value="Eb">Eb</option><option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="Gb">Gb</option><option value="G">G</option><option value="G#">G#</option><option value="Ab">Ab</option>
+                            </select>
+                            <select id="chord-type"><option value="">Dur</option><option value="m">m</option><option value="maj">maj</option><option value="dim">dim</option><option value="aug">aug</option><option value="sus2">sus2</option><option value="sus4">sus4</option></select>
+                            <select id="chord-extension"><option value="">—</option><option value="6">6</option><option value="7">7</option><option value="9">9</option><option value="11">11</option><option value="13">13</option></select>
+                        </div>
+                        <div class="sidebar-controls horizontal">
+                            <button id="btn-insert-built">Infoga</button>
+                            <button id="btn-delete-chord" title="Ta bort markerat ackord">Ta bort</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Låtstruktur</span>
-                <div class="sidebar-controls horizontal">
-                    <button id="btn-insert-verse">Vers</button>
-                    <button id="btn-insert-chorus">Refräng</button>
-                    <button id="btn-insert-bridge">Stick</button>
+                <div class="sidebar-group-content is-collapsed">
+                    <div class="sidebar-controls horizontal">
+                        <select id="section-type-select">
+                            <option value="" disabled selected>Välj sektion...</option>
+                            <option value="Intro">Intro</option>
+                            <option value="Vers">Vers</option>
+                            <option value="Refräng">Refräng</option>
+                            <option value="Stick">Stick</option>
+                            <option value="Bridge">Bridge</option>
+                            <option value="Solo">Solo</option>
+                            <option value="Outro">Outro</option>
+                            <option value="Mellanspel">Mellanspel</option>
+                        </select>
+                        <button id="btn-insert-section">Infoga</button>
+                    </div>
                 </div>
             </div>
 
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Projekthantering</span>
-                <div class="sidebar-controls vertical">
-                    <div class="sidebar-controls horizontal">
-                       <button id="btn-transpose-up" title="Transponera upp">+1 Halvton</button>
-                       <button id="btn-transpose-down" title="Transponera ner">-1 Halvton</button>
-                    </div>
-                    <div class="sidebar-controls font-size-control">
-                        <span>Textstorlek</span>
-                        <input type="range" id="font-size-slider" min="12" max="32" value="16">
-                    </div>
-                    
-                    <select id="project-list" title="Ladda projekt"></select>
-                    
-                    <div class="sidebar-controls horizontal">
-                        <button id="btn-new-project" class="btn-primary" title="Skapa ett nytt tomt projekt">Nytt</button>
-                        <button id="btn-save-project" class="btn-success" title="Spara projekt">Spara</button>
-                        <button id="btn-delete-project" class="btn-danger" title="Ta bort valt projekt">Ta bort</button>
-                    </div>
+                <div class="sidebar-group-content is-collapsed">
+                    <div class="sidebar-controls vertical">
+                        <div class="sidebar-controls horizontal">
+                           <button id="btn-transpose-up" title="Transponera upp">+1 Halvton</button>
+                           <button id="btn-transpose-down" title="Transponera ner">-1 Halvton</button>
+                        </div>
+                        <div class="sidebar-controls font-size-control">
+                            <span>Textstorlek</span>
+                            <input type="range" id="font-size-slider" min="12" max="32" value="16">
+                        </div>
+                        
+                        <select id="project-list" title="Ladda projekt"></select>
+                        
+                        <div class="sidebar-controls horizontal">
+                            <button id="btn-new-project" class="btn-primary" title="Skapa ett nytt tomt projekt">Nytt</button>
+                            <button id="btn-save-project" class="btn-success" title="Spara projekt">Spara</button>
+                            <button id="btn-delete-project" class="btn-danger" title="Ta bort valt projekt">Ta bort</button>
+                        </div>
 
-                    <div style="display:flex; flex-wrap: wrap; gap:.5em; margin-top:.5em">
-                        <button id="btn-export-json" style="flex:1" title="Exportera den nuvarande låten som en JSON-fil">Låt till JSON</button>
-                        <button id="btn-export-all-json" style="flex:1" title=" alla sparade låtar till en enda JSON-fil">Allt till JSON</button>
-                        <button id="btn-import-json" style="flex:1" title="Importera en eller flera låtar från en JSON-fil">Import. JSON</button>
-                        <button id="btn-import-url" style="flex:1" title="Hämta låtar från en fast GitHub URL" class="btn-primary">1313</button>
-                        <input type="file" id="file-import" accept="application/json" class="hidden-file">
+                        <div style="display:flex; flex-wrap: wrap; gap:.5em; margin-top:.5em">
+                            <button id="btn-export-json" style="flex:1" title="Exportera den nuvarande låten som en JSON-fil">Låt till JSON</button>
+                            <button id="btn-export-all-json" style="flex:1" title=" alla sparade låtar till en enda JSON-fil">Allt till JSON</button>
+                            <button id="btn-import-json" style="flex:1" title="Importera en eller flera låtar från en JSON-fil">Import. JSON</button>
+                            <button id="btn-import-url" style="flex:1" title="Hämta låtar från en fast GitHub URL" class="btn-primary">1313</button>
+                            <input type="file" id="file-import" accept="application/json" class="hidden-file">
+                        </div>
                     </div>
                 </div>
             </div>
             
             <div class="sidebar-group">
                 <span class="sidebar-group-label">Export & Tema</span>
-                <div class="sidebar-controls horizontal">
-                    <button id="btn-export-pdf" title="Exportera som PDF">PDF</button>
-                    <button id="btn-export-txt" title="Exportera som TXT">TXT</button>
-                    <button id="btn-export-zip" title="Spara alla låtar som ZIP">ZIP</button>
-                    <button id="btn-toggle-dark-mode" title="Växla mörkt/ljust läge">🌙</button>
-                </div>
-                 <div class="sidebar-controls vertical">
-                    <button id="btn-live-mode" class="btn-primary" title="Aktivera live-läge för uppspelning">▶️ Live-läge</button>
+                <div class="sidebar-group-content is-collapsed">
+                    <div class="sidebar-controls horizontal">
+                        <button id="btn-export-pdf" title="Exportera som PDF">PDF</button>
+                        <button id="btn-export-txt" title="Exportera som TXT">TXT</button>
+                        <button id="btn-export-zip" title="Spara alla låtar som ZIP">ZIP</button>
+                        <button id="btn-toggle-dark-mode" title="Växla mörkt/ljust läge">🌙</button>
+                    </div>
+                     <div class="sidebar-controls vertical">
+                        <button id="btn-live-mode" class="btn-primary" title="Aktivera live-läge för uppspelning">▶️ Live-läge</button>
+                    </div>
                 </div>
             </div>
 
@@ -650,9 +771,8 @@ class StableChordEditor {
         this.insertBtn = document.getElementById('btn-insert-built');
         this.btnDeleteChord = document.getElementById('btn-delete-chord');
         
-        this.btnInsertVerse = document.getElementById('btn-insert-verse');
-        this.btnInsertChorus = document.getElementById('btn-insert-chorus');
-        this.btnInsertBridge = document.getElementById('btn-insert-bridge');
+        this.sectionTypeSelect = document.getElementById('section-type-select');
+        this.btnInsertSection = document.getElementById('btn-insert-section');
 
         this.fontSizeSlider = document.getElementById('font-size-slider'); 
         this.projectList = document.getElementById('project-list'); 
@@ -693,6 +813,7 @@ class StableChordEditor {
         this.historyMax = 100;
 
         this.debounceTimer = null;
+        this.liveSettingsDebounceTimer = null;
 
         this.init();
     }
@@ -763,9 +884,16 @@ class StableChordEditor {
         });
         this.btnDeleteChord.addEventListener('click', () => { this.deleteSelectedChord(); this.recordHistoryDebounced(); });
 
-        this.btnInsertVerse.addEventListener('click', () => { this.insertSectionMarker('Vers'); this.recordHistoryDebounced(); });
-        this.btnInsertChorus.addEventListener('click', () => { this.insertSectionMarker('Refräng'); this.recordHistoryDebounced(); });
-        this.btnInsertBridge.addEventListener('click', () => { this.insertSectionMarker('Stick'); this.recordHistoryDebounced(); });
+        this.btnInsertSection.addEventListener('click', () => {
+            const sectionType = this.sectionTypeSelect.value;
+            if (sectionType) {
+                this.insertSectionMarker(sectionType);
+                this.recordHistoryDebounced();
+                this.sectionTypeSelect.selectedIndex = 0;
+            } else {
+                this.showCustomAlert('Välj en sektionstyp från rullistan.');
+            }
+        });
 
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.chord')) {
@@ -830,13 +958,20 @@ class StableChordEditor {
         this.btnLiveMode.addEventListener('click', () => this.toggleLiveMode(true));
         this.liveBtnExit.addEventListener('click', () => this.toggleLiveMode(false));
         this.liveBtnPlayPause.addEventListener('click', () => this.toggleScrolling());
+        
         this.liveSpeedSlider.addEventListener('input', (e) => {
             this.setScrollSpeed(e.target.value);
+            this.updateDurationFromSpeed();
+            clearTimeout(this.liveSettingsDebounceTimer);
+            this.liveSettingsDebounceTimer = setTimeout(() => this.saveLiveSettings(), 1000);
         });
+
         this.liveDurationInput.addEventListener('change', (e) => {
             const seconds = parseInt(e.target.value, 10);
             if (!isNaN(seconds) && seconds > 0) {
                 this.setScrollForDuration(seconds);
+                clearTimeout(this.liveSettingsDebounceTimer);
+                this.liveSettingsDebounceTimer = setTimeout(() => this.saveLiveSettings(), 1000);
             }
         });
 
@@ -845,19 +980,27 @@ class StableChordEditor {
         this.btnImportJson.addEventListener('click', () => this.fileImport.click());
         this.fileImport.addEventListener('change', (e) => this.importJsonFromFile(e.target.files[0]));
 
-        // ÄNDRING: Kopplar "Import. URL"-knappen till den fasta URL:en
         this.btnImportUrl.addEventListener('click', async () => {
             const confirmed = await this.showCustomConfirm('Vill du ladda den gemensamma låtlistan från GitHub? Detta kommer att skriva över lokala låtar med samma titel.');
             if (confirmed) {
                 this.importJsonFromUrl(SHARED_SONG_LIST_URL);
             }
         });
+        
+        document.querySelectorAll('.sidebar-group-label').forEach(label => {
+            label.addEventListener('click', (event) => {
+                const content = event.target.nextElementSibling;
+                if (content && content.classList.contains('sidebar-group-content')) {
+                    label.classList.toggle('is-open');
+                    content.classList.toggle('is-collapsed');
+                }
+            });
+        });
 
         document.addEventListener('keydown', (e) => {
             const active = document.activeElement;
             if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
                 if (active === this.editor || active.closest && active.closest('#editor')) {
-                    // fall through to handle undo/redo
                 } else {
                     return;
                 }
@@ -1043,14 +1186,8 @@ class StableChordEditor {
 
         const existingMarker = node.querySelector('.section-marker');
         if(existingMarker) existingMarker.remove();
-
-        const markerSpan = document.createElement('span');
-        markerSpan.className = 'section-marker';
-        markerSpan.dataset.section = type;
-        markerSpan.setAttribute('contenteditable', 'false');
-        markerSpan.textContent = type;
-
-        node.insertBefore(markerSpan, node.firstChild);
+        
+        this.insertSectionMarkerInDiv(node, type);
     }
 
     deleteSelectedChord() {
@@ -1087,6 +1224,8 @@ class StableChordEditor {
                     lineText += node.textContent; 
                 } else if (node.classList && node.classList.contains && node.classList.contains('chord')) { 
                     lineText += `[${node.dataset.chord}]`; 
+                } else if (node.classList && node.classList.contains('section-marker-text')) {
+                    // Ignorera den inre texten för att undvika dubbletter
                 }
             });
             
@@ -1108,12 +1247,7 @@ class StableChordEditor {
                 return '';
             });
             if (sectionType) {
-                const markerSpan = document.createElement('span');
-                markerSpan.className = 'section-marker';
-                markerSpan.dataset.section = sectionType;
-                markerSpan.setAttribute('contenteditable', 'false');
-                markerSpan.textContent = sectionType;
-                lineDiv.appendChild(markerSpan);
+                this.insertSectionMarkerInDiv(lineDiv, sectionType);
             }
 
             if (lineText.trim() === '' && !lineText.includes('[')) {
@@ -1132,6 +1266,23 @@ class StableChordEditor {
         });
         this.startObserver();
         if (recordHistory) this.recordHistory();
+    }
+    
+    insertSectionMarkerInDiv(div, type) {
+        const abbreviations = { 'Vers': 'V', 'Refräng': 'R', 'Stick': 'S', 'Intro': 'I', 'Outro': 'O', 'Solo': 'Solo', 'Bridge': 'B', 'Mellanspel': 'M' };
+        const markerSpan = document.createElement('span');
+        markerSpan.className = 'section-marker';
+        markerSpan.dataset.section = type;
+        markerSpan.setAttribute('contenteditable', 'false');
+        markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0);
+
+        // ÄNDRING: Slå in texten i ett eget span-element
+        const textSpan = document.createElement('span');
+        textSpan.className = 'section-marker-text';
+        textSpan.textContent = type;
+        markerSpan.appendChild(textSpan);
+        
+        div.insertBefore(markerSpan, div.firstChild);
     }
 
     transpose(steps) {
@@ -1161,6 +1312,7 @@ class StableChordEditor {
         const margin = 15;
         const contentMargin = 20;
         const text = projectData.content || '';
+        const MIN_CHORD_SPACING_PDF = 7; 
 
         doc.setFontSize(18).setFont(undefined, 'bold');
         doc.text(projectData.title || 'Låttitel', margin, y);
@@ -1190,6 +1342,7 @@ class StableChordEditor {
             });
 
             const x = margin + contentMargin;
+            let lastChordXEnd = x; 
 
             if (sectionType) {
                 doc.setFontSize(9).setFont(undefined, 'bold');
@@ -1203,10 +1356,21 @@ class StableChordEditor {
             if (hasChords) {
                 doc.setFontSize(9).setFont(undefined, 'bold');
                 doc.setTextColor(0, 82, 204);
-                lineText.replace(/\[([^\]]+)\]/g, (match, chord, offset) => {
-                    const textBefore = lineText.substring(0, offset).replace(/\[[^\]]+\]/g, '');
-                    const textBeforeWidth = doc.getTextWidth(textBefore);
-                    doc.text(chord, x + textBeforeWidth, y - 4);
+                
+                const parts = lineText.split(/(\[[^\]]+\])/g);
+                let currentTextPos = x;
+                
+                parts.forEach(part => {
+                    if (part.startsWith('[') && part.endsWith(']')) {
+                        const chord = part.substring(1, part.length - 1);
+                        const chordWidth = doc.getTextWidth(chord);
+                        const intendedX = currentTextPos;
+                        const finalX = Math.max(intendedX, lastChordXEnd + MIN_CHORD_SPACING_PDF);
+                        doc.text(chord, finalX, y - 4);
+                        lastChordXEnd = finalX + chordWidth;
+                    } else {
+                        currentTextPos += doc.getTextWidth(part);
+                    }
                 });
             }
 
@@ -1296,7 +1460,6 @@ class StableChordEditor {
             fontSize: this.editor.style.fontSize || (this.fontSizeSlider.value + 'px'),
             content: this.getContentAsText(),
             scrollSpeed: this.scrollSpeed,
-            darkMode: document.body.classList.contains('dark-mode'),
             duration: parseInt(this.liveDurationInput.value, 10) || null
         };
         localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
@@ -1341,16 +1504,11 @@ class StableChordEditor {
                     this.liveSpeedSlider.value = 20;
                 }
             }
-            if (data.darkMode) {
-                document.body.classList.add('dark-mode');
-                this.btnToggleDarkMode.textContent = '☀️';
-            } else {
-                document.body.classList.remove('dark-mode');
-                this.btnToggleDarkMode.textContent = '🌙';
-            }
 
             if (data.duration) {
                 this.liveDurationInput.value = data.duration;
+            } else {
+                this.updateDurationFromSpeed();
             }
             this.recordHistory();
         }
@@ -1402,8 +1560,6 @@ class StableChordEditor {
         }
     }
     
-    // --- METODER FÖR LIVE-LÄGE ---
-    
     toggleLiveMode(enter) {
         if (enter) {
             this.renderLiveView();
@@ -1451,7 +1607,14 @@ class StableChordEditor {
             if (sectionType) {
                 const markerEl = document.createElement('div');
                 markerEl.className = 'live-section-marker';
-                markerEl.textContent = sectionType;
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = 'section-marker-text';
+                textSpan.textContent = sectionType;
+                markerEl.appendChild(textSpan);
+
+                const abbreviations = { 'Vers': 'V', 'Refräng': 'R', 'Stick': 'S', 'Intro': 'I', 'Outro': 'O', 'Solo': 'Solo', 'Bridge': 'B', 'Mellanspel': 'M' };
+                markerEl.dataset.abbreviation = abbreviations[sectionType] || sectionType.charAt(0);
                 lineContainer.appendChild(markerEl);
             }
             
@@ -1574,7 +1737,29 @@ class StableChordEditor {
         }, 100);
     }
 
-    // --- HISTORIK: UNDO/REDO ---
+    updateDurationFromSpeed() {
+        if (this.scrollSpeed < 0.001) {
+            return;
+        }
+        const scrollHeight = Math.max(1, this.liveSongContent.scrollHeight - this.liveView.clientHeight);
+        if (scrollHeight <= 0) return;
+
+        const durationSeconds = scrollHeight / (this.scrollSpeed * 60);
+        this.liveDurationInput.value = Math.round(durationSeconds);
+    }
+
+    saveLiveSettings() {
+        const currentProjectName = this.titleInput.value.trim();
+        if (!currentProjectName) return;
+
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        if (projects[currentProjectName]) {
+            projects[currentProjectName].scrollSpeed = this.scrollSpeed;
+            projects[currentProjectName].duration = parseInt(this.liveDurationInput.value, 10);
+            localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+        }
+    }
+
     recordHistory() {
         const snapshot = this.getContentAsText();
         if (this.history[this.historyIndex] === snapshot) return;
@@ -1605,7 +1790,6 @@ class StableChordEditor {
         }
     }
 
-    // --- EXPORT/IMPORT JSON ---
     exportJson() {
         this.syncChordData();
         const projectData = {
@@ -1614,7 +1798,6 @@ class StableChordEditor {
             content: this.getContentAsText(),
             fontSize: this.editor.style.fontSize,
             scrollSpeed: this.scrollSpeed,
-            darkMode: document.body.classList.contains('dark-mode'),
             duration: parseInt(this.liveDurationInput.value, 10) || null
         };
         const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
@@ -1667,7 +1850,6 @@ class StableChordEditor {
             return; 
         }
 
-        // Enkel validering för att säkerställa att det är en GitHub Raw-länk
         if (!url.startsWith('https://raw.githubusercontent.com/')) {
             this.showCustomAlert('Ange en giltig GitHub Raw-URL (den ska börja med "https://raw.githubusercontent.com/").');
             return;
@@ -1680,9 +1862,8 @@ class StableChordEditor {
             }
             const data = await response.json();
 
-            // Återanvänd befintlig logik för att hantera datan
             if (Array.isArray(data)) {
-                 this.importMultipleProjects(data); // Importerar direkt utan bekräftelse här
+                 this.importMultipleProjects(data);
             } else if (typeof data === 'object' && data !== null && data.title) {
                 this.importSingleProject(data);
             } else {
@@ -1704,8 +1885,6 @@ class StableChordEditor {
             const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100);
             this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
         }
-        if (data.darkMode) document.body.classList.add('dark-mode');
-        else document.body.classList.remove('dark-mode');
         
         if (data.duration) this.liveDurationInput.value = data.duration;
         this.showCustomAlert(`Projektet "${data.title}" importerades.`);
@@ -1722,6 +1901,9 @@ class StableChordEditor {
             if (project && project.title) {
                 if (projects[project.title]) overwrittenCount++;
                 else importedCount++;
+                
+                delete project.darkMode; 
+                
                 projects[project.title] = project;
             }
         }

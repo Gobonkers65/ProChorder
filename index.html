@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Låtredigerare Stable — Vänsterspalt</title>
+    <title>ProChorder5.0</title>
     <style>
         :root {
             --bg: #f4f5f7;
@@ -314,9 +314,11 @@
                 flex-direction: column;
             }
             .sidebar {
-                position: static;
-                width: 100%;
-                flex-basis: auto;
+            position: sticky; /* <--- ÄNDRINGEN */
+            top: 1em;         /* Sätt en liten marginal från toppen */
+            z-index: 100;     /* Säkerställ att den ligger överst */
+            width: 100%;
+            flex-basis: auto;
             }
             #editor {
                 padding-left: 2em;
@@ -588,7 +590,7 @@
             }
 
             .live-line p {
-                font-size: 1.2em;
+                font-size: 1.0em;
                 line-height: 1.6;
                 padding-top: 1.6em;
             }

@@ -34,8 +34,6 @@
             --chord-color: #ffcb47;
             --primary-bg-hover: rgba(76, 154, 255, 0.15);
             --section-marker-color: #97a3b3;
-            /* ÄNDRING: Bakgrundsfärgen på labeln tas bort för enhetligt utseende */
-            /* .sidebar-group-label { background-color: #3a4149; } */
         }
 
         body {
@@ -88,8 +86,6 @@
             opacity: 0.8;
             border-bottom: 1px solid var(--border);
             padding-bottom: 0.5em;
-            /* ÄNDRING: Bakgrundsfärgen tas bort för enhetligt utseende */
-            /* background-color: #f0f2f5; */
         }
 
         .sidebar-controls {
@@ -415,7 +411,7 @@
         #live-song-content h2 { font-size: 1.5em; font-weight: 400; opacity: 0.8; margin-bottom: 3em; }
 
         .live-line {
-            margin-bottom: 2.2em;
+            margin-bottom: 0; /* ÄNDRING: Tas bort för att efterlikna redigeraren */
             position: relative;
         }
         
@@ -431,9 +427,7 @@
             margin: 0;
             padding: 0;
             font-size: 1.4em;
-            /* ÄNDRING: Minskad från 1.6em för tätare rader */
-            padding-top: 0.6em;
-            line-height: 0.5;
+            line-height: 2.5; /* ÄNDRING: Samma som #editor för att garantera plats */
         }
         .live-line .chunk {
             display: inline-block;
@@ -447,7 +441,7 @@
         }
         .live-line .chunk .chord {
             position: absolute;
-            bottom: 100%;
+            top: 0.9em;/* Detta fungerar nu tack vare den höga line-height */
             left: 0;
             font-family: inherit;
             font-size: 1em;
@@ -594,12 +588,13 @@
                 grid-column: 3;
             }
 
+            /* ÄNDRING: Tar bort specialregel för mobil så den beter sig som desktop */
+            /*
             .live-line p {
                 font-size: 1.2em;
-                /* ÄNDRING: Minskad från 1.6em för tätare rader */
-                line-height: 0.5em;
-                padding-top: 0.5em;
+                line-height: 1.8;
             }
+            */
         }
 
     </style>
@@ -673,9 +668,9 @@
                         </div>
 
                         <div style="display:flex; flex-wrap: wrap; gap:.5em; margin-top:.5em">
-                            <button id="btn-export-json" style="flex:1" title="Exportera den nuvarande låten som en JSON-fil">Låt till JSON</button>
-                            <button id="btn-export-all-json" style="flex:1" title=" alla sparade låtar till en enda JSON-fil">Allt till JSON</button>
-                            <button id="btn-import-json" style="flex:1" title="Importera en eller flera låtar från en JSON-fil">Import. JSON</button>
+                            <button id="btn-export-json" style="flex:1" title="Exportera den nuvarande låten som en JSON-fil">Låt JSON</button>
+                            <button id="btn-export-all-json" style="flex:1" title=" alla sparade låtar till en enda JSON-fil">Allt JSON</button>
+                            <button id="btn-import-json" style="flex:1" title="Importera en eller flera låtar från en JSON-fil">Imp. JSON</button>
                             <button id="btn-import-url" style="flex:1" title="Hämta låtar från en fast GitHub URL" class="btn-primary">1313</button>
                             <input type="file" id="file-import" accept="application/json" class="hidden-file">
                         </div>
@@ -1079,7 +1074,7 @@ class StableChordEditor {
 
     formatNode(node) {
         if (!node.textContent.includes('[')) return;
-      
+        
         const text = node.textContent;
         const regex = /\[([^\]]+)\]/g;
         let match;

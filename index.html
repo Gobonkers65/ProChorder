@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>ProChorder5.0</title>
+    <title>Låtredigerare Stable — Vänsterspalt</title>
     <style>
         :root {
             --bg: #f4f5f7;
@@ -34,6 +34,8 @@
             --chord-color: #ffcb47;
             --primary-bg-hover: rgba(76, 154, 255, 0.15);
             --section-marker-color: #97a3b3;
+            /* ÄNDRING: Bakgrundsfärgen på labeln tas bort för enhetligt utseende */
+            /* .sidebar-group-label { background-color: #3a4149; } */
         }
 
         body {
@@ -67,7 +69,7 @@
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 1.5em; 
+            gap: 1.0em;
             align-self: flex-start; 
             position: sticky;
             top: 1em;
@@ -86,6 +88,8 @@
             opacity: 0.8;
             border-bottom: 1px solid var(--border);
             padding-bottom: 0.5em;
+            /* ÄNDRING: Bakgrundsfärgen tas bort för enhetligt utseende */
+            /* background-color: #f0f2f5; */
         }
 
         .sidebar-controls {
@@ -314,30 +318,29 @@
                 flex-direction: column;
             }
             .sidebar {
-            position: sticky; /* <--- ÄNDRINGEN */
-            top: 1em;         /* Sätt en liten marginal från toppen */
-            z-index: 100;     /* Säkerställ att den ligger överst */
-            width: 100%;
-            flex-basis: auto;
+                position: sticky;
+                top: 1em;
+                z-index: 100;
+                width: 100%;
+                flex-basis: auto;
             }
             #editor {
                 padding-left: 2em;
+                font-size: 14px;
             }
             .section-marker {
                 left: -1.8em;
             }
 
-            /* ÄNDRING: Ny, robust metod för att förkorta sektionsmarkörer */
             .section-marker {
                 background: none;
                 padding: 0;
             }
             .section-marker-text {
-                display: none; /* Dölj originaltexten helt */
+                display: none;
             }
             .section-marker::before {
                 content: attr(data-abbreviation);
-                /* Återskapa utseendet på pseudo-elementet */
                 background-color: var(--bg);
                 color: var(--section-marker-color);
                 padding: 0.1em 0.5em;
@@ -419,17 +422,18 @@
         .live-section-marker {
             font-family: var(--font-sans);
             font-weight: 700;
-            font-size: 1em;
+            font-size: 1.5em;
             color: var(--section-marker-color);
-            margin-bottom: 0.5em;
+            margin-bottom: 1.1em;
         }
 
         .live-line p {
             margin: 0;
             padding: 0;
-            padding-top: 1.6em;
-            line-height: 1.6;
             font-size: 1.4em;
+            /* ÄNDRING: Minskad från 1.6em för tätare rader */
+            padding-top: 0.6em;
+            line-height: 0.5;
         }
         .live-line .chunk {
             display: inline-block;
@@ -541,6 +545,7 @@
             overflow: hidden;
             opacity: 1;
             transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
+            padding: 0.75em 0.5em 0.5em 0.5em;
         }
 
         .sidebar-group-content.is-collapsed {
@@ -590,9 +595,10 @@
             }
 
             .live-line p {
-                font-size: 1.0em;
-                line-height: 1.6;
-                padding-top: 1.6em;
+                font-size: 1.2em;
+                /* ÄNDRING: Minskad från 1.6em för tätare rader */
+                line-height: 0.5em;
+                padding-top: 0.5em;
             }
         }
 
@@ -1227,7 +1233,7 @@ class StableChordEditor {
                 } else if (node.classList && node.classList.contains && node.classList.contains('chord')) { 
                     lineText += `[${node.dataset.chord}]`; 
                 } else if (node.classList && node.classList.contains('section-marker-text')) {
-                    // Ignorera den inre texten för att undvika dubbletter
+                    
                 }
             });
             
@@ -1278,7 +1284,6 @@ class StableChordEditor {
         markerSpan.setAttribute('contenteditable', 'false');
         markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0);
 
-        // ÄNDRING: Slå in texten i ett eget span-element
         const textSpan = document.createElement('span');
         textSpan.className = 'section-marker-text';
         textSpan.textContent = type;

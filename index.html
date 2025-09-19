@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Låtredigerare Stable — Vänsterspalt</title>
+    <title>ProChorder5.0</title>
     <style>
         :root {
             --bg: #f4f5f7;
@@ -179,6 +179,27 @@
             box-sizing: border-box;
             box-shadow: var(--shadow);
         }
+
+        #btn-live-mode {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.9em;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0 0.8em;
+            box-sizing: border-box;
+            background-color: var(--primary);
+            border: 1px solid var(--primary);
+            color: var(--button-text-light);
+            margin-right: 1em;
+            flex-shrink: 0;
+        }
+
+        #btn-live-mode:hover {
+            transform: translateY(-2px);
+        }
+
         #song-title { flex: 3; } 
         #song-author { flex: 2; font-size: 1em; font-weight: 400; }
 
@@ -190,7 +211,7 @@
             box-shadow: var(--shadow);
             min-height: 75vh; 
             height: auto;
-            font-family: var(--font-serif);
+            font-family: var(--font-sans);
             line-height: 2.5;
             outline: none;
             font-size: 16px; 
@@ -322,6 +343,7 @@
             }
             #editor {
                 padding-left: 2em;
+                /*padding-right: 1em; /* Lägg till denna rad */
                 font-size: 14px;
             }
             .section-marker {
@@ -332,18 +354,22 @@
                 background: none;
                 padding: 0;
             }
-            .section-marker-text {
-                display: none;
+            #editor .section-marker-text {
+            display: none;
+            
             }
             .section-marker::before {
                 content: attr(data-abbreviation);
                 background-color: var(--bg);
-                color: var(--section-marker-color);
+                color: var(--primary);
                 padding: 0.1em 0.5em;
                 border-radius: 4px;
                 font-size: 0.75rem;
                 font-weight: 700;
                 font-family: var(--font-sans);
+            }
+            .meta-fields {
+                flex-direction: column;
             }
         }
 
@@ -411,7 +437,7 @@
         #live-song-content h2 { font-size: 1.5em; font-weight: 400; opacity: 0.8; margin-bottom: 3em; }
 
         .live-line {
-            margin-bottom: 0; /* ÄNDRING: Tas bort för att efterlikna redigeraren */
+            margin-bottom: 0;
             position: relative;
         }
         
@@ -419,35 +445,35 @@
             font-family: var(--font-sans);
             font-weight: 700;
             font-size: 1.5em;
-            color: var(--section-marker-color);
+            color: var(--primary);
             margin-bottom: 1.1em;
         }
 
         .live-line p {
             margin: 0;
             padding: 0;
-            font-size: 1.4em;
-            line-height: 2.5; /* ÄNDRING: Samma som #editor för att garantera plats */
+            font-size: 1.1em;
+            line-height: 2.5;
         }
         .live-line .chunk {
-            display: inline-block;
-            position: relative;
-            vertical-align: bottom;
-            white-space: pre-wrap;
-            min-width: 3ch;
-        }
+    display: inline-block;
+    position: relative;
+    vertical-align: bottom;
+    white-space: pre-wrap;
+    min-width: 4ch; /* Sätter en minimibredd (ca 4 tecken) */
+}
         .live-line .chunk .lyric {
             display: inline-block;
         }
         .live-line .chunk .chord {
             position: absolute;
-            top: 0.9em;/* Detta fungerar nu tack vare den höga line-height */
+            top: 0.3em;
             left: 0;
             font-family: inherit;
             font-size: 1em;
             font-weight: 700;
             color: var(--chord-color);
-            line-height: 1.2;
+            line-height: 1.8;
             white-space: nowrap;
             user-select: none;
         }
@@ -587,14 +613,6 @@
                 grid-row: 2;
                 grid-column: 3;
             }
-
-            /* ÄNDRING: Tar bort specialregel för mobil så den beter sig som desktop */
-            /*
-            .live-line p {
-                font-size: 1.2em;
-                line-height: 1.8;
-            }
-            */
         }
 
     </style>
@@ -607,7 +625,7 @@
         <aside class="sidebar">
             
             <div class="sidebar-group">
-                <span class="sidebar-group-label">Ackordbyggare</span>
+                <span class="sidebar-group-label">ACKORDBYGGARE</span>
                 <div class="sidebar-group-content is-collapsed">
                     <div class="sidebar-controls vertical">
                         <div class="sidebar-controls horizontal">
@@ -616,7 +634,7 @@
                                 <option value="A">A</option><option value="A#">A#</option><option value="Bb">Bb</option><option value="B">B</option><option value="C">C</option><option value="C#">C#</option><option value="Db">Db</option><option value="D">D</option><option value="D#">D#</option><option value="Eb">Eb</option><option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="Gb">Gb</option><option value="G">G</option><option value="G#">G#</option><option value="Ab">Ab</option>
                             </select>
                             <select id="chord-type"><option value="">Dur</option><option value="m">m</option><option value="maj">maj</option><option value="dim">dim</option><option value="aug">aug</option><option value="sus2">sus2</option><option value="sus4">sus4</option></select>
-                            <select id="chord-extension"><option value="">—</option><option value="6">6</option><option value="7">7</option><option value="9">9</option><option value="11">11</option><option value="13">13</option></select>
+                            <select id="chord-extension"><option value="">—</option><option value="6">6</option><option value="7">7</option><option value="9">9</option><option value="11">11</option><option value="13">13</option><option value="/A">/A</option><option value="/A#">/A#</option><option value="/B">/B</option><option value="/C">/C</option><option value="/C#">/C#</option><option value="/D">/D</option><option value="/D#">/D#</option><option value="/E">/E</option><option value="/F">/F</option><option value="/F#">/F#</option><option value="/G">/G</option><option value="/G#">/G#</option><option value="/B#">/B#</option></select>
                         </div>
                         <div class="sidebar-controls horizontal">
                             <button id="btn-insert-built">Infoga</button>
@@ -627,7 +645,7 @@
             </div>
 
             <div class="sidebar-group">
-                <span class="sidebar-group-label">Låtstruktur</span>
+                <span class="sidebar-group-label">LÅTSTRUKTUR</span>
                 <div class="sidebar-group-content is-collapsed">
                     <div class="sidebar-controls horizontal">
                         <select id="section-type-select">
@@ -647,7 +665,7 @@
             </div>
 
             <div class="sidebar-group">
-                <span class="sidebar-group-label">Projekthantering</span>
+                <span class="sidebar-group-label">PROJEKTHANTERING</span>
                 <div class="sidebar-group-content is-collapsed">
                     <div class="sidebar-controls vertical">
                         <div class="sidebar-controls horizontal">
@@ -679,16 +697,13 @@
             </div>
             
             <div class="sidebar-group">
-                <span class="sidebar-group-label">Export & Tema</span>
+                <span class="sidebar-group-label">EXPORT/TEMA</span>
                 <div class="sidebar-group-content is-collapsed">
                     <div class="sidebar-controls horizontal">
                         <button id="btn-export-pdf" title="Exportera som PDF">PDF</button>
                         <button id="btn-export-txt" title="Exportera som TXT">TXT</button>
                         <button id="btn-export-zip" title="Spara alla låtar som ZIP">ZIP</button>
                         <button id="btn-toggle-dark-mode" title="Växla mörkt/ljust läge">🌙</button>
-                    </div>
-                     <div class="sidebar-controls vertical">
-                        <button id="btn-live-mode" class="btn-primary" title="Aktivera live-läge för uppspelning">▶️ Live-läge</button>
                     </div>
                 </div>
             </div>
@@ -697,6 +712,7 @@
 
         <main class="main-content">
             <div class="meta-fields">
+                <button id="btn-live-mode" class="btn-primary" title="Aktivera live-läge för uppspelning">LIVE</button>
                 <input type="text" id="song-title" placeholder="Låttitel">
                 <input type="text" id="song-author" placeholder="Artist / Låtskrivare">
             </div>

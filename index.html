@@ -20,6 +20,7 @@
             --button-text-light: #ffffff;
             --primary-bg-hover: rgba(0, 82, 204, 0.1);
             --section-marker-color: #505f79;
+            --section-marker-color: var(--danger-bg);
         }
 
         body.dark-mode {
@@ -33,7 +34,7 @@
             --button-text-light: #1d2125;
             --chord-color: #ffcb47;
             --primary-bg-hover: rgba(76, 154, 255, 0.15);
-            --section-marker-color: #97a3b3;
+            --section-marker-color: #FFFFFF;
         }
 
         body {
@@ -361,7 +362,7 @@
             .section-marker::before {
                 content: attr(data-abbreviation);
                 background-color: var(--bg);
-                color: var(--primary);
+                color: var(--section-marker-color);
                 padding: 0.1em 0.5em;
                 border-radius: 4px;
                 font-size: 0.75rem;
@@ -445,14 +446,14 @@
             font-family: var(--font-sans);
             font-weight: 700;
             font-size: 1.5em;
-            color: var(--primary);
+            color: var(--section-marker-color);
             margin-bottom: 1.1em;
         }
 
         .live-line p {
             margin: 0;
             padding: 0;
-            font-size: 1.1em;
+            font-size: 0.em;
             line-height: 2.5;
         }
         .live-line .chunk {
@@ -518,15 +519,36 @@
             width: 150px;
         }
 
-        #live-controls .duration-control {
+#live-controls .duration-control {
             display: flex;
             align-items: center;
-            gap: 0.5em;
+            gap: 0.25em; /* Minskar avståndet mellan elementen */
+        }
+        #live-controls .duration-control label {
+            font-weight: 600;
+            margin-right: 0.5em;
         }
         #live-controls .duration-control input[type="number"] {
-            width: 90px;
-            height: 36px;
+            width: 55px; /* Något smalare */
+            height: 38px; /* Samma höjd som knapparna */
             padding: 0 0.5em;
+            text-align: center;
+            font-weight: 600;
+            border-radius: 6px; /* Samma rundning som knapparna */
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-color);
+            -moz-appearance: textfield; /* Döljer pilarna i Firefox */
+        }
+        #live-controls .duration-control input[type="number"]::-webkit-outer-spin-button,
+        #live-controls .duration-control input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; /* Döljer pilarna i Chrome/Safari */
+            margin: 0;
+        }
+        #live-controls .duration-control span {
+            font-weight: 600;
+            opacity: 0.8;
+            margin-right: 0.5em; /* Lite extra luft efter "m" */
         }
 
         .hidden-file { display: none; }
@@ -735,8 +757,11 @@
         </div>
 
         <div class="duration-control">
-            <label for="live-duration">Speltid (sek):</label>
-            <input type="number" id="live-duration" min="10" max="3600" step="10" value="240">
+            <label>Speltid:</label>
+            <input type="number" id="live-duration-minutes" min="0" max="60" value="4">
+            <span>m</span>
+            <input type="number" id="live-duration-seconds" min="0" max="59" step="5" value="0">
+            <span>s</span>
         </div>
 
         <button id="live-btn-exit">Avsluta</button>
@@ -764,6 +789,9 @@
 </div>
 
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -821,7 +849,8 @@ class StableChordEditor {
         this.liveBtnPlayPause = document.getElementById('live-btn-play-pause');
         this.liveBtnExit = document.getElementById('live-btn-exit');
         this.liveSpeedSlider = document.getElementById('live-speed-slider');
-        this.liveDurationInput = document.getElementById('live-duration');
+        this.liveDurationMinutesInput = document.getElementById('live-duration-minutes');
+        this.liveDurationSecondsInput = document.getElementById('live-duration-seconds');
 
         this.scrollInterval = null;
         this.scrollSpeed = 0.2;
@@ -837,6 +866,24 @@ class StableChordEditor {
         this.init();
     }
     
+    getTotalDurationSeconds() {
+        const minutes = parseInt(this.liveDurationMinutesInput.value, 10) || 0;
+        const seconds = parseInt(this.liveDurationSecondsInput.value, 10) || 0;
+        return (minutes * 60) + seconds;
+    }
+
+    updateDurationInputs(totalSeconds) {
+        if (totalSeconds && totalSeconds > 0) {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            this.liveDurationMinutesInput.value = minutes;
+            this.liveDurationSecondsInput.value = seconds;
+        } else {
+            this.liveDurationMinutesInput.value = 4;
+            this.liveDurationSecondsInput.value = 0;
+        }
+    }
+
     showCustomAlert(message) {
         const dialog = document.getElementById('custom-alert');
         document.getElementById('custom-alert-message').textContent = message;
@@ -985,14 +1032,16 @@ class StableChordEditor {
             this.liveSettingsDebounceTimer = setTimeout(() => this.saveLiveSettings(), 1000);
         });
 
-        this.liveDurationInput.addEventListener('change', (e) => {
-            const seconds = parseInt(e.target.value, 10);
-            if (!isNaN(seconds) && seconds > 0) {
-                this.setScrollForDuration(seconds);
+        const durationChangeHandler = () => {
+            const totalSeconds = this.getTotalDurationSeconds();
+            if (totalSeconds > 0) {
+                this.setScrollForDuration(totalSeconds);
                 clearTimeout(this.liveSettingsDebounceTimer);
                 this.liveSettingsDebounceTimer = setTimeout(() => this.saveLiveSettings(), 1000);
             }
-        });
+        };
+        this.liveDurationMinutesInput.addEventListener('change', durationChangeHandler);
+        this.liveDurationSecondsInput.addEventListener('change', durationChangeHandler);
 
         this.btnExportJson.addEventListener('click', () => this.exportJson());
         this.btnExportAllJson.addEventListener('click', () => this.exportAllJson());
@@ -1478,7 +1527,7 @@ class StableChordEditor {
             fontSize: this.editor.style.fontSize || (this.fontSizeSlider.value + 'px'),
             content: this.getContentAsText(),
             scrollSpeed: this.scrollSpeed,
-            duration: parseInt(this.liveDurationInput.value, 10) || null
+            duration: this.getTotalDurationSeconds()
         };
         localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
         localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
@@ -1524,7 +1573,7 @@ class StableChordEditor {
             }
 
             if (data.duration) {
-                this.liveDurationInput.value = data.duration;
+                this.updateDurationInputs(data.duration);
             } else {
                 this.updateDurationFromSpeed();
             }
@@ -1678,7 +1727,7 @@ class StableChordEditor {
             this.liveSongContent.appendChild(lineContainer);
         });
 
-        const duration = parseInt(this.liveDurationInput.value, 10);
+        const duration = this.getTotalDurationSeconds();
         if (!isNaN(duration) && duration > 0) {
             this.setScrollForDuration(duration);
         }
@@ -1763,7 +1812,7 @@ class StableChordEditor {
         if (scrollHeight <= 0) return;
 
         const durationSeconds = scrollHeight / (this.scrollSpeed * 60);
-        this.liveDurationInput.value = Math.round(durationSeconds);
+        this.updateDurationInputs(Math.round(durationSeconds));
     }
 
     saveLiveSettings() {
@@ -1773,9 +1822,9 @@ class StableChordEditor {
         const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
         if (projects[currentProjectName]) {
             projects[currentProjectName].scrollSpeed = this.scrollSpeed;
-            projects[currentProjectName].duration = parseInt(this.liveDurationInput.value, 10);
-            localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+            projects[currentProjectName].duration = this.getTotalDurationSeconds();
         }
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
     }
 
     recordHistory() {
@@ -1816,7 +1865,7 @@ class StableChordEditor {
             content: this.getContentAsText(),
             fontSize: this.editor.style.fontSize,
             scrollSpeed: this.scrollSpeed,
-            duration: parseInt(this.liveDurationInput.value, 10) || null
+            duration: this.getTotalDurationSeconds()
         };
         const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
         saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`);
@@ -1904,7 +1953,7 @@ class StableChordEditor {
             this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
         }
         
-        if (data.duration) this.liveDurationInput.value = data.duration;
+        if (data.duration) this.updateDurationInputs(data.duration);
         this.showCustomAlert(`Projektet "${data.title}" importerades.`);
         this.saveProject(data.title);
         this.recordHistory();

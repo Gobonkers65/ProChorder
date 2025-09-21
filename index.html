@@ -344,7 +344,6 @@
             }
             #editor {
                 padding-left: 2em;
-                /*padding-right: 1em; /* Lägg till denna rad */
                 font-size: 14px;
             }
             .section-marker {
@@ -457,12 +456,12 @@
             line-height: 2.5;
         }
         .live-line .chunk {
-    display: inline-block;
-    position: relative;
-    vertical-align: bottom;
-    white-space: pre-wrap;
-    min-width: 4ch; /* Sätter en minimibredd (ca 4 tecken) */
-}
+            display: inline-block;
+            position: relative;
+            vertical-align: bottom;
+            white-space: pre-wrap;
+            min-width: 4ch; /* Sätter en minimibredd (ca 4 tecken) */
+        }
         .live-line .chunk .lyric {
             display: inline-block;
         }
@@ -519,7 +518,7 @@
             width: 150px;
         }
 
-#live-controls .duration-control {
+        #live-controls .duration-control {
             display: flex;
             align-items: center;
             gap: 0.25em; /* Minskar avståndet mellan elementen */
@@ -704,6 +703,7 @@
                         <div class="sidebar-controls horizontal">
                             <button id="btn-new-project" class="btn-primary" title="Skapa ett nytt tomt projekt">Nytt</button>
                             <button id="btn-save-project" class="btn-success" title="Spara projekt">Spara</button>
+                            <button id="btn-rename-project" title="Döp om valt projekt">Döp om</button>
                             <button id="btn-delete-project" class="btn-danger" title="Ta bort valt projekt">Ta bort</button>
                         </div>
 
@@ -792,9 +792,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script>
 // *** VIKTIGT: Byt ut denna URL mot din egen giltiga "Raw" GitHub URL! ***
 const SHARED_SONG_LIST_URL = 'https://raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json';
@@ -826,6 +823,8 @@ class StableChordEditor {
         this.btnNewProject = document.getElementById('btn-new-project');
         this.btnSaveProject = document.getElementById('btn-save-project'); 
         this.btnDeleteProject = document.getElementById('btn-delete-project'); 
+        // ÄNDRING HÄR: Lade till referens till den nya knappen
+        this.btnRenameProject = document.getElementById('btn-rename-project');
         this.btnTransposeUp = document.getElementById('btn-transpose-up');
         this.btnTransposeDown = document.getElementById('btn-transpose-down');
 
@@ -1013,6 +1012,21 @@ class StableChordEditor {
             if (!name) return this.showCustomAlert('Välj ett projekt att ta bort.');
             if (await this.showCustomConfirm(`Ta bort projekt "${name}"? Detta går inte att ångra.`)) {
                 this.deleteProject(name);
+            }
+        });
+
+        // ÄNDRING HÄR: Lade till event listener för den nya knappen
+        this.btnRenameProject.addEventListener('click', async () => {
+            const oldName = this.projectList.value;
+            if (!oldName) {
+                return this.showCustomAlert('Välj ett projekt att döpa om.');
+            }
+            const newName = prompt('Ange det nya namnet för projektet:', oldName);
+            // Kollar att användaren angett ett nytt namn som inte är tomt eller samma som det gamla
+            if (newName && newName.trim() !== '' && newName.trim() !== oldName) {
+                if (await this.showCustomConfirm(`Döpa om "${oldName}" till "${newName.trim()}"?`)) {
+                    this.renameProject(oldName, newName.trim());
+                }
             }
         });
 
@@ -1593,6 +1607,40 @@ class StableChordEditor {
         }
         this.updateProjectList();
         this.showCustomAlert(`Projekt "${name}" borttaget.`);
+    }
+
+    // ÄNDRING HÄR: Lade till hela den nya metoden för att döpa om
+    renameProject(oldName, newName) {
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        
+        // Kontrollera om projektet finns och om det nya namnet är ledigt
+        if (projects[oldName] && !projects[newName]) {
+            // Kopiera datan till det nya namnet
+            projects[newName] = projects[oldName];
+            // Uppdatera titeln inuti själva projektobjektet
+            projects[newName].title = newName; 
+            
+            // Ta bort det gamla projektet
+            delete projects[oldName]; 
+            
+            // Spara den uppdaterade projektlistan
+            localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+
+            // Uppdatera "senast laddade projekt" om det var det som döptes om
+            const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+            if (lastProject === oldName) {
+                localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);
+            }
+            
+            // Ladda om listan och uppdatera fälten för att reflektera ändringen
+            this.titleInput.value = newName;
+            this.updateProjectList(newName); 
+            this.showCustomAlert(`Projektet har döpts om till "${newName}".`);
+        } else if (projects[newName]) {
+            this.showCustomAlert(`Ett projekt med namnet "${newName}" finns redan.`);
+        } else {
+            this.showCustomAlert(`Kunde inte hitta projektet "${oldName}".`);
+        }
     }
 
     updateProjectList(selectedValue) {

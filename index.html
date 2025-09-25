@@ -6,6 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ProChorder5.0</title>
     <style>
+        #drop-indicator {
+            /*--ny indikator-*/
+            position: absolute;
+            width: 2px;
+            height: 1.8em;
+            /* Lite högre än texten */
+            background-color: var(--primary);
+            display: none;
+            /* Dold som standard */
+            pointer-events: none;
+            /* Stör inte andra musklick */
+            z-index: 9999;
+        }
+
+        body.is-dragging * {
+            cursor: none !important;
+        }
+
         :root {
             --bg: #f4f5f7;
             --surface: #ffffff;
@@ -20,7 +38,6 @@
             --danger-bg: #dc3545;
             --button-text-light: #ffffff;
             --primary-bg-hover: rgba(0, 82, 204, 0.1);
-            --section-marker-color: #505f79;
             --section-marker-color: var(--danger-bg);
         }
 
@@ -64,20 +81,17 @@
             flex-shrink: 0;
             background-color: var(--surface);
             padding: 0.75em;
-            /* Din kompakta inställning */
             border-radius: 8px;
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             gap: 0.6em;
-            /* Din kompakta inställning */
             align-self: flex-start;
             position: sticky;
             top: 0em;
             height: fit-content;
             box-sizing: border-box;
-            /* <-- LÄGG TILL DENNA RAD */
         }
 
         .sidebar-group {
@@ -86,18 +100,31 @@
             gap: 0.5em;
         }
 
+        /* FIX: Kombinerade två .sidebar-group-label-regler till en för tydlighet */
         .sidebar-group-label {
+            position: relative;
+            cursor: pointer;
+            padding: 0.3em 25px 0.3em 0.5em;
+            /* Kompakt padding */
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            user-select: none;
             font-size: 0.9em;
             font-weight: 700;
             opacity: 0.8;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 0.3em;
+        }
+
+        .sidebar-group-label:hover {
+            background-color: var(--primary-bg-hover);
         }
 
         .sidebar-controls {
             display: flex;
             flex-wrap: wrap;
             gap: 0.5em;
+            align-items: center;
+            /* Vertikal centrering */
         }
 
         .sidebar-controls.vertical {
@@ -124,7 +151,6 @@
             padding: 0 0.8em;
             box-sizing: border-box;
             width: auto;
-            align-self: center;
         }
 
         .sidebar .sidebar-controls.horizontal>* {
@@ -223,7 +249,7 @@
             background-color: var(--primary);
             border: 1px solid var(--primary);
             color: var(--button-text-light);
-            margin-right: oem;
+            margin-right: 0.5em;
             flex-shrink: 0;
         }
 
@@ -254,6 +280,8 @@
             outline: none;
             font-size: 16px;
             padding-left: 5em;
+            box-sizing: border-box;
+            /* FIX: Lade till denna här för bästa effekt */
         }
 
         #editor * {
@@ -267,15 +295,75 @@
 
         .chord {
             display: inline-block;
+            /* Ändrad från inline-flex för detta trick */
             position: relative;
             user-select: none;
-            cursor: grab;
-            vertical-align: top;
-            margin-top: -1.3em;
-            padding: 0 0.1em;
+            cursor: default;
+
+            /* STEG 1: Lyft upp ackordet visuellt */
+            vertical-align: middle;
+            /* Bättre baslinje för justering */
+            top: -2.5em;
+            /* Skjut upp det ovanför textraden */
+            height: 0;
+            /* Se till att det inte tar upp vertikalt utrymme */
+
+            /* STEG 2: Stäng luckan i texten */
+            /* Justera dessa värden tills det ser bra ut med ditt typsnitt */
+            margin-left: 2px;
+            margin-right: -1.8ch;
+            /* Dra tillbaka texten som kommer efter */
+            /* 'ch' är bredden av tecknet '0', en bra enhet för detta */
+
+            /* Behåll den visuella stylingen */
+            padding: 0.1em 0.4em;
             border-radius: 3px;
             transition: background-color 0.2s;
+
+            /* Behåll pekaren från tidigare lösning */
+            z-index: 5;
         }
+
+        /* Vi behöver justera :hover lite också */
+        .chord:hover {
+            background-color: var(--primary-bg-hover);
+            z-index: 10;
+        }
+
+        .chord .chord-handle {
+            position: absolute;
+            /* ÄNDRING: Justerad för att passa den mindre paddingen */
+            bottom: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 5px;
+            background-color: var(--primary);
+            border-radius: 3px;
+            cursor: grab;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+        .chord .chord-handle:active {
+            cursor: grabbing;
+        }
+
+
+        .chord:hover .chord-handle {
+            opacity: 1;
+            /* Visa handtaget vid hover */
+            pointer-events: auto;
+            /* Gör handtaget klickbart vid hover */
+        }
+
+        .chord .chord-handle:active {
+            cursor: grabbing;
+            /* Ändra muspekare när man drar */
+        }
+
+        /* --- SLUT PÅ NYA REGLER --- */
 
         .chord:hover {
             background-color: var(--primary-bg-hover);
@@ -307,13 +395,13 @@
         .section-marker {
             position: absolute;
             left: -5em;
-            top: 0.4em;
+            top: 0.1em;
             font-family: var(--font-sans);
-            font-weight: 700;
+            font-weight: 500;
             font-size: 0.75em;
             color: var(--section-marker-color);
             background-color: var(--bg);
-            padding: 0.1em 0.5em;
+            padding: -0.5em;
             border-radius: 4px;
             user-select: none;
             cursor: default;
@@ -365,7 +453,8 @@
         .custom-dialog-box .dialog-buttons {
             display: flex;
             gap: 1em;
-            justify-content: left;
+            justify-content: center;
+            /* FIX: Ändrade 'left' till 'center' som är korrekt */
         }
 
         .custom-dialog-box button {
@@ -376,6 +465,40 @@
             font-weight: 600;
             cursor: pointer;
         }
+
+        .sidebar-group-label::after {
+            content: '›';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            transition: transform 0.3s ease;
+            font-size: 1.5em;
+            font-weight: 500;
+        }
+
+        .sidebar-group-label.is-open::after {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        .sidebar-group-content {
+            max-height: 500px;
+            overflow: hidden;
+            opacity: 1;
+            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
+            padding: 0.1em;
+            /* Kompakt padding */
+        }
+
+        .sidebar-group-content.is-collapsed {
+            max-height: 0;
+            opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), opacity 0.1s;
+        }
+
+        /* =============================================================== */
+        /* =================== MOBILLÄGE OCH UTSKRIFT ==================== */
+        /* =============================================================== */
 
         @media (max-width: 800px) {
             .app-layout {
@@ -390,38 +513,33 @@
                 flex-basis: auto;
             }
 
-            /* Lösning för att texten ska skrolla UNDER verktygsfältet */
             .main-content {
                 position: relative;
                 z-index: 1;
             }
 
-            /* Korrigerad marginal för editorn */
             #editor {
-                padding-left: 2em;
+                padding-left: 2.2em;
+                /* FIX: Korrekt padding för mobil */
                 font-size: 14px;
-                box-sizing: border-box;
-                /* Denna bör vara i huvudregeln men skadar inte här */
             }
 
-            /* Korrekt positionering för sektionsmarkörer */
             #editor .section-marker {
-                left: -1.75em;
-                top: 50%;
-                transform: translateY(-50%);
+                left: -2em;
+                width: 2em;
+                height: 100%;
+                top: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 background: none;
                 padding: 0;
-                height: auto;
-                width: auto;
-                display: block;
             }
 
-            /* Döljer fulltext-versionen av markören */
             #editor .section-marker-text {
                 display: none;
             }
 
-            /* Visar förkortningen istället (V, R, etc) */
             .section-marker::before {
                 content: attr(data-abbreviation);
                 background-color: var(--bg);
@@ -434,16 +552,50 @@
                 line-height: 1;
             }
 
-            /* Centrerar knappar i verktygsfältet */
             .sidebar-group-content {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
             }
 
-            /* Staplar titel och artist i mobilläge */
             .meta-fields {
                 flex-direction: column;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #live-controls {
+                display: flex;
+                flex-wrap: wrap;
+                /* Tillåter att elementen byter rad */
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                /* Centrerar innehållet */
+                gap: 0.5em;
+                padding: 0.8em;
+            }
+
+            #live-controls .speed-control {
+                flex-basis: 100%;
+                /* Tar upp hela bredden */
+                order: -1;
+                /* Flyttar reglaget visuellt överst */
+                display: flex;
+                justify-content: center;
+                margin-bottom: 0.5em;
+                /* Lägger till lite avstånd under reglaget */
+            }
+
+            #live-controls .speed-control input[type="range"] {
+                max-width: 250px;
+                /* Ger reglaget mer utrymme nu när det har en egen rad */
+                flex-grow: 1;
+            }
+
+            #live-controls .duration-control input[type="number"] {
+                width: 45px;
+                /* Minskar bredden på inmatningsrutorna */
             }
         }
 
@@ -543,13 +695,12 @@
             font-weight: 700;
             font-size: 1.5em;
             color: var(--section-marker-color);
-            margin-bottom: 1.1em;
+            margin-bottom: 0.7em;
         }
 
         .live-line p {
             margin: 0;
             padding: 0;
-            font-size: 0.em;
             line-height: 2.5;
         }
 
@@ -559,7 +710,6 @@
             vertical-align: bottom;
             white-space: pre-wrap;
             min-width: 4ch;
-            /* Sätter en minimibredd (ca 4 tecken) */
         }
 
         .live-line .chunk .lyric {
@@ -568,13 +718,13 @@
 
         .live-line .chunk .chord {
             position: absolute;
-            top: 0.3em;
+            top: 0em;
             left: 0;
             font-family: inherit;
-            font-size: 1em;
+            font-size: 0.9em;
             font-weight: 700;
             color: var(--chord-color);
-            line-height: 1.8;
+            line-height: 0.2;
             white-space: nowrap;
             user-select: none;
         }
@@ -623,7 +773,6 @@
             display: flex;
             align-items: center;
             gap: 0.25em;
-            /* Minskar avståndet mellan elementen */
         }
 
         #live-controls .duration-control label {
@@ -633,25 +782,20 @@
 
         #live-controls .duration-control input[type="number"] {
             width: 55px;
-            /* Något smalare */
             height: 38px;
-            /* Samma höjd som knapparna */
             padding: 0 0.5em;
             text-align: center;
             font-weight: 600;
             border-radius: 6px;
-            /* Samma rundning som knapparna */
             background-color: var(--bg);
             border: 1px solid var(--border);
             color: var(--text-color);
             -moz-appearance: textfield;
-            /* Döljer pilarna i Firefox */
         }
 
         #live-controls .duration-control input[type="number"]::-webkit-outer-spin-button,
         #live-controls .duration-control input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
-            /* Döljer pilarna i Chrome/Safari */
             margin: 0;
         }
 
@@ -659,97 +803,10 @@
             font-weight: 600;
             opacity: 0.8;
             margin-right: 0.5em;
-            /* Lite extra luft efter "m" */
         }
 
         .hidden-file {
             display: none;
-        }
-
-        .sidebar-group-label {
-            position: relative;
-            cursor: pointer;
-            padding: 0.5em;
-            padding-right: 25px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-            user-select: none;
-        }
-
-        .sidebar-group-label:hover {
-            background-color: var(--primary-bg-hover);
-        }
-
-        .sidebar-group-label::after {
-            content: '›';
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%) rotate(0deg);
-            transition: transform 0.3s ease;
-            font-size: 1.5em;
-            font-weight: 300;
-        }
-
-        .sidebar-group-label.is-open::after {
-            transform: translateY(-50%) rotate(90deg);
-        }
-
-        .sidebar-group-content {
-            max-height: 500px;
-            overflow: hidden;
-            opacity: 1;
-            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
-            padding: 0.75em 0.5em 0.5em 0.5em;
-        }
-
-        .sidebar-group-content.is-collapsed {
-            max-height: 0;
-            opacity: 0;
-            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), opacity 0.1s;
-        }
-
-        @media (max-width: 600px) {
-            #live-controls {
-                display: grid;
-                grid-template-rows: auto auto;
-                grid-template-columns: 80px 1fr 80px;
-                gap: 0.8em;
-                padding: 0.8em;
-            }
-
-            #live-controls .speed-control {
-                grid-row: 1;
-                grid-column: 1 / -1;
-            }
-
-            #live-controls .speed-control span {
-                display: none;
-            }
-
-            #live-controls input[type="range"] {
-                width: 100%;
-            }
-
-            #live-btn-play-pause {
-                grid-row: 2;
-                grid-column: 1;
-            }
-
-            #live-controls .duration-control {
-                grid-row: 2;
-                grid-column: 2;
-                justify-self: center;
-            }
-
-            #live-controls .duration-control label {
-                display: none;
-            }
-
-            #live-btn-exit {
-                grid-row: 2;
-                grid-column: 3;
-            }
         }
     </style>
 </head>
@@ -814,7 +871,6 @@
                                     <option value="/F#">/F#</option>
                                     <option value="/G">/G</option>
                                     <option value="/G#">/G#</option>
-                                    <option value="/B#">/B#</option>
                                 </select>
                             </div>
                             <div class="sidebar-controls horizontal">
@@ -850,6 +906,7 @@
                     <div class="sidebar-group-content is-collapsed">
                         <div class="sidebar-controls vertical">
                             <div class="sidebar-controls horizontal">
+                                <button id="btn-rename-project" title="Döp om valt projekt">Döp om</button>
                                 <button id="btn-transpose-up" title="Transponera upp">+1 Halvton</button>
                                 <button id="btn-transpose-down" title="Transponera ner">-1 Halvton</button>
                             </div>
@@ -864,9 +921,10 @@
                                 <button id="btn-new-project" class="btn-primary"
                                     title="Skapa ett nytt tomt projekt">Nytt</button>
                                 <button id="btn-save-project" class="btn-success" title="Spara projekt">Spara</button>
-                                <button id="btn-rename-project" title="Döp om valt projekt">Döp om</button>
                                 <button id="btn-delete-project" class="btn-danger" title="Ta bort valt projekt">Ta
                                     bort</button>
+                                <button id="btn-delete-all-projects" class="btn-danger"
+                                    title="Ta bort ALLA sparade projekt permanent">Rensa allt</button>
                             </div>
 
                             <div style="display:flex; flex-wrap: wrap; gap:.5em; margin-top:.5em">
@@ -990,7 +1048,7 @@
                 this.btnNewProject = document.getElementById('btn-new-project');
                 this.btnSaveProject = document.getElementById('btn-save-project');
                 this.btnDeleteProject = document.getElementById('btn-delete-project');
-                // ÄNDRING HÄR: Lade till referens till den nya knappen
+                this.btnDeleteAllProjects = document.getElementById('btn-delete-all-projects');
                 this.btnRenameProject = document.getElementById('btn-rename-project');
                 this.btnTransposeUp = document.getElementById('btn-transpose-up');
                 this.btnTransposeDown = document.getElementById('btn-transpose-down');
@@ -1017,6 +1075,9 @@
                 this.liveSpeedSlider = document.getElementById('live-speed-slider');
                 this.liveDurationMinutesInput = document.getElementById('live-duration-minutes');
                 this.liveDurationSecondsInput = document.getElementById('live-duration-seconds');
+                this.dropIndicator = document.createElement('div');     //NYTT//
+                this.dropIndicator.id = 'drop-indicator';               //NYTT//
+                document.body.appendChild(this.dropIndicator);          //NYTT//
 
                 this.scrollInterval = null;
                 this.scrollSpeed = 0.2;
@@ -1030,6 +1091,17 @@
                 this.liveSettingsDebounceTimer = null;
 
                 this.init();
+            }
+
+            async deleteAllProjects() {
+                const confirmed = await this.showCustomConfirm('Är du helt säker? Detta kommer att radera ALLA sparade låtar permanent och går inte att ångra.');
+                if (confirmed) {
+                    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
+                    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+                    this.updateProjectList();
+                    this.createNewProject();
+                    this.showCustomAlert('Alla projekt har tagits bort.');
+                }
             }
 
             getTotalDurationSeconds() {
@@ -1152,14 +1224,48 @@
                     }
                 });
 
-                this.editor.addEventListener('dragover', (e) => e.preventDefault());
-                this.editor.addEventListener('drop', (e) => this.handleDrop(e));
+                // Hanterar drag-and-drop för ackord
+                this.editor.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (e.ctrlKey || e.altKey) {
+                        e.dataTransfer.dropEffect = 'copy';
+                    } else {
+                        e.dataTransfer.dropEffect = 'move';
+                    }
 
-                this.btnTransposeUp.addEventListener('click', () => { this.transpose(1); this.recordHistoryDebounced(); });
-                this.btnTransposeDown.addEventListener('click', () => { this.transpose(-1); this.recordHistoryDebounced(); });
-                this.fontSizeSlider.addEventListener('input', (e) => {
-                    this.editor.style.fontSize = e.target.value + 'px';
+                    // --- NY LOGIK FÖR ATT VISA MARKÖREN ---
+                    let range;
+                    if (document.caretRangeFromPoint) {
+                        range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                    } else {
+                        // Fallback för äldre webbläsare
+                        const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+                        if (pos) {
+                            range = document.createRange();
+                            range.setStart(pos.offsetNode, pos.offset);
+                        }
+                    }
+
+                    if (range) {
+                        const rect = range.getBoundingClientRect();
+                        this.dropIndicator.style.display = 'block';
+                        // Positionera markören vid texten, justera för sidans scrollning
+                        this.dropIndicator.style.left = `${rect.left + window.scrollX}px`;
+                        this.dropIndicator.style.top = `${rect.top + window.scrollY}px`;
+                    }
+
                 });
+                // Lägg till dessa två nya lyssnare för att dölja markören när draget avslutas
+                this.editor.addEventListener('dragleave', () => {
+                    this.dropIndicator.style.display = 'none';
+                });
+
+                this.editor.addEventListener('drop', (e) => {
+                    this.dropIndicator.style.display = 'none';
+                    this.handleDrop(e); // Anropa din befintliga drop-hanterare
+                });
+
+                
                 this.projectList.addEventListener('change', () => {
                     const name = this.projectList.value || '';
                     if (name) this.loadProject(name);
@@ -1182,20 +1288,24 @@
                     }
                 });
 
-                // ÄNDRING HÄR: Lade till event listener för den nya knappen
+                // FIX: Flyttade denna utanför den andra knappens event listener
+                this.btnDeleteAllProjects.addEventListener('click', () => this.deleteAllProjects());
+
                 this.btnRenameProject.addEventListener('click', async () => {
                     const oldName = this.projectList.value;
                     if (!oldName) {
                         return this.showCustomAlert('Välj ett projekt att döpa om.');
                     }
                     const newName = prompt('Ange det nya namnet för projektet:', oldName);
-                    // Kollar att användaren angett ett nytt namn som inte är tomt eller samma som det gamla
                     if (newName && newName.trim() !== '' && newName.trim() !== oldName) {
                         if (await this.showCustomConfirm(`Döpa om "${oldName}" till "${newName.trim()}"?`)) {
                             this.renameProject(oldName, newName.trim());
                         }
                     }
                 });
+                this.btnTransposeUp.addEventListener('click', () => this.transpose(1));
+                this.btnTransposeDown.addEventListener('click', () => this.transpose(-1));
+                this.btnExportPdf.addEventListener('click', () => this.exportPdf());
 
                 this.btnExportPdf.addEventListener('click', () => this.exportPdf());
                 this.btnExportTxt.addEventListener('click', () => this.exportTxt());
@@ -1280,19 +1390,65 @@
                 });
             }
 
+
             handleDrop(e) {
                 e.preventDefault();
-                if (this.draggedChord) {
-                    const range = (document.caretRangeFromPoint && document.caretRangeFromPoint(e.clientX, e.clientY)) ||
-                        (document.caretPositionFromPoint && (() => { const p = document.caretPositionFromPoint(e.clientX, e.clientY); const r = document.createRange(); r.setStart(p.offsetNode, p.offset); return r; })());
-                    if (range && this.editor.contains(range.startContainer)) {
-                        range.insertNode(this.draggedChord);
+                e.stopPropagation();
+
+                // Försök skapa en Range vid drop-koordinaterna
+                let range = null;
+                if (document.caretRangeFromPoint) {
+                    range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                } else if (document.caretPositionFromPoint) {
+                    const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+                    if (pos) {
+                        range = document.createRange();
+                        range.setStart(pos.offsetNode, pos.offset);
+                        range.collapse(true);
                     }
-                    this.draggedChord.style.display = 'inline-block';
-                    this.draggedChord = null;
-                    this.recordHistoryDebounced();
                 }
+
+                // Fallback: placera i slutet av editorn om vi inte fick en giltig range
+                if (!range || !this.editor.contains(range.startContainer)) {
+                    range = document.createRange();
+                    range.selectNodeContents(this.editor);
+                    range.collapse(false); // i slutet
+                }
+
+                // === NY KOD STARTAR HÄR ===
+                // Kontrollera om Ctrl-tangenten är nedtryckt för att kopiera
+                let chordNode;
+                if ((e.ctrlKey || e.altKey) && this.draggedChord) {
+                    // KOPIERA: Skapa en helt ny ackord-span
+                    const chordText = this.draggedChord.dataset.chord;
+                    chordNode = this.createChordSpan(chordText);
+                } else {
+                    // FLYTTA: Använd det befintliga ackordet (eller från extern källa)
+                    chordNode = this.draggedChord
+                        ? this.draggedChord
+                        : this.createChordSpan(e.dataTransfer.getData('text/plain'));
+                }
+
+                // Se till att noden är synlig innan den sätts in
+                chordNode.style.display = 'inline-block';
+                // === NY KOD SLUTAR HÄR ===
+
+                // Sätt in noden på drop-platsen
+                range.insertNode(chordNode);
+
+                // Flytta markören direkt efter insatt nod
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                const after = document.createRange();
+                after.setStartAfter(chordNode);
+                after.collapse(true);
+                sel.addRange(after);
+
+                // Städning
+                this.recordHistoryDebounced();
+
             }
+
 
             toggleDarkMode() {
                 document.body.classList.toggle('dark-mode');
@@ -1346,12 +1502,11 @@
                     node.parentNode.replaceChild(frag, node);
                 }
             }
-
+            // ERSÄTT HELA FUNKTIONEN MED DENNA KOD
             createChordSpan(chord) {
                 const span = document.createElement('span');
                 span.className = 'chord';
                 span.dataset.chord = chord;
-                span.draggable = true;
 
                 const chordText = document.createElement('span');
                 chordText.className = 'chord-text';
@@ -1359,28 +1514,66 @@
                 chordText.spellcheck = false;
                 span.appendChild(chordText);
 
+                const handle = document.createElement('span');
+                handle.className = 'chord-handle';
+                handle.draggable = true;
+                span.appendChild(handle);
+
                 span.addEventListener('click', (e) => {
+                    if (e.target === handle) return;
                     e.stopPropagation();
                     this.clearChordSelection();
                     span.classList.add('selected');
                 });
+
                 span.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
                     span.remove();
                     this.recordHistoryDebounced();
                 });
 
-                span.addEventListener('dragstart', (e) => {
+                handle.addEventListener('dragstart', (e) => {
+                    e.stopPropagation();
                     e.dataTransfer.setData('text/plain', chord);
+                    e.dataTransfer.effectAllowed = 'copyMove';
                     this.draggedChord = span;
-                    setTimeout(() => span.style.display = "none", 0);
+                    document.body.classList.add('is-dragging');
+
+                    if (e.dataTransfer.setDragImage) {
+                        const ghost = document.createElement('span');
+                        ghost.textContent = chord;
+                        ghost.style.display = 'inline-block';
+                        ghost.style.padding = '0.1em 0.4em';
+                        ghost.style.borderRadius = '3px';
+                        ghost.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--surface');
+                        ghost.style.color = getComputedStyle(document.body).getPropertyValue('--chord-color');
+                        ghost.style.fontFamily = 'var(--font-sans)';
+                        ghost.style.fontWeight = '600';
+                        ghost.style.fontSize = '0.85em';
+                        ghost.style.border = '1px solid ' + getComputedStyle(document.body).getPropertyValue('--border');
+                        ghost.style.position = 'absolute';
+                        ghost.style.top = '-9999px';
+                        ghost.style.left = '-9999px';
+                        document.body.appendChild(ghost);
+                        e.dataTransfer.setDragImage(ghost, 10, 15);
+                        setTimeout(() => document.body.removeChild(ghost), 0);
+                    }
+
+                    // --- HÄR ÄR ÄNDRINGEN ---
+                    // Kontrollera om det är en kopiering. Dölj bara originalet om det är en flytt.
+                    const isCopy = e.ctrlKey || e.altKey;
+                    if (!isCopy) {
+                        setTimeout(() => { span.style.display = 'none'; }, 0);
+                    }
                 });
 
-                span.addEventListener('dragend', () => {
-                    if (this.draggedChord) {
+                handle.addEventListener('dragend', (e) => {
+                    e.stopPropagation();
+                    document.body.classList.remove('is-dragging');
+                    if (this.draggedChord && this.draggedChord.parentNode) {
                         this.draggedChord.style.display = 'inline-block';
-                        this.draggedChord = null;
                     }
+                    this.draggedChord = null;
                 });
 
                 return span;
@@ -1412,6 +1605,7 @@
                 if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) {
                     return this.showCustomAlert('Placera markören i texten där du vill infoga ackordet.');
                 }
+
                 const range = sel.getRangeAt(0);
                 const chordSpan = this.createChordSpan(chord);
                 range.deleteContents();
@@ -1776,30 +1970,22 @@
                 this.showCustomAlert(`Projekt "${name}" borttaget.`);
             }
 
-            // ÄNDRING HÄR: Lade till hela den nya metoden för att döpa om
             renameProject(oldName, newName) {
                 const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
 
-                // Kontrollera om projektet finns och om det nya namnet är ledigt
                 if (projects[oldName] && !projects[newName]) {
-                    // Kopiera datan till det nya namnet
                     projects[newName] = projects[oldName];
-                    // Uppdatera titeln inuti själva projektobjektet
                     projects[newName].title = newName;
 
-                    // Ta bort det gamla projektet
                     delete projects[oldName];
 
-                    // Spara den uppdaterade projektlistan
                     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
 
-                    // Uppdatera "senast laddade projekt" om det var det som döptes om
                     const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
                     if (lastProject === oldName) {
                         localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);
                     }
 
-                    // Ladda om listan och uppdatera fälten för att reflektera ändringen
                     this.titleInput.value = newName;
                     this.updateProjectList(newName);
                     this.showCustomAlert(`Projektet har döpts om till "${newName}".`);
@@ -1876,7 +2062,9 @@
                         emptyDiv.style.lineHeight = '1';
                         this.liveSongContent.appendChild(emptyDiv);
                         return;
+
                     }
+
 
                     const lineContainer = document.createElement('div');
                     lineContainer.className = 'live-line';
@@ -1916,6 +2104,7 @@
 
                             const lyricSpan = document.createElement('span');
                             lyricSpan.className = 'lyric';
+                            lyricSpan.innerHTML = '&nbsp;';
 
                             let lyricText = '';
                             if (i + 1 < parts.length && !parts[i + 1].startsWith('[')) {

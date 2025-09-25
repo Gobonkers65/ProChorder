@@ -294,35 +294,25 @@
         }
 
         .chord {
-            display: inline-block;
-            /* Ändrad från inline-flex för detta trick */
-            position: relative;
-            user-select: none;
-            cursor: default;
-
-            /* STEG 1: Lyft upp ackordet visuellt */
-            vertical-align: middle;
-            /* Bättre baslinje för justering */
-            top: -2.5em;
-            /* Skjut upp det ovanför textraden */
-            height: 0;
-            /* Se till att det inte tar upp vertikalt utrymme */
-
-            /* STEG 2: Stäng luckan i texten */
-            /* Justera dessa värden tills det ser bra ut med ditt typsnitt */
-            margin-left: 2px;
-            margin-right: -1.8ch;
-            /* Dra tillbaka texten som kommer efter */
-            /* 'ch' är bredden av tecknet '0', en bra enhet för detta */
-
-            /* Behåll den visuella stylingen */
-            padding: 0.1em 0.4em;
-            border-radius: 3px;
-            transition: background-color 0.2s;
-
-            /* Behåll pekaren från tidigare lösning */
-            z-index: 5;
-        }
+    display: inline-block;
+    position: relative;
+    user-select: none;
+    cursor: default;
+    
+    /* Dessa rader skapar den "luckfria" effekten */
+    vertical-align: middle;
+    top: -2.5em; /* Värdet du tyckte var perfekt */
+    height: 0;
+    margin-left: 2px;
+    margin-right: -2.5ch; /* Denna stänger glappet */
+    
+    /* Visuell styling */
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+    
+    z-index: 5; 
+}
 
         /* Vi behöver justera :hover lite också */
         .chord:hover {

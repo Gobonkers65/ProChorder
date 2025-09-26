@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProChorder5.1</title>
+    <title>ProChorder5.0</title>
     <style>
         #drop-indicator {
             /*--ny indikator-*/
@@ -293,25 +293,29 @@
             position: relative;
         }
 
-        .chord {
+#editor .chord {
     display: inline-block;
     position: relative;
-    user-select: none;
-    cursor: default;
-    
-    /* Dessa rader skapar den "luckfria" effekten */
-    vertical-align: middle;
-    top: -2.5em; /* Värdet du tyckte var perfekt */
+    top: -1.9em;
     height: 0;
-    margin-left: 2px;
-    margin-right: -2.5ch; /* Denna stänger glappet */
-    
-    /* Visuell styling */
-    padding: 0.1em 0.4em;
-    border-radius: 3px;
-    transition: background-color 0.2s;
-    
-    z-index: 5; 
+    margin: 0;
+    padding: 0;
+    text-indent: -9999px;
+}
+
+/* GÖR ÄVEN DENNA REGEL MER SPECIFIK */
+#editor .chord-text {
+    position: absolute;
+    left: 0;
+    text-indent: 0;
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.85em;
+    color: var(--chord-color);
+    line-height: 1.2;
+    min-width: 1ch;
+    outline: none;
 }
 
         /* Vi behöver justera :hover lite också */
@@ -706,18 +710,19 @@
             display: inline-block;
         }
 
-        .live-line .chunk .chord {
-            position: absolute;
-            top: 0em;
-            left: 0;
-            font-family: inherit;
-            font-size: 0.9em;
-            font-weight: 700;
-            color: var(--chord-color);
-            line-height: 0.2;
-            white-space: nowrap;
-            user-select: none;
-        }
+/* KORRIGERA DENNA REGEL FÖR LIVE-LÄGET */
+.live-line .chunk .chord {
+    position: absolute;
+    top: -0.5em;          /* Flyttar upp ackordet */
+    left: 0;
+    font-family: inherit;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: var(--chord-color);
+    line-height: 1.2;     /* Gör texten synlig */
+    white-space: nowrap;
+    user-select: none;
+}
 
         #live-controls {
             position: fixed;
@@ -1716,26 +1721,48 @@
 
                 div.insertBefore(markerSpan, div.firstChild);
             }
+// LÄGG TILL DENNA NYA HJÄLPFUNKTION PRECIS FÖRE DIN TRANSPOSE-FUNKTION
+_transposeSingleNote(note, steps) {
+    const sharpMap = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
+    // Hanterar både grundtoner (t.ex. "C#") och rena noter (t.ex. "C")
+    const match = note.match(/^([A-G](?:#|b)?)/);
+    if (!match) return note; // Om det inte är en not, returnera som den är
 
-            transpose(steps) {
-                this.syncChordData();
-                const text = this.getContentAsText();
-                const sharpMap = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
-                const transposedText = text.replace(/\[([^\]]+)\]/g, (fullMatch, chord) => {
-                    const match = chord.match(/^([A-G](?:#|b)?)(.*)/);
-                    if (!match) return fullMatch;
-                    let note = match[1];
-                    const type = match[2] || '';
-                    if (note.includes('b')) note = sharpMap[note] || note;
-                    const currentIndex = this.musicalNotes.indexOf(note);
-                    if (currentIndex !== -1) {
-                        const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length;
-                        return `[${this.musicalNotes[newIndex]}${type}]`;
-                    }
-                    return fullMatch;
-                });
-                this.loadContent(transposedText, true);
-            }
+    let rootNote = match[0];
+    let normalizedNote = rootNote.includes('b') ? (sharpMap[rootNote] || rootNote) : rootNote;
+    
+    const currentIndex = this.musicalNotes.indexOf(normalizedNote);
+    if (currentIndex !== -1) {
+        const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length;
+        const transposedRoot = this.musicalNotes[newIndex];
+        // Sätt tillbaka resten av ackord-typen (t.ex. "m7" i "Am7")
+        return transposedRoot + note.substring(rootNote.length);
+    }
+    return note;
+}
+           // ERSÄTT DIN GAMLA TRANSPOSE-FUNKTION MED DENNA NYA VERSION
+transpose(steps) {
+    this.syncChordData();
+    const text = this.getContentAsText();
+    const transposedText = text.replace(/\[([^\]]+)\]/g, (fullMatch, chord) => {
+        // Dela upp ackordet vid "/" för att separera huvudackord och basnot
+        const parts = chord.split('/');
+        const mainChord = parts[0];
+        const bassNote = parts.length > 1 ? parts[1] : null;
+
+        // Transponera huvudackordet med hjälp av vår nya funktion
+        const transposedMainChord = this._transposeSingleNote(mainChord, steps);
+
+        // Om det finns en basnot, transponera den också
+        if (bassNote) {
+            const transposedBassNote = this._transposeSingleNote(bassNote, steps);
+            return `[${transposedMainChord}/${transposedBassNote}]`;
+        } else {
+            return `[${transposedMainChord}]`;
+        }
+    });
+    this.loadContent(transposedText, true);
+}
 
             generatePdfForProject(projectData) {
                 const { jsPDF } = window.jsPDF ? window.jsPDF : window.jspdf;

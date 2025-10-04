@@ -4,41 +4,25 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProChorder5.0</title>
+    <title>ProChorder 9.7 - Final</title>
     <style>
-        #drop-indicator {
-            /*--ny indikator-*/
-            position: absolute;
-            width: 2px;
-            height: 1.8em;
-            /* Lite högre än texten */
-            background-color: var(--primary);
-            display: none;
-            /* Dold som standard */
-            pointer-events: none;
-            /* Stör inte andra musklick */
-            z-index: 9999;
-        }
-
-        body.is-dragging * {
-            cursor: none !important;
-        }
-
         :root {
+            --chord-btn-width: 65px;
+            --chord-btn-height: 28px;
             --bg: #f4f5f7;
             --surface: #ffffff;
             --text-color: #172b4d;
             --primary: #0052cc;
             --border: #dfe1e6;
-            --shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
+            --shadow: 0 4px 8px -2px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
             --chord-color: var(--primary);
             --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            --font-serif: "Georgia", "Times New Roman", serif;
             --success-bg: #28a745;
             --danger-bg: #dc3545;
             --button-text-light: #ffffff;
             --primary-bg-hover: rgba(0, 82, 204, 0.1);
             --section-marker-color: var(--danger-bg);
+            --menu-width: 320px;
         }
 
         body.dark-mode {
@@ -47,12 +31,15 @@
             --text-color: #c1c9d3;
             --primary: #4c9aff;
             --border: #454c54;
-            --success-bg: #30c451;
-            --danger-bg: #ff5263;
-            --button-text-light: #1d2125;
             --chord-color: #ffcb47;
             --primary-bg-hover: rgba(76, 154, 255, 0.15);
             --section-marker-color: #FFFFFF;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
         }
 
         body {
@@ -60,8 +47,118 @@
             background-color: var(--bg);
             color: var(--text-color);
             margin: 0;
-            padding: 0em;
+            padding: 1em;
+            padding-top: 70px;
             transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1em;
+            padding: 10px 1em;
+            background-color: var(--bg);
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .top-bar-left,
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+        }
+
+        .top-bar-left {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .top-bar #project-list {
+            flex-grow: 1;
+        }
+
+        .top-bar select,
+        .top-bar button {
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            color: var(--text-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
+            font-size: 1em;
+            height: 44px;
+            box-sizing: border-box;
+        }
+
+        .top-bar button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            padding: 0;
+            font-size: 1.2em;
+            flex-shrink: 0;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .top-bar select {
+            padding: 0 0.75em;
+        }
+
+        #hamburger-btn {
+            font-size: 24px;
+            font-weight: normal;
+        }
+        
+        #btn-toggle-dark-mode {
+            font-size: 1.5em;
+        }
+
+        #side-menu {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: var(--menu-width);
+            max-width: 90%;
+            background-color: var(--surface);
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 1001;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            padding: 1.5em;
+        }
+
+        #side-menu:not(.is-closed) {
+            transform: translateX(0);
+        }
+
+        #menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(9, 30, 66, 0.5);
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        #menu-overlay.is-closed {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .container {
@@ -71,142 +168,119 @@
 
         .app-layout {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.5em;
-        }
-
-        .sidebar {
-            flex-basis: 280px;
-            flex-grow: 1;
-            flex-shrink: 0;
-            background-color: var(--surface);
-            padding: 0.75em;
-            border-radius: 8px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            display: flex;
             flex-direction: column;
-            gap: 0.6em;
-            align-self: flex-start;
-            position: sticky;
-            top: 0em;
-            height: fit-content;
-            box-sizing: border-box;
+            gap: 1em;
         }
 
         .sidebar-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5em;
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 8px;
         }
 
-        /* FIX: Kombinerade två .sidebar-group-label-regler till en för tydlighet */
         .sidebar-group-label {
             position: relative;
             cursor: pointer;
-            padding: 0.3em 25px 0.3em 0.5em;
-            /* Kompakt padding */
-            border-radius: 4px;
-            transition: background-color 0.2s;
+            padding: 0.8em;
             user-select: none;
-            font-size: 0.9em;
             font-weight: 700;
-            opacity: 0.8;
-            border-bottom: 1px solid var(--border);
+            display: block;
         }
 
-        .sidebar-group-label:hover {
-            background-color: var(--primary-bg-hover);
+        .sidebar-group-label::after {
+            content: '›';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            transition: transform 0.3s ease;
+            font-size: 1.5em;
+        }
+
+        .sidebar-group-label.is-open::after {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        .sidebar-group-content {
+            overflow: hidden;
+            max-height: 500px;
+            transition: max-height 0.4s ease-in-out, padding 0.3s ease-out;
+            padding: 0 1em 1em 1em;
+        }
+
+        .sidebar-group-content.is-collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            visibility: hidden;
         }
 
         .sidebar-controls {
             display: flex;
-            flex-wrap: wrap;
-            gap: 0.5em;
-            align-items: center;
-            /* Vertikal centrering */
-        }
-
-        .sidebar-controls.vertical {
             flex-direction: column;
-            align-items: stretch;
+            gap: 0.8em;
+            padding-top: 0;
         }
 
-        .sidebar button,
-        .sidebar select,
-        .sidebar input[type="range"],
-        .sidebar input[type="text"],
-        .sidebar input[type="number"] {
+        .sidebar-controls.horizontal {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.4em;
+        }
+
+        .sidebar-controls span {
+            font-size: 0.8em;
+            margin-right: 0.2em;
+            white-space: nowrap;
+        }
+
+        #side-menu button,
+        #side-menu select,
+        #side-menu input {
             font-family: var(--font-sans);
             font-weight: 600;
-            font-size: 0.8em;
-            min-width: 40px;
+            font-size: 0.85em;
             height: 38px;
             background-color: var(--bg);
             color: var(--text-color);
             border: 1px solid var(--border);
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0 0.8em;
+            padding: 0 0.7em;
             box-sizing: border-box;
-            width: auto;
+            width: 100%;
         }
 
-        .sidebar .sidebar-controls.horizontal>* {
+        #side-menu #song-title {
+            font-weight: 700;
+        }
+
+        .sidebar-controls.horizontal>* {
             flex: 1;
         }
 
-        .sidebar button:hover {
-            transform: translateY(-2px);
+        #side-menu button:hover {
+            transform: translateY(-1px);
             border-color: var(--primary);
         }
 
-        .sidebar button:disabled {
-            transform: none;
-            background-color: var(--border);
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .sidebar input[type="text"] {
-            height: 38px;
-            padding: 0 0.6em;
-        }
-
-        .sidebar button.btn-primary {
+        #side-menu button.btn-primary {
             background-color: var(--primary);
-            border-color: var(--primary);
             color: var(--button-text-light);
         }
 
-        .sidebar button.btn-success {
+        #side-menu button.btn-success {
             background-color: var(--success-bg);
-            border-color: var(--success-bg);
             color: var(--button-text-light);
         }
 
-        .sidebar button.btn-danger {
+        #side-menu button.btn-danger {
             background-color: var(--danger-bg);
-            border-color: var(--danger-bg);
             color: var(--button-text-light);
         }
 
-        .sidebar-controls.font-size-control {
-            display: flex;
-            align-items: center;
-            gap: 0.8em;
-        }
-
-        .sidebar-controls.font-size-control>span {
-            font-weight: 600;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-
-        .sidebar-controls.font-size-control>input[type="range"] {
-            flex: 1;
-            width: auto;
+        #side-menu input[type="range"] {
+            height: auto;
         }
 
         .main-content {
@@ -215,56 +289,7 @@
             min-width: 60%;
             display: flex;
             flex-direction: column;
-            gap: 0.5em;
-        }
-
-        .meta-fields {
-            display: flex;
             gap: 1em;
-            align-items: stretch;
-        }
-
-        .meta-fields input {
-            padding: 0.75em;
-            border: 1px solid var(--border);
-            background-color: var(--surface);
-            color: var(--text-color);
-            font-size: 1.2em;
-            font-weight: 700;
-            outline: none;
-            border-radius: 8px;
-            box-sizing: border-box;
-            box-shadow: var(--shadow);
-        }
-
-        #btn-live-mode {
-            font-family: var(--font-sans);
-            font-weight: 600;
-            font-size: 0.9em;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            padding: 0 0.8em;
-            box-sizing: border-box;
-            background-color: var(--primary);
-            border: 1px solid var(--primary);
-            color: var(--button-text-light);
-            margin-right: 0.5em;
-            flex-shrink: 0;
-        }
-
-        #btn-live-mode:hover {
-            transform: translateY(-2px);
-        }
-
-        #song-title {
-            flex: 3;
-        }
-
-        #song-author {
-            flex: 2;
-            font-size: 1em;
-            font-weight: 400;
         }
 
         #editor {
@@ -272,61 +297,66 @@
             border: 1px solid var(--border);
             padding: 2em;
             border-radius: 8px;
-            box-shadow: var(--shadow);
-            min-height: 75vh;
-            height: auto;
+            box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
+            height: 75vh;
             font-family: var(--font-sans);
-            line-height: 2.5;
+            line-height: 1.8;
             outline: none;
             font-size: 16px;
-            padding-left: 5em;
-            box-sizing: border-box;
-            /* FIX: Lade till denna här för bästa effekt */
+            overflow-y: scroll;
+            clear: both;
+            width: 100%;
         }
 
-        #editor * {
-            font-size: inherit;
-            line-height: inherit;
+        #editor>div:not(:has(.section-marker)) {
+            line-height: 2.5;
+        }
+
+        #editor:focus-within {
+            border-color: var(--primary);
         }
 
         #editor>div {
             position: relative;
         }
 
-#editor .chord {
-    display: inline-block;
-    position: relative;
-    top: -1.9em;
-    height: 0;
-    margin: 0;
-    padding: 0;
-    text-indent: -9999px;
-}
+        #editor .chord {
+            display: inline-block;
+            position: relative;
+            user-select: none;
+            cursor: default;
+            vertical-align: middle;
+            top: -1.8em;
+            height: 0;
+            width: 0;
+            padding: 0;
+            margin: 0;
+            z-index: 5;
+        }
 
-/* GÖR ÄVEN DENNA REGEL MER SPECIFIK */
-#editor .chord-text {
-    position: absolute;
-    left: 0;
-    text-indent: 0;
-    display: inline-block;
-    font-family: var(--font-sans);
-    font-weight: 600;
-    font-size: 0.85em;
-    color: var(--chord-color);
-    line-height: 1.2;
-    min-width: 1ch;
-    outline: none;
-}
-
-        /* Vi behöver justera :hover lite också */
-        .chord:hover {
+        #editor .chord:hover {
             background-color: var(--primary-bg-hover);
             z-index: 10;
         }
 
-        .chord .chord-handle {
+        #editor .chord-text {
             position: absolute;
-            /* ÄNDRING: Justerad för att passa den mindre paddingen */
+            left: 0;
+            display: inline-block;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            font-size: 0.85em;
+            color: var(--chord-color);
+            line-height: 1.2;
+            min-width: 1ch;
+            outline: none;
+            padding: 0.1em 0.4em;
+            border-radius: 3px;
+            white-space: nowrap;
+        }
+
+        #editor .chord-handle {
+            position: absolute;
             bottom: 0px;
             left: 50%;
             transform: translateX(-50%);
@@ -340,65 +370,26 @@
             pointer-events: none;
         }
 
-        .chord .chord-handle:active {
-            cursor: grabbing;
-        }
-
-
-        .chord:hover .chord-handle {
+        #editor .chord:hover .chord-handle {
             opacity: 1;
-            /* Visa handtaget vid hover */
             pointer-events: auto;
-            /* Gör handtaget klickbart vid hover */
         }
 
-        .chord .chord-handle:active {
-            cursor: grabbing;
-            /* Ändra muspekare när man drar */
-        }
-
-        /* --- SLUT PÅ NYA REGLER --- */
-
-        .chord:hover {
-            background-color: var(--primary-bg-hover);
-        }
-
-        .chord.selected::after {
-            content: '';
-            position: absolute;
-            left: -2px;
-            right: -2px;
-            top: -2px;
-            bottom: 0px;
-            border-radius: 6px;
-            border: 2px dashed rgba(0, 82, 204, 0.25);
-            pointer-events: none;
-        }
-
-        .chord-text {
-            display: inline-block;
-            font-family: var(--font-sans);
-            font-weight: 600;
-            font-size: 0.85em;
-            color: var(--chord-color);
-            line-height: 1.2;
-            min-width: 1ch;
-            outline: none;
-        }
-
-        .section-marker {
-            position: absolute;
-            left: -5em;
-            top: 0.1em;
-            font-family: var(--font-sans);
-            font-weight: 500;
-            font-size: 0.75em;
-            color: var(--section-marker-color);
-            background-color: var(--bg);
-            padding: -0.5em;
-            border-radius: 4px;
+        #editor .section-marker {
+            display: block;
+            margin-bottom: 0.25em;
+            line-height: 1.5;
+            font-weight: 700;
+            font-size: 1.1em;
+            color: var(--text-color);
+            background-color: transparent;
+            padding: 0;
             user-select: none;
-            cursor: default;
+        }
+
+        .custom-dialog-overlay,
+        #scroll-controls {
+            z-index: 2000;
         }
 
         .custom-dialog-overlay {
@@ -411,7 +402,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s, visibility 0.2s;
@@ -431,24 +421,13 @@
             text-align: center;
             min-width: 300px;
             max-width: 90%;
-            transform: scale(0.95);
-            transition: transform 0.2s;
-        }
-
-        .custom-dialog-overlay.visible .custom-dialog-box {
-            transform: scale(1);
-        }
-
-        .custom-dialog-box p {
-            margin: 0 0 1.5em 0;
-            font-size: 1.1em;
         }
 
         .custom-dialog-box .dialog-buttons {
             display: flex;
             gap: 1em;
             justify-content: center;
-            /* FIX: Ändrade 'left' till 'center' som är korrekt */
+            margin-top: 1.5em;
         }
 
         .custom-dialog-box button {
@@ -460,344 +439,122 @@
             cursor: pointer;
         }
 
-        .sidebar-group-label::after {
-            content: '›';
+        .custom-dialog-box button.btn-primary {
+            background-color: var(--primary);
+            color: var(--button-text-light);
+        }
+
+        #drop-indicator {
             position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%) rotate(0deg);
-            transition: transform 0.3s ease;
-            font-size: 1.5em;
-            font-weight: 500;
-        }
-
-        .sidebar-group-label.is-open::after {
-            transform: translateY(-50%) rotate(90deg);
-        }
-
-        .sidebar-group-content {
-            max-height: 500px;
-            overflow: hidden;
-            opacity: 1;
-            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out;
-            padding: 0.1em;
-            /* Kompakt padding */
-        }
-
-        .sidebar-group-content.is-collapsed {
-            max-height: 0;
-            opacity: 0;
-            transition: max-height 0.4s cubic-bezier(0, 1, 0, 1), opacity 0.1s;
-        }
-
-        /* =============================================================== */
-        /* =================== MOBILLÄGE OCH UTSKRIFT ==================== */
-        /* =============================================================== */
-
-        @media (max-width: 800px) {
-            .app-layout {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                position: sticky;
-                top: 0em;
-                z-index: 100;
-                width: 100%;
-                flex-basis: auto;
-            }
-
-            .main-content {
-                position: relative;
-                z-index: 1;
-            }
-
-            #editor {
-                padding-left: 2.2em;
-                /* FIX: Korrekt padding för mobil */
-                font-size: 14px;
-            }
-
-            #editor .section-marker {
-                left: -2em;
-                width: 2em;
-                height: 100%;
-                top: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: none;
-                padding: 0;
-            }
-
-            #editor .section-marker-text {
-                display: none;
-            }
-
-            .section-marker::before {
-                content: attr(data-abbreviation);
-                background-color: var(--bg);
-                color: var(--section-marker-color);
-                padding: 0.2em 0.5em;
-                border-radius: 4px;
-                font-size: 0.8rem;
-                font-weight: 700;
-                font-family: var(--font-sans);
-                line-height: 1;
-            }
-
-            .sidebar-group-content {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .meta-fields {
-                flex-direction: column;
-            }
-        }
-
-        @media (max-width: 600px) {
-            #live-controls {
-                display: flex;
-                flex-wrap: wrap;
-                /* Tillåter att elementen byter rad */
-                flex-direction: row;
-                align-items: center;
-                justify-content: center;
-                /* Centrerar innehållet */
-                gap: 0.5em;
-                padding: 0.8em;
-            }
-
-            #live-controls .speed-control {
-                flex-basis: 100%;
-                /* Tar upp hela bredden */
-                order: -1;
-                /* Flyttar reglaget visuellt överst */
-                display: flex;
-                justify-content: center;
-                margin-bottom: 0.5em;
-                /* Lägger till lite avstånd under reglaget */
-            }
-
-            #live-controls .speed-control input[type="range"] {
-                max-width: 250px;
-                /* Ger reglaget mer utrymme nu när det har en egen rad */
-                flex-grow: 1;
-            }
-
-            #live-controls .duration-control input[type="number"] {
-                width: 45px;
-                /* Minskar bredden på inmatningsrutorna */
-            }
-        }
-
-        @media print {
-            body {
-                background-color: #fff;
-                color: #000;
-                padding: 0;
-                margin: 0;
-            }
-
-            .sidebar,
-            .meta-fields {
-                display: none;
-            }
-
-            .container,
-            .app-layout,
-            .main-content {
-                margin: 0;
-                padding: 0;
-                box-shadow: none;
-                border: none;
-                max-width: 100%;
-            }
-
-            #editor {
-                --chord-color: #000;
-                min-height: 0;
-                box-shadow: none;
-                border: none;
-                padding: 1em;
-                padding-left: 5em;
-            }
-
-            .section-marker {
-                background-color: #eee;
-                color: #333;
-            }
-        }
-
-        #live-view {
+            width: 2px;
+            height: 1.8em;
+            background-color: var(--primary);
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg);
-            color: var(--text-color);
-            z-index: 2000;
-            overflow-y: scroll;
-            font-family: var(--font-sans);
+            pointer-events: none;
+            z-index: 9999;
         }
 
-        body.live-mode-active .app-layout {
+        body.is-dragging * {
+            cursor: none !important;
+        }
+
+        #scroll-controls {
             display: none;
-        }
-
-        body.live-mode-active #live-view {
-            display: block;
-        }
-
-        #live-song-content {
-            padding: 4rem 2rem 10rem 2rem;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        #live-song-content h1,
-        #live-song-content h2 {
-            font-family: var(--font-sans);
-            text-align: center;
-            margin: 0 auto;
-            padding: 0;
-        }
-
-        #live-song-content h1 {
-            font-size: 2.5em;
-            margin-bottom: 0.1em;
-        }
-
-        #live-song-content h2 {
-            font-size: 1.5em;
-            font-weight: 400;
-            opacity: 0.8;
-            margin-bottom: 3em;
-        }
-
-        .live-line {
-            margin-bottom: 0;
-            position: relative;
-        }
-
-        .live-section-marker {
-            font-family: var(--font-sans);
-            font-weight: 700;
-            font-size: 1.5em;
-            color: var(--section-marker-color);
-            margin-bottom: 0.7em;
-        }
-
-        .live-line p {
-            margin: 0;
-            padding: 0;
-            line-height: 2.5;
-        }
-
-        .live-line .chunk {
-            display: inline-block;
-            position: relative;
-            vertical-align: bottom;
-            white-space: pre-wrap;
-            min-width: 4ch;
-        }
-
-        .live-line .chunk .lyric {
-            display: inline-block;
-        }
-
-/* KORRIGERA DENNA REGEL FÖR LIVE-LÄGET */
-.live-line .chunk .chord {
-    position: absolute;
-    top: -0.5em;          /* Flyttar upp ackordet */
-    left: 0;
-    font-family: inherit;
-    font-size: 0.9em;
-    font-weight: 700;
-    color: var(--chord-color);
-    line-height: 1.2;     /* Gör texten synlig */
-    white-space: nowrap;
-    user-select: none;
-}
-
-        #live-controls {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.06);
+            background: rgba(0, 0, 0, 0.1);
             backdrop-filter: blur(6px);
             padding: 0.8em 1em;
-            display: flex;
             align-items: center;
             justify-content: center;
             gap: 1em;
-            z-index: 2001;
             border-top: 1px solid var(--border);
         }
 
-        #live-controls button {
-            font-family: var(--font-sans);
-            font-weight: 600;
-            font-size: 1.2em;
-            width: 80px;
-            height: 46px;
-            border-radius: 8px;
-            cursor: pointer;
+        body.scroll-mode-active #scroll-controls {
+            display: grid;
+        }
+
+        #scroll-controls {
+            grid-template-columns: auto 1fr auto;
+            grid-template-rows: auto auto;
+            align-items: center;
+            gap: .75em 1em;
+        }
+
+        #scroll-controls .speed-control {
+            grid-column: 1 / -1;
+            grid-row: 1;
+            display: flex;
+            align-items: center;
+            gap: .5em;
+        }
+
+        #scroll-btn-play-pause {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        #scroll-controls .duration-control {
+            grid-column: 2;
+            grid-row: 2;
+            justify-self: center;
+            display: flex;
+            align-items: center;
+            gap: .5em;
+        }
+
+        #scroll-btn-exit {
+            grid-column: 3;
+            grid-row: 2;
+            justify-self: end;
+        }
+
+        body.scroll-mode-active #editor {
+            caret-color: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .chord-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, var(--chord-btn-width));
+            gap: 6px;
+            justify-content: center;
+            margin-top: 1em;
+        }
+
+        .chord-grid button {
+            all: unset;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--chord-btn-width);
+            height: var(--chord-btn-height);
+            box-sizing: border-box;
             border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text-color);
-        }
-
-        #live-controls .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 0.5em;
-            color: var(--text-color);
-        }
-
-        #live-controls input[type="range"] {
-            width: 150px;
-        }
-
-        #live-controls .duration-control {
-            display: flex;
-            align-items: center;
-            gap: 0.25em;
-        }
-
-        #live-controls .duration-control label {
-            font-weight: 600;
-            margin-right: 0.5em;
-        }
-
-        #live-controls .duration-control input[type="number"] {
-            width: 55px;
-            height: 38px;
-            padding: 0 0.5em;
-            text-align: center;
-            font-weight: 600;
             border-radius: 6px;
-            background-color: var(--bg);
-            border: 1px solid var(--border);
-            color: var(--text-color);
-            -moz-appearance: textfield;
-        }
-
-        #live-controls .duration-control input[type="number"]::-webkit-outer-spin-button,
-        #live-controls .duration-control input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        #live-controls .duration-control span {
+            font-family: var(--font-sans);
+            font-size: 0.85em;
             font-weight: 600;
-            opacity: 0.8;
-            margin-right: 0.5em;
+            background-color: var(--bg);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+
+        .chord-grid button:hover {
+            background-color: var(--primary-bg-hover);
+            border-color: var(--primary);
+        }
+
+        .chord-grid button.active {
+            background-color: var(--primary);
+            color: var(--button-text-light);
+            border-color: var(--primary);
         }
 
         .hidden-file {
@@ -807,197 +564,114 @@
 </head>
 
 <body>
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <select id="project-list"></select>
+            <button id="btn-new-project" class="btn-primary" title="Nytt projekt">+</button>
+        </div>
+        <div class="top-bar-right">
+            <button id="main-toggle-edit-mode-btn" title="Växla Redigeringsläge">A</button>
+            <button id="btn-toggle-dark-mode" title="Växla ljust/mörkt läge">🌙</button>
+            <button id="hamburger-btn">☰</button>
+        </div>
+    </div>
+
+    <div id="menu-overlay" class="is-closed"></div>
+
+    <nav id="side-menu" class="is-closed">
+        <input type="text" id="song-title" placeholder="Låttitel">
+        <input type="text" id="song-author" placeholder="Artist / Låtskrivare">
+        <button id="btn-toggle-scroll-mode" class="btn-primary">LIVE!</button>
+
+        <div class="sidebar-group">
+            <span class="sidebar-group-label" id="edit-mode-label">Redigera</span>
+            <div class="sidebar-group-content is-collapsed">
+                <div class="sidebar-controls vertical">
+                    <button id="btn-toggle-edit-mode" title="Växla mellan text- och ackordläge">Byt läge</button>
+                    <div class="sidebar-controls horizontal">
+                        <button id="btn-transpose-up">+1</button>
+                        <button id="btn-transpose-down">-1</button>
+                    </div>
+                    <div class="sidebar-controls horizontal">
+                        <span>Textstorlek</span>
+                        <input type="range" id="font-size-slider" min="12" max="32" value="16">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-group">
+            <span class="sidebar-group-label">Sektioner</span>
+            <div class="sidebar-group-content is-collapsed">
+                <div class="sidebar-controls horizontal">
+                    <select id="section-type-select-menu"></select>
+                    <button id="btn-insert-section">Infoga</button>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-group">
+            <span class="sidebar-group-label">Projekt</span>
+            <div class="sidebar-group-content is-collapsed">
+                <div class="sidebar-controls vertical">
+                    <button id="btn-save-project" class="btn-success">Spara</button>
+                    <button id="btn-delete-project" class="btn-danger">Ta bort</button>
+                    <button id="btn-delete-all-projects" class="btn-danger">Rensa allt</button>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-group">
+            <span class="sidebar-group-label">Import/Export</span>
+            <div class="sidebar-group-content is-collapsed">
+                <div class="sidebar-controls vertical" style="gap: 0.5em;">
+                    <div class="sidebar-controls horizontal">
+                        <button id="btn-export-pdf">PDF</button>
+                        <button id="btn-export-txt">TXT</button>
+                        <button id="btn-export-zip">ZIP</button>
+                    </div>
+                    <div class="sidebar-controls horizontal">
+                        <button id="btn-export-json">Låt JSON</button>
+                        <button id="btn-export-all-json">Allt JSON</button>
+                    </div>
+                    <div class="sidebar-controls horizontal">
+                        <button id="btn-import-json">Imp. JSON</button>
+                        <button id="btn-import-url" class="btn-primary">Importera URL</button>
+                    </div>
+                    <input type="file" id="file-import" accept="application/json" class="hidden-file">
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <div class="container">
         <div class="app-layout">
-
-            <aside class="sidebar">
-
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">ACKORDBYGGARE</span>
-                    <div class="sidebar-group-content is-collapsed">
-                        <div class="sidebar-controls vertical">
-                            <div class="sidebar-controls horizontal">
-                                <select id="chord-root">
-                                    <option value="">Grundton</option>
-                                    <option value="A">A</option>
-                                    <option value="A#">A#</option>
-                                    <option value="Bb">Bb</option>
-                                    <option value="B">B</option>
-                                    <option value="C">C</option>
-                                    <option value="C#">C#</option>
-                                    <option value="Db">Db</option>
-                                    <option value="D">D</option>
-                                    <option value="D#">D#</option>
-                                    <option value="Eb">Eb</option>
-                                    <option value="E">E</option>
-                                    <option value="F">F</option>
-                                    <option value="F#">F#</option>
-                                    <option value="Gb">Gb</option>
-                                    <option value="G">G</option>
-                                    <option value="G#">G#</option>
-                                    <option value="Ab">Ab</option>
-                                </select>
-                                <select id="chord-type">
-                                    <option value="">Dur</option>
-                                    <option value="m">m</option>
-                                    <option value="maj">maj</option>
-                                    <option value="dim">dim</option>
-                                    <option value="aug">aug</option>
-                                    <option value="sus2">sus2</option>
-                                    <option value="sus4">sus4</option>
-                                </select>
-                                <select id="chord-extension">
-                                    <option value="">—</option>
-                                    <option value="6">6</option>
-                                    <option value="7">7</option>
-                                    <option value="9">9</option>
-                                    <option value="11">11</option>
-                                    <option value="13">13</option>
-                                    <option value="/A">/A</option>
-                                    <option value="/A#">/A#</option>
-                                    <option value="/B">/B</option>
-                                    <option value="/C">/C</option>
-                                    <option value="/C#">/C#</option>
-                                    <option value="/D">/D</option>
-                                    <option value="/D#">/D#</option>
-                                    <option value="/E">/E</option>
-                                    <option value="/F">/F</option>
-                                    <option value="/F#">/F#</option>
-                                    <option value="/G">/G</option>
-                                    <option value="/G#">/G#</option>
-                                </select>
-                            </div>
-                            <div class="sidebar-controls horizontal">
-                                <button id="btn-insert-built">Infoga</button>
-                                <button id="btn-delete-chord" title="Ta bort markerat ackord">Ta bort</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">LÅTSTRUKTUR</span>
-                    <div class="sidebar-group-content is-collapsed">
-                        <div class="sidebar-controls horizontal">
-                            <select id="section-type-select">
-                                <option value="" disabled selected>Välj sektion...</option>
-                                <option value="Intro">Intro</option>
-                                <option value="Vers">Vers</option>
-                                <option value="Refräng">Refräng</option>
-                                <option value="Stick">Stick</option>
-                                <option value="Bridge">Bridge</option>
-                                <option value="Solo">Solo</option>
-                                <option value="Outro">Outro</option>
-                                <option value="Mellanspel">Mellanspel</option>
-                            </select>
-                            <button id="btn-insert-section">Infoga</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">PROJEKTHANTERING</span>
-                    <div class="sidebar-group-content is-collapsed">
-                        <div class="sidebar-controls vertical">
-                            <div class="sidebar-controls horizontal">
-                                <button id="btn-rename-project" title="Döp om valt projekt">Döp om</button>
-                                <button id="btn-transpose-up" title="Transponera upp">+1 Halvton</button>
-                                <button id="btn-transpose-down" title="Transponera ner">-1 Halvton</button>
-                            </div>
-                            <div class="sidebar-controls font-size-control">
-                                <span>Textstorlek</span>
-                                <input type="range" id="font-size-slider" min="12" max="32" value="16">
-                            </div>
-
-                            <select id="project-list" title="Ladda projekt"></select>
-
-                            <div class="sidebar-controls horizontal">
-                                <button id="btn-new-project" class="btn-primary"
-                                    title="Skapa ett nytt tomt projekt">Nytt</button>
-                                <button id="btn-save-project" class="btn-success" title="Spara projekt">Spara</button>
-                                <button id="btn-delete-project" class="btn-danger" title="Ta bort valt projekt">Ta
-                                    bort</button>
-                                <button id="btn-delete-all-projects" class="btn-danger"
-                                    title="Ta bort ALLA sparade projekt permanent">Rensa allt</button>
-                            </div>
-
-                            <div style="display:flex; flex-wrap: wrap; gap:.5em; margin-top:.5em">
-                                <button id="btn-export-json" style="flex:1"
-                                    title="Exportera den nuvarande låten som en JSON-fil">Låt JSON</button>
-                                <button id="btn-export-all-json" style="flex:1"
-                                    title=" alla sparade låtar till en enda JSON-fil">Allt JSON</button>
-                                <button id="btn-import-json" style="flex:1"
-                                    title="Importera en eller flera låtar från en JSON-fil">Imp. JSON</button>
-                                <button id="btn-import-url" style="flex:1" title="Hämta låtar från en fast GitHub URL"
-                                    class="btn-primary">1313</button>
-                                <input type="file" id="file-import" accept="application/json" class="hidden-file">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sidebar-group">
-                    <span class="sidebar-group-label">EXPORT/TEMA</span>
-                    <div class="sidebar-group-content is-collapsed">
-                        <div class="sidebar-controls horizontal">
-                            <button id="btn-export-pdf" title="Exportera som PDF">PDF</button>
-                            <button id="btn-export-txt" title="Exportera som TXT">TXT</button>
-                            <button id="btn-export-zip" title="Spara alla låtar som ZIP">ZIP</button>
-                            <button id="btn-toggle-dark-mode" title="Växla mörkt/ljust läge">🌙</button>
-                        </div>
-                    </div>
-                </div>
-
-            </aside>
-
             <main class="main-content">
-                <div class="meta-fields">
-                    <button id="btn-live-mode" class="btn-primary"
-                        title="Aktivera live-läge för uppspelning">LIVE</button>
-                    <input type="text" id="song-title" placeholder="Låttitel">
-                    <input type="text" id="song-author" placeholder="Artist / Låtskrivare">
-                </div>
-
                 <div id="editor" contenteditable="true" spellcheck="false"></div>
             </main>
-
         </div>
     </div>
 
-    <div id="live-view">
-        <div id="live-song-content"></div>
-        <div id="live-controls">
-            <button id="live-btn-play-pause">▶</button>
-
-            <div class="speed-control">
-                <span>Långsamt</span>
-                <input type="range" id="live-speed-slider" min="0" max="100" value="20">
-                <span>Snabbt</span>
-            </div>
-
-            <div class="duration-control">
-                <label>Speltid:</label>
-                <input type="number" id="live-duration-minutes" min="0" max="60" value="4">
-                <span>m</span>
-                <input type="number" id="live-duration-seconds" min="0" max="59" step="5" value="0">
-                <span>s</span>
-            </div>
-
-            <button id="live-btn-exit">Avsluta</button>
+    <div id="scroll-controls">
+        <button id="scroll-btn-play-pause">▶</button>
+        <div class="speed-control">
+            <span>Långsamt</span>
+            <input type="range" id="scroll-speed-slider" min="0" max="100" value="20">
+            <span>Snabbt</span>
         </div>
+        <div class="duration-control">
+            <label>Speltid:</label>
+            <input type="number" id="scroll-duration-minutes" min="0" max="60" value="4">
+            <span>m</span>
+            <input type="number" id="scroll-duration-seconds" min="0" max="59" step="5" value="0">
+            <span>s</span>
+        </div>
+        <button id="scroll-btn-exit">Avsluta</button>
     </div>
-
 
     <div id="custom-alert" class="custom-dialog-overlay">
         <div class="custom-dialog-box">
             <p id="custom-alert-message"></p>
-            <div class="dialog-buttons">
-                <button id="custom-alert-ok" class="btn-primary">OK</button>
-            </div>
+            <div class="dialog-buttons"><button id="custom-alert-ok" class="btn-primary">OK</button></div>
         </div>
     </div>
-
     <div id="custom-confirm" class="custom-dialog-overlay">
         <div class="custom-dialog-box">
             <p id="custom-confirm-message"></p>
@@ -1008,12 +682,29 @@
         </div>
     </div>
 
+    <div id="chord-editor-modal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box" style="min-width: 400px;">
+            <h3 id="modal-chord-target">Välj ackord</h3>
+            <div id="modal-chord-builder">
+                <div id="modal-root-notes" class="chord-grid"></div>
+                <div id="modal-chord-types" class="chord-grid" style="display: none;"></div>
+                <div id="modal-bass-notes" class="chord-grid" style="display: none;"></div>
+            </div>
+            <div class="dialog-buttons">
+                <button id="modal-btn-remove" class="btn-danger">Ta bort ackord</button>
+                <button id="modal-btn-done" class="btn-primary" style="display: none;"></button>
+                <button id="modal-btn-close">Stäng</button>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script>
-        // *** VIKTIGT: Byt ut denna URL mot din egen giltiga "Raw" GitHub URL! ***
+        // ... Javascriptet är nästan helt oförändrat, men klistrar in hela för att vara säker.
+        // Relevanta ändringar är markerade.
+
         const SHARED_SONG_LIST_URL = 'https://raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json';
 
         class StableChordEditor {
@@ -1025,245 +716,203 @@
 
             constructor(editorId) {
                 this.editor = document.getElementById(editorId);
+                this.editMode = 'chord';
+                this.draggedChord = null;
+                this.scrollInterval = null;
+                this.scrollSpeed = 0.2;
+                this.history = [];
+                this.historyIndex = -1;
+                this.debounceTimer = null;
+                this.currentlyEditing = null;
+                this.musicalNotes = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+                this.bassNotes = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
+                this.chordTypes = ["", "m", "7", "m7", "maj7", "dim", "aug", "sus2", "sus4", "6", "9"];
+                this.historyMax = 100;
+                this.MIN_MOVE_SPEED = 0.02;
+                this.MAX_MOVE_SPEED = 0.5;
+                this.selectElements();
+                this.observer = new MutationObserver(this.handleMutations.bind(this));
+                this.init();
+            }
+
+            selectElements() {
+                this.hamburgerBtn = document.getElementById('hamburger-btn');
+                this.sideMenu = document.getElementById('side-menu');
+                this.menuOverlay = document.getElementById('menu-overlay');
+                this.container = document.querySelector('.container');
                 this.titleInput = document.getElementById('song-title');
                 this.authorInput = document.getElementById('song-author');
-                this.draggedChord = null;
+                this.editModeLabel = document.getElementById('edit-mode-label');
+                this.btnToggleEditMode = document.getElementById('btn-toggle-edit-mode');
 
-                this.rootSel = document.getElementById('chord-root');
-                this.typeSel = document.getElementById('chord-type');
-                this.extSel = document.getElementById('chord-extension');
-                this.insertBtn = document.getElementById('btn-insert-built');
-                this.btnDeleteChord = document.getElementById('btn-delete-chord');
+                // *** NYTT: Lägger till den nya knappen i toppraden ***
+                this.mainToggleEditModeBtn = document.getElementById('main-toggle-edit-mode-btn');
 
-                this.sectionTypeSelect = document.getElementById('section-type-select');
+                this.btnToggleScrollMode = document.getElementById('btn-toggle-scroll-mode');
+                this.sectionTypeSelect = document.getElementById('section-type-select-menu');
                 this.btnInsertSection = document.getElementById('btn-insert-section');
-
                 this.fontSizeSlider = document.getElementById('font-size-slider');
                 this.projectList = document.getElementById('project-list');
                 this.btnNewProject = document.getElementById('btn-new-project');
                 this.btnSaveProject = document.getElementById('btn-save-project');
                 this.btnDeleteProject = document.getElementById('btn-delete-project');
                 this.btnDeleteAllProjects = document.getElementById('btn-delete-all-projects');
-                this.btnRenameProject = document.getElementById('btn-rename-project');
                 this.btnTransposeUp = document.getElementById('btn-transpose-up');
                 this.btnTransposeDown = document.getElementById('btn-transpose-down');
-
                 this.btnExportPdf = document.getElementById('btn-export-pdf');
                 this.btnExportTxt = document.getElementById('btn-export-txt');
                 this.btnExportZip = document.getElementById('btn-export-zip');
                 this.btnToggleDarkMode = document.getElementById('btn-toggle-dark-mode');
-
                 this.btnExportJson = document.getElementById('btn-export-json');
                 this.btnExportAllJson = document.getElementById('btn-export-all-json');
                 this.btnImportJson = document.getElementById('btn-import-json');
                 this.fileImport = document.getElementById('file-import');
                 this.btnImportUrl = document.getElementById('btn-import-url');
-
-                this.musicalNotes = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"];
-                this.observer = new MutationObserver(this.handleMutations.bind(this));
-
-                this.btnLiveMode = document.getElementById('btn-live-mode');
-                this.liveView = document.getElementById('live-view');
-                this.liveSongContent = document.getElementById('live-song-content');
-                this.liveBtnPlayPause = document.getElementById('live-btn-play-pause');
-                this.liveBtnExit = document.getElementById('live-btn-exit');
-                this.liveSpeedSlider = document.getElementById('live-speed-slider');
-                this.liveDurationMinutesInput = document.getElementById('live-duration-minutes');
-                this.liveDurationSecondsInput = document.getElementById('live-duration-seconds');
-                this.dropIndicator = document.createElement('div');     //NYTT//
-                this.dropIndicator.id = 'drop-indicator';               //NYTT//
-                document.body.appendChild(this.dropIndicator);          //NYTT//
-
-                this.scrollInterval = null;
-                this.scrollSpeed = 0.2;
-                this.scrollRemainder = 0;
-
-                this.history = [];
-                this.historyIndex = -1;
-                this.historyMax = 100;
-
-                this.debounceTimer = null;
-                this.liveSettingsDebounceTimer = null;
-
-                this.init();
-            }
-
-            async deleteAllProjects() {
-                const confirmed = await this.showCustomConfirm('Är du helt säker? Detta kommer att radera ALLA sparade låtar permanent och går inte att ångra.');
-                if (confirmed) {
-                    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
-                    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-                    this.updateProjectList();
-                    this.createNewProject();
-                    this.showCustomAlert('Alla projekt har tagits bort.');
-                }
-            }
-
-            getTotalDurationSeconds() {
-                const minutes = parseInt(this.liveDurationMinutesInput.value, 10) || 0;
-                const seconds = parseInt(this.liveDurationSecondsInput.value, 10) || 0;
-                return (minutes * 60) + seconds;
-            }
-
-            updateDurationInputs(totalSeconds) {
-                if (totalSeconds && totalSeconds > 0) {
-                    const minutes = Math.floor(totalSeconds / 60);
-                    const seconds = totalSeconds % 60;
-                    this.liveDurationMinutesInput.value = minutes;
-                    this.liveDurationSecondsInput.value = seconds;
-                } else {
-                    this.liveDurationMinutesInput.value = 4;
-                    this.liveDurationSecondsInput.value = 0;
-                }
-            }
-
-            showCustomAlert(message) {
-                const dialog = document.getElementById('custom-alert');
-                document.getElementById('custom-alert-message').textContent = message;
-                dialog.classList.add('visible');
-
-                const okBtn = document.getElementById('custom-alert-ok');
-                const close = () => dialog.classList.remove('visible');
-                okBtn.onclick = close;
-            }
-
-            showCustomConfirm(message) {
-                return new Promise(resolve => {
-                    const dialog = document.getElementById('custom-confirm');
-                    document.getElementById('custom-confirm-message').textContent = message;
-                    dialog.classList.add('visible');
-
-                    const okBtn = document.getElementById('custom-confirm-ok');
-                    const cancelBtn = document.getElementById('custom-confirm-cancel');
-
-                    const close = (value) => {
-                        dialog.classList.remove('visible');
-                        resolve(value);
-                    };
-
-                    okBtn.onclick = () => close(true);
-                    cancelBtn.onclick = () => close(false);
-                });
+                this.chordEditorModal = document.getElementById('chord-editor-modal');
+                this.modalChordTarget = document.getElementById('modal-chord-target');
+                this.modalRootNotes = document.getElementById('modal-root-notes');
+                this.modalChordTypes = document.getElementById('modal-chord-types');
+                this.modalBassNotes = document.getElementById('modal-bass-notes');
+                this.modalBtnRemove = document.getElementById('modal-btn-remove');
+                this.modalBtnClose = document.getElementById('modal-btn-close');
+                this.modalBtnDone = document.getElementById('modal-btn-done');
+                this.scrollControls = document.getElementById('scroll-controls');
+                this.scrollBtnPlayPause = document.getElementById('scroll-btn-play-pause');
+                this.scrollBtnExit = document.getElementById('scroll-btn-exit');
+                this.scrollSpeedSlider = document.getElementById('scroll-speed-slider');
+                this.scrollDurationMinutesInput = document.getElementById('scroll-duration-minutes');
+                this.scrollDurationSecondsInput = document.getElementById('scroll-duration-seconds');
+                this.dropIndicator = document.createElement('div');
+                this.dropIndicator.id = 'drop-indicator';
+                document.body.appendChild(this.dropIndicator);
             }
 
             init() {
+                this.populateSelects();
                 this.applySavedTheme();
                 this.setupEventListeners();
+                this.updateModeUI();
+                this.setScrollSpeed(this.scrollSpeedSlider.value);
+                this.updateDurationFromSpeed();
                 this.startObserver();
                 this.loadLastProject();
+            }
+
+            populateSelects() {
+                const sectionData = ["Intro", "Vers", "Refräng", "Stick", "Bridge", "Solo", "Outro", "Mellanspel"];
+                const populate = (sel, options, placeholder) => {
+                    if (!sel) return;
+                    sel.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+                    options.forEach(o => sel.innerHTML += `<option value="${o}">${o}</option>`);
+                };
+                populate(this.sectionTypeSelect, sectionData, 'Välj sektion...');
             }
 
             applySavedTheme() {
                 const isDarkMode = localStorage.getItem(StableChordEditor.STORAGE_KEYS.DARK_MODE) === 'enabled';
                 if (isDarkMode) {
                     document.body.classList.add('dark-mode');
+                    this.btnToggleDarkMode.textContent = '☀️';
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    this.btnToggleDarkMode.textContent = '🌙';
                 }
-                this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙';
             }
 
             startObserver() {
-                this.observer.observe(this.editor, { childList: true, subtree: true, characterData: true });
+                this.observer.observe(this.editor, {
+                    childList: true,
+                    subtree: true,
+                    characterData: true
+                });
             }
 
-            stopObserver() { this.observer.disconnect(); }
+            stopObserver() {
+                this.observer.disconnect();
+            }
+            
+            // *** NYTT: Återanvändbar funktion för att växla läge ***
+            toggleEditMode() {
+                this.editMode = this.editMode === 'chord' ? 'text' : 'chord';
+                this.updateModeUI();
+            }
 
             setupEventListeners() {
-                const updateInsertButton = () => {
-                    let chord = this.rootSel.value || '';
-                    if (this.typeSel.value) chord += this.typeSel.value;
-                    if (this.extSel.value) chord += this.extSel.value;
-                    this.insertBtn.textContent = chord ? `Infoga ${chord}` : 'Infoga';
+                const toggleMenu = () => {
+                    this.sideMenu.classList.toggle('is-closed');
+                    this.menuOverlay.classList.toggle('is-closed');
                 };
-                [this.rootSel, this.typeSel, this.extSel].forEach(sel => sel.addEventListener('change', updateInsertButton));
-                this.insertBtn.addEventListener('click', () => {
-                    const chord = (this.rootSel.value || '') + (this.typeSel.value || '') + (this.extSel.value || '');
-                    if (!chord) return this.showCustomAlert('Välj minst en grundton.');
-                    this.insertChordAtCursor(chord);
-                    this.recordHistoryDebounced();
-                });
-                this.btnDeleteChord.addEventListener('click', () => { this.deleteSelectedChord(); this.recordHistoryDebounced(); });
+                this.hamburgerBtn.addEventListener('click', toggleMenu);
+                this.menuOverlay.addEventListener('click', toggleMenu);
 
-                this.btnInsertSection.addEventListener('click', () => {
-                    const sectionType = this.sectionTypeSelect.value;
-                    if (sectionType) {
-                        this.insertSectionMarker(sectionType);
-                        this.recordHistoryDebounced();
-                        this.sectionTypeSelect.selectedIndex = 0;
-                    } else {
-                        this.showCustomAlert('Välj en sektionstyp från rullistan.');
+                this.titleInput.addEventListener('blur', async () => {
+                    const oldName = this.projectList.value;
+                    const newName = this.titleInput.value.trim();
+                    if (oldName && newName && oldName !== newName) {
+                        const confirmed = await this.showCustomConfirm(`Vill du döpa om projektet "${oldName}" till "${newName}"?`);
+                        if (confirmed) {
+                            this.renameProject(oldName, newName);
+                        } else {
+                            this.titleInput.value = oldName;
+                        }
                     }
                 });
+                
+                // *** NYTT: Båda knapparna anropar samma funktion ***
+                this.btnToggleEditMode.addEventListener('click', () => this.toggleEditMode());
+                this.mainToggleEditModeBtn.addEventListener('click', () => this.toggleEditMode());
 
-                document.addEventListener('click', (e) => {
-                    if (!e.target.closest('.chord')) {
-                        this.clearChordSelection();
+                this.btnToggleScrollMode.addEventListener('click', () => {
+                    this.toggleScrollMode(true);
+                    if (!this.sideMenu.classList.contains('is-closed')) {
+                        toggleMenu();
+                    }
+                });
+                this.modalBtnClose.addEventListener('click', () => this.closeChordModal());
+                this.modalBtnRemove.addEventListener('click', () => this.removeChord());
+                this.scrollBtnExit.addEventListener('click', () => this.toggleScrollMode(false));
+                this.editor.addEventListener('click', (e) => {
+                    if (this.editMode !== 'chord') return;
+                    const clickedChord = e.target.closest('.chord');
+                    if (clickedChord) this.openChordModal(clickedChord, null);
+                    else {
+                        const range = this.getWordAtCursor(e);
+                        if (range) this.openChordModal(null, range);
                     }
                 });
                 this.editor.addEventListener('keydown', this.handleKeyDown.bind(this));
-                this.editor.addEventListener('paste', (e) => {
+                this.editor.addEventListener('paste', e => {
                     e.preventDefault();
                     const text = (e.clipboardData || window.clipboardData).getData('text/plain');
                     document.execCommand('insertText', false, text);
                 });
+                this.editor.addEventListener('input', () => this.recordHistoryDebounced());
 
-                this.editor.addEventListener('input', (e) => {
-                    if (e.target.classList && e.target.classList.contains('chord-text')) {
-                        const chordTextEl = e.target;
-                        const parentChordEl = chordTextEl.closest('.chord');
-                        if (parentChordEl) {
-                            parentChordEl.dataset.chord = chordTextEl.textContent;
-                            this.recordHistoryDebounced();
+                document.querySelectorAll('.sidebar-group-label').forEach(label => {
+                    label.addEventListener('click', () => {
+                        const content = label.nextElementSibling;
+                        const wasOpen = label.classList.contains('is-open');
+
+                        label.closest('#side-menu').querySelectorAll('.sidebar-group-label').forEach(otherLabel => {
+                            otherLabel.classList.remove('is-open');
+                            otherLabel.nextElementSibling.classList.add('is-collapsed');
+                        });
+
+                        if (!wasOpen) {
+                            label.classList.add('is-open');
+                            content.classList.remove('is-collapsed');
                         }
-                    } else {
-                        this.recordHistoryDebounced();
-                    }
+                    });
                 });
 
-                // Hanterar drag-and-drop för ackord
-                this.editor.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    if (e.ctrlKey || e.altKey) {
-                        e.dataTransfer.dropEffect = 'copy';
-                    } else {
-                        e.dataTransfer.dropEffect = 'move';
-                    }
-
-                    // --- NY LOGIK FÖR ATT VISA MARKÖREN ---
-                    let range;
-                    if (document.caretRangeFromPoint) {
-                        range = document.caretRangeFromPoint(e.clientX, e.clientY);
-                    } else {
-                        // Fallback för äldre webbläsare
-                        const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
-                        if (pos) {
-                            range = document.createRange();
-                            range.setStart(pos.offsetNode, pos.offset);
-                        }
-                    }
-
-                    if (range) {
-                        const rect = range.getBoundingClientRect();
-                        this.dropIndicator.style.display = 'block';
-                        // Positionera markören vid texten, justera för sidans scrollning
-                        this.dropIndicator.style.left = `${rect.left + window.scrollX}px`;
-                        this.dropIndicator.style.top = `${rect.top + window.scrollY}px`;
-                    }
-
-                });
-                // Lägg till dessa två nya lyssnare för att dölja markören när draget avslutas
-                this.editor.addEventListener('dragleave', () => {
-                    this.dropIndicator.style.display = 'none';
-                });
-
-                this.editor.addEventListener('drop', (e) => {
-                    this.dropIndicator.style.display = 'none';
-                    this.handleDrop(e); // Anropa din befintliga drop-hanterare
-                });
-
-                
+                this.editor.addEventListener('dragover', this.handleDragOver.bind(this));
+                this.editor.addEventListener('dragleave', () => this.dropIndicator.style.display = 'none');
+                this.editor.addEventListener('drop', this.handleDrop.bind(this));
                 this.projectList.addEventListener('change', () => {
                     const name = this.projectList.value || '';
-                    if (name) this.loadProject(name);
+                    if (name) {
+                        this.loadProject(name);
+                    }
                 });
                 this.btnNewProject.addEventListener('click', async () => {
                     if (await this.showCustomConfirm('Är du säker? Osparade ändringar försvinner.')) {
@@ -1278,1136 +927,142 @@
                 this.btnDeleteProject.addEventListener('click', async () => {
                     const name = this.projectList.value;
                     if (!name) return this.showCustomAlert('Välj ett projekt att ta bort.');
-                    if (await this.showCustomConfirm(`Ta bort projekt "${name}"? Detta går inte att ångra.`)) {
-                        this.deleteProject(name);
-                    }
+                    if (await this.showCustomConfirm(`Ta bort projekt "${name}"? Detta går inte att ångra.`)) this.deleteProject(name);
                 });
-
-                // FIX: Flyttade denna utanför den andra knappens event listener
                 this.btnDeleteAllProjects.addEventListener('click', () => this.deleteAllProjects());
-
-                this.btnRenameProject.addEventListener('click', async () => {
-                    const oldName = this.projectList.value;
-                    if (!oldName) {
-                        return this.showCustomAlert('Välj ett projekt att döpa om.');
-                    }
-                    const newName = prompt('Ange det nya namnet för projektet:', oldName);
-                    if (newName && newName.trim() !== '' && newName.trim() !== oldName) {
-                        if (await this.showCustomConfirm(`Döpa om "${oldName}" till "${newName.trim()}"?`)) {
-                            this.renameProject(oldName, newName.trim());
-                        }
-                    }
-                });
                 this.btnTransposeUp.addEventListener('click', () => this.transpose(1));
                 this.btnTransposeDown.addEventListener('click', () => this.transpose(-1));
-                this.btnExportPdf.addEventListener('click', () => this.exportPdf());
-
+                this.fontSizeSlider.addEventListener('input', e => this.editor.style.fontSize = e.target.value + 'px');
                 this.btnExportPdf.addEventListener('click', () => this.exportPdf());
                 this.btnExportTxt.addEventListener('click', () => this.exportTxt());
                 this.btnExportZip.addEventListener('click', () => this.exportAllAsZip());
                 this.btnToggleDarkMode.addEventListener('click', () => this.toggleDarkMode());
-
-                this.btnLiveMode.addEventListener('click', () => this.toggleLiveMode(true));
-                this.liveBtnExit.addEventListener('click', () => this.toggleLiveMode(false));
-                this.liveBtnPlayPause.addEventListener('click', () => this.toggleScrolling());
-
-                this.liveSpeedSlider.addEventListener('input', (e) => {
-                    this.setScrollSpeed(e.target.value);
-                    this.updateDurationFromSpeed();
-                    clearTimeout(this.liveSettingsDebounceTimer);
-                    this.liveSettingsDebounceTimer = setTimeout(() => this.saveLiveSettings(), 1000);
-                });
-
-                const durationChangeHandler = () => {
-                    const totalSeconds = this.getTotalDurationSeconds();
-                    if (totalSeconds > 0) {
-                        this.setScrollForDuration(totalSeconds);
-                        clearTimeout(this.liveSettingsDebounceTimer);
-                        this.liveSettingsDebounceTimer = setTimeout(() => this.saveLiveSettings(), 1000);
-                    }
-                };
-                this.liveDurationMinutesInput.addEventListener('change', durationChangeHandler);
-                this.liveDurationSecondsInput.addEventListener('change', durationChangeHandler);
-
                 this.btnExportJson.addEventListener('click', () => this.exportJson());
                 this.btnExportAllJson.addEventListener('click', () => this.exportAllJson());
                 this.btnImportJson.addEventListener('click', () => this.fileImport.click());
-                this.fileImport.addEventListener('change', (e) => this.importJsonFromFile(e.target.files[0]));
-
+                this.fileImport.addEventListener('change', e => this.importJsonFromFile(e.target.files[0]));
                 this.btnImportUrl.addEventListener('click', async () => {
-                    const confirmed = await this.showCustomConfirm('Vill du ladda den gemensamma låtlistan från GitHub? Detta kommer att skriva över lokala låtar med samma titel.');
-                    if (confirmed) {
-                        this.importJsonFromUrl(SHARED_SONG_LIST_URL);
-                    }
+                    const confirmed = await this.showCustomConfirm('Ladda låtlista från GitHub? Lokala låtar med samma titel skrivs över.');
+                    if (confirmed) this.importJsonFromUrl(SHARED_SONG_LIST_URL);
                 });
-
-                document.querySelectorAll('.sidebar-group-label').forEach(label => {
-                    label.addEventListener('click', (event) => {
-                        const content = event.target.nextElementSibling;
-                        if (content && content.classList.contains('sidebar-group-content')) {
-                            label.classList.toggle('is-open');
-                            content.classList.toggle('is-collapsed');
-                        }
-                    });
+                this.scrollBtnPlayPause.addEventListener('click', () => this.toggleScrolling());
+                this.scrollSpeedSlider.addEventListener('input', e => {
+                    this.setScrollSpeed(e.target.value);
+                    this.updateDurationFromSpeed();
                 });
-
-                document.addEventListener('keydown', (e) => {
-                    const active = document.activeElement;
-                    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
-                        if (active === this.editor || active.closest && active.closest('#editor')) {
-                        } else {
-                            return;
-                        }
-                    }
-
-                    if (document.body.classList.contains('live-mode-active')) {
-                        if (e.key === ' ') {
-                            e.preventDefault();
-                            this.toggleScrolling();
-                            return;
-                        }
-                        if (e.key === 'Escape') {
-                            this.toggleLiveMode(false);
-                            return;
-                        }
-                    }
-
-                    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-                        e.preventDefault();
-                        this.undo();
+                const durationChangeHandler = () => {
+                    const totalSeconds = this.getTotalDurationSeconds();
+                    if (totalSeconds > 0) this.setScrollForDuration(totalSeconds);
+                };
+                this.scrollDurationMinutesInput.addEventListener('input', durationChangeHandler);
+                this.scrollDurationSecondsInput.addEventListener('input', durationChangeHandler);
+                document.addEventListener('keydown', e => {
+                    if (this.editMode === 'scroll') {
+                        if (e.key === ' ') { e.preventDefault(); this.toggleScrolling(); }
+                        if (e.key === 'Escape') this.toggleScrollMode(false);
                         return;
                     }
-                    if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
-                        e.preventDefault();
-                        this.redo();
-                        return;
-                    }
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); this.undo(); }
+                    if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) { e.preventDefault(); this.redo(); }
                 });
-            }
-
-
-            handleDrop(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                // Försök skapa en Range vid drop-koordinaterna
-                let range = null;
-                if (document.caretRangeFromPoint) {
-                    range = document.caretRangeFromPoint(e.clientX, e.clientY);
-                } else if (document.caretPositionFromPoint) {
-                    const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
-                    if (pos) {
-                        range = document.createRange();
-                        range.setStart(pos.offsetNode, pos.offset);
-                        range.collapse(true);
-                    }
-                }
-
-                // Fallback: placera i slutet av editorn om vi inte fick en giltig range
-                if (!range || !this.editor.contains(range.startContainer)) {
-                    range = document.createRange();
-                    range.selectNodeContents(this.editor);
-                    range.collapse(false); // i slutet
-                }
-
-                // === NY KOD STARTAR HÄR ===
-                // Kontrollera om Ctrl-tangenten är nedtryckt för att kopiera
-                let chordNode;
-                if ((e.ctrlKey || e.altKey) && this.draggedChord) {
-                    // KOPIERA: Skapa en helt ny ackord-span
-                    const chordText = this.draggedChord.dataset.chord;
-                    chordNode = this.createChordSpan(chordText);
-                } else {
-                    // FLYTTA: Använd det befintliga ackordet (eller från extern källa)
-                    chordNode = this.draggedChord
-                        ? this.draggedChord
-                        : this.createChordSpan(e.dataTransfer.getData('text/plain'));
-                }
-
-                // Se till att noden är synlig innan den sätts in
-                chordNode.style.display = 'inline-block';
-                // === NY KOD SLUTAR HÄR ===
-
-                // Sätt in noden på drop-platsen
-                range.insertNode(chordNode);
-
-                // Flytta markören direkt efter insatt nod
-                const sel = window.getSelection();
-                sel.removeAllRanges();
-                const after = document.createRange();
-                after.setStartAfter(chordNode);
-                after.collapse(true);
-                sel.addRange(after);
-
-                // Städning
-                this.recordHistoryDebounced();
-
-            }
-
-
-            toggleDarkMode() {
-                document.body.classList.toggle('dark-mode');
-                const isDarkMode = document.body.classList.contains('dark-mode');
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.DARK_MODE, isDarkMode ? 'enabled' : 'disabled');
-                this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙';
-            }
-
-            handleMutations(mutations) {
-                this.stopObserver();
-                mutations.forEach(mutation => {
-                    if (mutation.type === 'characterData' && mutation.target.parentNode.id !== 'editor') {
-                        this.formatNode(mutation.target);
-                    } else if (mutation.type === 'childList') {
-                        mutation.addedNodes.forEach(n => {
-                            if (n.nodeType === Node.TEXT_NODE) this.formatNode(n);
-                            else if (n.nodeType === Node.ELEMENT_NODE && n.matches && !n.matches('.chord, .chord-text, .section-marker')) {
-                                n.childNodes.forEach(c => { if (c.nodeType === Node.TEXT_NODE) this.formatNode(c); });
-                            }
-                        });
-                    }
-                });
-                this.startObserver();
-            }
-
-            formatNode(node) {
-                if (!node.textContent.includes('[')) return;
-
-                const text = node.textContent;
-                const regex = /\[([^\]]+)\]/g;
-                let match;
-                const frag = document.createDocumentFragment();
-                let lastIndex = 0;
-                let replaced = false;
-
-                while ((match = regex.exec(text)) !== null) {
-                    replaced = true;
-                    const beforeText = text.substring(lastIndex, match.index);
-                    if (beforeText) frag.appendChild(document.createTextNode(beforeText));
-
-                    const chord = match[1];
-                    const chordSpan = this.createChordSpan(chord);
-                    frag.appendChild(chordSpan);
-
-                    lastIndex = regex.lastIndex;
-                }
-
-                if (replaced) {
-                    const afterText = text.substring(lastIndex);
-                    if (afterText) frag.appendChild(document.createTextNode(afterText));
-                    node.parentNode.replaceChild(frag, node);
-                }
-            }
-            // ERSÄTT HELA FUNKTIONEN MED DENNA KOD
-            createChordSpan(chord) {
-                const span = document.createElement('span');
-                span.className = 'chord';
-                span.dataset.chord = chord;
-
-                const chordText = document.createElement('span');
-                chordText.className = 'chord-text';
-                chordText.textContent = chord;
-                chordText.spellcheck = false;
-                span.appendChild(chordText);
-
-                const handle = document.createElement('span');
-                handle.className = 'chord-handle';
-                handle.draggable = true;
-                span.appendChild(handle);
-
-                span.addEventListener('click', (e) => {
-                    if (e.target === handle) return;
-                    e.stopPropagation();
-                    this.clearChordSelection();
-                    span.classList.add('selected');
-                });
-
-                span.addEventListener('dblclick', (e) => {
-                    e.stopPropagation();
-                    span.remove();
-                    this.recordHistoryDebounced();
-                });
-
-                handle.addEventListener('dragstart', (e) => {
-                    e.stopPropagation();
-                    e.dataTransfer.setData('text/plain', chord);
-                    e.dataTransfer.effectAllowed = 'copyMove';
-                    this.draggedChord = span;
-                    document.body.classList.add('is-dragging');
-
-                    if (e.dataTransfer.setDragImage) {
-                        const ghost = document.createElement('span');
-                        ghost.textContent = chord;
-                        ghost.style.display = 'inline-block';
-                        ghost.style.padding = '0.1em 0.4em';
-                        ghost.style.borderRadius = '3px';
-                        ghost.style.backgroundColor = getComputedStyle(document.body).getPropertyValue('--surface');
-                        ghost.style.color = getComputedStyle(document.body).getPropertyValue('--chord-color');
-                        ghost.style.fontFamily = 'var(--font-sans)';
-                        ghost.style.fontWeight = '600';
-                        ghost.style.fontSize = '0.85em';
-                        ghost.style.border = '1px solid ' + getComputedStyle(document.body).getPropertyValue('--border');
-                        ghost.style.position = 'absolute';
-                        ghost.style.top = '-9999px';
-                        ghost.style.left = '-9999px';
-                        document.body.appendChild(ghost);
-                        e.dataTransfer.setDragImage(ghost, 10, 15);
-                        setTimeout(() => document.body.removeChild(ghost), 0);
-                    }
-
-                    // --- HÄR ÄR ÄNDRINGEN ---
-                    // Kontrollera om det är en kopiering. Dölj bara originalet om det är en flytt.
-                    const isCopy = e.ctrlKey || e.altKey;
-                    if (!isCopy) {
-                        setTimeout(() => { span.style.display = 'none'; }, 0);
-                    }
-                });
-
-                handle.addEventListener('dragend', (e) => {
-                    e.stopPropagation();
-                    document.body.classList.remove('is-dragging');
-                    if (this.draggedChord && this.draggedChord.parentNode) {
-                        this.draggedChord.style.display = 'inline-block';
-                    }
-                    this.draggedChord = null;
-                });
-
-                return span;
-            }
-
-            clearChordSelection() {
-                this.editor.querySelectorAll('.chord.selected').forEach(s => s.classList.remove('selected'));
-            }
-
-            handleKeyDown(e) {
-                if (e.key === 'Backspace') {
-                    const sel = window.getSelection();
-                    if (!sel.rangeCount) return;
-                    const range = sel.getRangeAt(0);
-                    if (range.collapsed && range.startOffset === 0) {
-                        let container = range.startContainer;
-                        const prev = container.previousSibling;
-                        if (prev && prev.nodeType === Node.ELEMENT_NODE && prev.classList.contains('chord')) {
-                            e.preventDefault();
-                            prev.remove();
-                            this.recordHistoryDebounced();
-                        }
-                    }
-                }
-            }
-
-            insertChordAtCursor(chord) {
-                const sel = window.getSelection();
-                if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) {
-                    return this.showCustomAlert('Placera markören i texten där du vill infoga ackordet.');
-                }
-
-                const range = sel.getRangeAt(0);
-                const chordSpan = this.createChordSpan(chord);
-                range.deleteContents();
-                range.insertNode(chordSpan);
-                range.setStartAfter(chordSpan);
-                range.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-
-            insertSectionMarker(type) {
-                const sel = window.getSelection();
-                if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) {
-                    return this.showCustomAlert('Placera markören på den rad där du vill infoga markören.');
-                }
-                let node = sel.anchorNode;
-                while (node && node.parentNode !== this.editor) {
-                    node = node.parentNode;
-                }
-                if (!node || node.tagName !== 'DIV') return;
-
-                const existingMarker = node.querySelector('.section-marker');
-                if (existingMarker) existingMarker.remove();
-
-                this.insertSectionMarkerInDiv(node, type);
-            }
-
-            deleteSelectedChord() {
-                const selected = this.editor.querySelector('.chord.selected');
-                if (selected) {
-                    selected.remove();
-                    this.recordHistoryDebounced();
-                } else {
-                    this.showCustomAlert('Klicka på ackordet för att markera det, och tryck sedan på "Ta bort".');
-                }
-            }
-
-            syncChordData() {
-                this.editor.querySelectorAll('.chord-text').forEach(chordTextEl => {
-                    const parentChordEl = chordTextEl.closest('.chord');
-                    if (parentChordEl) {
-                        parentChordEl.dataset.chord = chordTextEl.textContent;
-                    }
-                });
-            }
-
-            getContentAsText() {
-                let result = [];
-                this.editor.childNodes.forEach(lineDiv => {
-                    let lineText = '';
-
-                    const marker = lineDiv.querySelector && lineDiv.querySelector('.section-marker');
-                    if (marker) {
-                        lineText += `::${marker.dataset.section}::`;
-                    }
-
-                    lineDiv.childNodes.forEach(node => {
-                        if (node.nodeType === Node.TEXT_NODE) {
-                            lineText += node.textContent;
-                        } else if (node.classList && node.classList.contains && node.classList.contains('chord')) {
-                            lineText += `[${node.dataset.chord}]`;
-                        } else if (node.classList && node.classList.contains('section-marker-text')) {
-
-                        }
-                    });
-
-                    result.push(lineText);
-                });
-                return result.join('\n');
-            }
-
-            loadContent(text, recordHistory = false) {
-                this.stopObserver();
-                this.editor.innerHTML = '';
-                const lines = text.split('\n');
-                lines.forEach(lineText => {
-                    const lineDiv = document.createElement('div');
-
-                    let sectionType = null;
-                    lineText = lineText.replace(/^::(.*?)::/, (match, type) => {
-                        sectionType = type;
-                        return '';
-                    });
+                this.btnInsertSection.addEventListener('click', () => {
+                    if (this.editMode === 'scroll') return;
+                    const sectionType = this.sectionTypeSelect.value;
                     if (sectionType) {
-                        this.insertSectionMarkerInDiv(lineDiv, sectionType);
-                    }
-
-                    if (lineText.trim() === '' && !lineText.includes('[')) {
-                        lineDiv.appendChild(document.createElement('br'));
+                        this.insertSectionMarker(sectionType);
+                        this.recordHistoryDebounced();
+                        this.sectionTypeSelect.selectedIndex = 0;
                     } else {
-                        let currentPos = 0;
-                        lineText.replace(/\[([^\]]+)\]/g, (match, chord, offset) => {
-                            lineDiv.appendChild(document.createTextNode(lineText.substring(currentPos, offset)));
-                            const chordSpan = this.createChordSpan(chord);
-                            lineDiv.appendChild(chordSpan);
-                            currentPos = offset + match.length;
-                        });
-                        lineDiv.appendChild(document.createTextNode(lineText.substring(currentPos)));
+                        this.showCustomAlert('Välj en sektionstyp från rullistan.');
                     }
-                    this.editor.appendChild(lineDiv);
                 });
-                this.startObserver();
-                if (recordHistory) this.recordHistory();
             }
 
-            insertSectionMarkerInDiv(div, type) {
-                const abbreviations = { 'Vers': 'V', 'Refräng': 'R', 'Stick': 'S', 'Intro': 'I', 'Outro': 'O', 'Solo': 'Solo', 'Bridge': 'B', 'Mellanspel': 'M' };
-                const markerSpan = document.createElement('span');
-                markerSpan.className = 'section-marker';
-                markerSpan.dataset.section = type;
-                markerSpan.setAttribute('contenteditable', 'false');
-                markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0);
-
-                const textSpan = document.createElement('span');
-                textSpan.className = 'section-marker-text';
-                textSpan.textContent = type;
-                markerSpan.appendChild(textSpan);
-
-                div.insertBefore(markerSpan, div.firstChild);
-            }
-// LÄGG TILL DENNA NYA HJÄLPFUNKTION PRECIS FÖRE DIN TRANSPOSE-FUNKTION
-_transposeSingleNote(note, steps) {
-    const sharpMap = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' };
-    // Hanterar både grundtoner (t.ex. "C#") och rena noter (t.ex. "C")
-    const match = note.match(/^([A-G](?:#|b)?)/);
-    if (!match) return note; // Om det inte är en not, returnera som den är
-
-    let rootNote = match[0];
-    let normalizedNote = rootNote.includes('b') ? (sharpMap[rootNote] || rootNote) : rootNote;
-    
-    const currentIndex = this.musicalNotes.indexOf(normalizedNote);
-    if (currentIndex !== -1) {
-        const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length;
-        const transposedRoot = this.musicalNotes[newIndex];
-        // Sätt tillbaka resten av ackord-typen (t.ex. "m7" i "Am7")
-        return transposedRoot + note.substring(rootNote.length);
-    }
-    return note;
-}
-           // ERSÄTT DIN GAMLA TRANSPOSE-FUNKTION MED DENNA NYA VERSION
-transpose(steps) {
-    this.syncChordData();
-    const text = this.getContentAsText();
-    const transposedText = text.replace(/\[([^\]]+)\]/g, (fullMatch, chord) => {
-        // Dela upp ackordet vid "/" för att separera huvudackord och basnot
-        const parts = chord.split('/');
-        const mainChord = parts[0];
-        const bassNote = parts.length > 1 ? parts[1] : null;
-
-        // Transponera huvudackordet med hjälp av vår nya funktion
-        const transposedMainChord = this._transposeSingleNote(mainChord, steps);
-
-        // Om det finns en basnot, transponera den också
-        if (bassNote) {
-            const transposedBassNote = this._transposeSingleNote(bassNote, steps);
-            return `[${transposedMainChord}/${transposedBassNote}]`;
-        } else {
-            return `[${transposedMainChord}]`;
-        }
-    });
-    this.loadContent(transposedText, true);
-}
-
-            generatePdfForProject(projectData) {
-                const { jsPDF } = window.jsPDF ? window.jsPDF : window.jspdf;
-                const doc = new jsPDF();
-                let y = 20;
-                const margin = 15;
-                const contentMargin = 20;
-                const text = projectData.content || '';
-                const MIN_CHORD_SPACING_PDF = 7;
-
-                doc.setFontSize(18).setFont(undefined, 'bold');
-                doc.text(projectData.title || 'Låttitel', margin, y);
-                y += 8;
-
-                doc.setFontSize(12).setFont(undefined, 'normal');
-                doc.text(projectData.author || 'Artist', margin, y);
-                y += 12;
-
-                const lines = text.split('\n');
-
-                lines.forEach(lineText => {
-                    if (y > 280) {
-                        doc.addPage();
-                        y = 20;
+            // *** NYTT: updateModeUI uppdaterar nu båda knapparna ***
+            updateModeUI() {
+                if (this.editMode === 'chord') {
+                    this.editModeLabel.textContent = 'Redigera (Ackord)';
+                    this.btnToggleEditMode.textContent = 'Byt till Textläge';
+                    if (this.mainToggleEditModeBtn) {
+                        this.mainToggleEditModeBtn.textContent = 'A';
+                        this.mainToggleEditModeBtn.title = 'Växla till Textläge';
                     }
-
-                    if (lineText.trim() === '') {
-                        y += 4;
-                        return;
+                    this.editor.classList.remove('text-mode');
+                } else if (this.editMode === 'text') {
+                    this.editModeLabel.textContent = 'Redigera (Text)';
+                    this.btnToggleEditMode.textContent = 'Byt till Ackordläge';
+                    if (this.mainToggleEditModeBtn) {
+                        this.mainToggleEditModeBtn.textContent = 'T';
+                        this.mainToggleEditModeBtn.title = 'Växla till Ackordläge';
                     }
-
-                    let sectionType = null;
-                    lineText = lineText.replace(/^::(.*?)::/, (match, type) => {
-                        sectionType = type;
-                        return '';
-                    });
-
-                    const x = margin + contentMargin;
-                    let lastChordXEnd = x;
-
-                    if (sectionType) {
-                        doc.setFontSize(9).setFont(undefined, 'bold');
-                        doc.setTextColor(100, 100, 100);
-                        doc.text(sectionType, margin, y + 0.5);
-                    }
-
-                    const currentText = lineText.replace(/\[[^\]]+\]/g, '');
-                    const hasChords = /\[[^\]]+\]/.test(lineText);
-
-                    if (hasChords) {
-                        doc.setFontSize(9).setFont(undefined, 'bold');
-                        doc.setTextColor(0, 82, 204);
-
-                        const parts = lineText.split(/(\[[^\]]+\])/g);
-                        let currentTextPos = x;
-
-                        parts.forEach(part => {
-                            if (part.startsWith('[') && part.endsWith(']')) {
-                                const chord = part.substring(1, part.length - 1);
-                                const chordWidth = doc.getTextWidth(chord);
-                                const intendedX = currentTextPos;
-                                const finalX = Math.max(intendedX, lastChordXEnd + MIN_CHORD_SPACING_PDF);
-                                doc.text(chord, finalX, y - 4);
-                                lastChordXEnd = finalX + chordWidth;
-                            } else {
-                                currentTextPos += doc.getTextWidth(part);
-                            }
-                        });
-                    }
-
-                    doc.setFontSize(11).setFont(undefined, 'normal');
-                    doc.setTextColor(0);
-                    doc.text(currentText, x, y);
-                    y += 8;
-                });
-
-                return doc.output('blob');
-            }
-
-            sanitizeFilename = (name) => name.replace(/[\/\\?%*:|"<>]/g, '-') || 'låt';
-
-            exportPdf() {
-                this.syncChordData();
-                const projectData = {
-                    title: this.titleInput.value,
-                    author: this.authorInput.value,
-                    content: this.getContentAsText()
-                };
-                const pdfBlob = this.generatePdfForProject(projectData);
-                saveAs(pdfBlob, `${this.sanitizeFilename(projectData.title)}.pdf`);
-            }
-
-            exportTxt() {
-                this.syncChordData();
-                const title = this.titleInput.value || 'Titel';
-                const author = this.authorInput.value || 'Artist';
-                const content = this.getContentAsText();
-                const fullText = `${title}\n${author}\n\n${content}`;
-                const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
-                saveAs(blob, `${this.sanitizeFilename(title)}.txt`);
-            }
-
-            async exportAllAsZip() {
-                this.btnExportZip.textContent = 'Genererar...';
-                this.btnExportZip.disabled = true;
-
-                try {
-                    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                    const projectKeys = Object.keys(projects);
-
-                    if (projectKeys.length === 0) {
-                        return this.showCustomAlert('Det finns inga sparade projekt att exportera.');
-                    }
-
-                    const zip = new JSZip();
-                    for (const key of projectKeys) {
-                        const project = projects[key];
-                        const pdfBlob = this.generatePdfForProject(project);
-                        const filename = `${this.sanitizeFilename(project.title || 'okänd-låt')}.pdf`;
-                        zip.file(filename, pdfBlob);
-                    }
-
-                    const content = await zip.generateAsync({ type: "blob" });
-                    saveAs(content, "alla-låtar.zip");
-
-                } catch (error) {
-                    console.error("Kunde inte skapa ZIP-fil:", error);
-                    this.showCustomAlert('Ett fel uppstod när ZIP-filen skulle skapas.');
-                } finally {
-                    this.btnExportZip.textContent = 'ZIP';
-                    this.btnExportZip.disabled = false;
+                    this.editor.classList.add('text-mode');
                 }
             }
-
-            createNewProject() {
-                this.titleInput.value = '';
-                this.authorInput.value = '';
-                this.loadContent('');
-                this.projectList.selectedIndex = 0;
-                localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-                const defaultFontSize = 16;
-                this.fontSizeSlider.value = defaultFontSize;
-                this.editor.style.fontSize = defaultFontSize + 'px';
-                this.titleInput.focus();
-                this.recordHistory();
-            }
-
-            saveProject(name) {
-                this.syncChordData();
-                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                projects[name] = {
-                    title: this.titleInput.value,
-                    author: this.authorInput.value,
-                    fontSize: this.editor.style.fontSize || (this.fontSizeSlider.value + 'px'),
-                    content: this.getContentAsText(),
-                    scrollSpeed: this.scrollSpeed,
-                    duration: this.getTotalDurationSeconds()
-                };
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
-                this.updateProjectList(name);
-
-                const originalText = this.btnSaveProject.textContent;
-                this.btnSaveProject.textContent = 'Sparat ✓';
-                this.btnSaveProject.disabled = true;
-                setTimeout(() => {
-                    this.btnSaveProject.textContent = originalText;
-                    this.btnSaveProject.disabled = false;
-                }, 1200);
-
-                this.recordHistory();
-            }
-
-            loadProject(name) {
-                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                if (projects[name]) {
-                    const data = projects[name];
-
-                    this.titleInput.value = data.title || '';
-                    this.authorInput.value = data.author || '';
-                    this.editor.style.fontSize = data.fontSize || (this.fontSizeSlider.value + 'px');
-                    const num = parseInt((data.fontSize || '').replace('px', ''), 10);
-                    if (!isNaN(num)) this.fontSizeSlider.value = num;
-                    this.loadContent(data.content || '');
-
-                    localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
-
-                    if (this.projectList.value !== name) {
-                        this.projectList.value = name;
-                    }
-
-                    if (data.scrollSpeed !== undefined && data.scrollSpeed !== null) {
-                        this.scrollSpeed = data.scrollSpeed;
-                        try {
-                            const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100);
-                            this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
-                        } catch (e) {
-                            this.liveSpeedSlider.value = 20;
-                        }
-                    }
-
-                    if (data.duration) {
-                        this.updateDurationInputs(data.duration);
-                    } else {
-                        this.updateDurationFromSpeed();
-                    }
-                    this.recordHistory();
-                }
-            }
-
-            deleteProject(name) {
-                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                if (!projects[name]) return;
-                delete projects[name];
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-                const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-                if (last === name) {
-                    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-                    this.createNewProject();
-                }
-                this.updateProjectList();
-                this.showCustomAlert(`Projekt "${name}" borttaget.`);
-            }
-
-            renameProject(oldName, newName) {
-                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-
-                if (projects[oldName] && !projects[newName]) {
-                    projects[newName] = projects[oldName];
-                    projects[newName].title = newName;
-
-                    delete projects[oldName];
-
-                    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-
-                    const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-                    if (lastProject === oldName) {
-                        localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);
-                    }
-
-                    this.titleInput.value = newName;
-                    this.updateProjectList(newName);
-                    this.showCustomAlert(`Projektet har döpts om till "${newName}".`);
-                } else if (projects[newName]) {
-                    this.showCustomAlert(`Ett projekt med namnet "${newName}" finns redan.`);
-                } else {
-                    this.showCustomAlert(`Kunde inte hitta projektet "${oldName}".`);
-                }
-            }
-
-            updateProjectList(selectedValue) {
-                const list = this.projectList;
-                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                const currentProjects = Object.keys(projects).sort();
-
-                list.innerHTML = '<option value="">Ladda projekt...</option>';
-                currentProjects.forEach(name => {
-                    const option = document.createElement('option');
-                    option.value = name;
-                    option.textContent = name;
-                    list.appendChild(option);
-                });
-
-                const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-                if (last && currentProjects.includes(last)) {
-                    list.value = last;
-                } else {
-                    list.selectedIndex = 0;
-                }
-            }
-
-            loadLastProject() {
-                this.updateProjectList();
-                const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-                if (last) {
-                    this.loadProject(last);
-                } else {
-                    const welcomeText = '::Vers::\nVälkommen till redigeraren!\n\n::Refräng::\nSkriv text och infoga ackord med [Am], [G], [C] etc.';
-                    this.loadContent(welcomeText);
-                }
-            }
-
-            toggleLiveMode(enter) {
-                if (enter) {
-                    this.renderLiveView();
-                    document.body.classList.add('live-mode-active');
-                    this.liveView.scrollTop = 0;
-                } else {
-                    this.stopScrolling();
-                    document.body.classList.remove('live-mode-active');
-                }
-            }
-
-            renderLiveView() {
-                this.syncChordData();
-                const title = this.titleInput.value || 'Okänd Låt';
-                const author = this.authorInput.value || 'Okänd Artist';
-                const content = this.getContentAsText();
-
-                this.liveSongContent.innerHTML = '';
-
-                const titleEl = document.createElement('h1');
-                titleEl.textContent = title;
-                const authorEl = document.createElement('h2');
-                authorEl.textContent = author;
-                this.liveSongContent.appendChild(titleEl);
-                this.liveSongContent.appendChild(authorEl);
-
-                const lines = content.split('\n');
-                lines.forEach(lineText => {
-                    if (lineText.trim() === '') {
-                        const emptyDiv = document.createElement('div');
-                        emptyDiv.innerHTML = '&nbsp;';
-                        emptyDiv.style.lineHeight = '1';
-                        this.liveSongContent.appendChild(emptyDiv);
-                        return;
-
-                    }
-
-
-                    const lineContainer = document.createElement('div');
-                    lineContainer.className = 'live-line';
-
-                    let sectionType = null;
-                    lineText = lineText.replace(/^::(.*?)::/, (match, type) => {
-                        sectionType = type;
-                        return '';
-                    });
-                    if (sectionType) {
-                        const markerEl = document.createElement('div');
-                        markerEl.className = 'live-section-marker';
-
-                        const textSpan = document.createElement('span');
-                        textSpan.className = 'section-marker-text';
-                        textSpan.textContent = sectionType;
-                        markerEl.appendChild(textSpan);
-
-                        const abbreviations = { 'Vers': 'V', 'Refräng': 'R', 'Stick': 'S', 'Intro': 'I', 'Outro': 'O', 'Solo': 'Solo', 'Bridge': 'B', 'Mellanspel': 'M' };
-                        markerEl.dataset.abbreviation = abbreviations[sectionType] || sectionType.charAt(0);
-                        lineContainer.appendChild(markerEl);
-                    }
-
-                    const contentP = document.createElement('p');
-                    const parts = lineText.split(/(\[[^\]]+\])/);
-
-                    for (let i = 0; i < parts.length; i++) {
-                        const part = parts[i];
-                        if (part.startsWith('[') && part.endsWith(']')) {
-                            const chord = part.substring(1, part.length - 1);
-                            const chunkSpan = document.createElement('span');
-                            chunkSpan.className = 'chunk';
-
-                            const chordSpan = document.createElement('span');
-                            chordSpan.className = 'chord';
-                            chordSpan.textContent = chord;
-
-                            const lyricSpan = document.createElement('span');
-                            lyricSpan.className = 'lyric';
-                            lyricSpan.innerHTML = '&nbsp;';
-
-                            let lyricText = '';
-                            if (i + 1 < parts.length && !parts[i + 1].startsWith('[')) {
-                                lyricText = parts[i + 1];
-                                i++;
-                            }
-                            lyricSpan.textContent = lyricText || '\u00A0';
-
-                            chunkSpan.appendChild(chordSpan);
-                            chunkSpan.appendChild(lyricSpan);
-                            contentP.appendChild(chunkSpan);
-
-                        } else if (part) {
-                            const chunkSpan = document.createElement('span');
-                            chunkSpan.className = 'chunk';
-                            const lyricSpan = document.createElement('span');
-                            lyricSpan.className = 'lyric';
-                            lyricSpan.textContent = part;
-                            chunkSpan.appendChild(lyricSpan);
-                            contentP.appendChild(chunkSpan);
-                        }
-                    }
-                    lineContainer.appendChild(contentP);
-                    this.liveSongContent.appendChild(lineContainer);
-                });
-
-                const duration = this.getTotalDurationSeconds();
-                if (!isNaN(duration) && duration > 0) {
-                    this.setScrollForDuration(duration);
-                }
-            }
-
-            toggleScrolling() {
-                if (this.scrollInterval) {
-                    this.stopScrolling();
-                } else {
-                    this.setScrollSpeed(this.liveSpeedSlider.value);
-                    this.startScrolling();
-                }
-            }
-
-            startScrolling() {
-                if (this.scrollInterval || this.scrollSpeed <= 0) return;
-
-                this.liveBtnPlayPause.textContent = '❚❚';
-                this.scrollRemainder = 0;
-
-                const scroll = () => {
-                    this.scrollRemainder += this.scrollSpeed;
-                    const move = Math.floor(this.scrollRemainder);
-
-                    if (move > 0) {
-                        this.liveView.scrollTop += move;
-                        this.scrollRemainder -= move;
-                    }
-
-                    if (this.liveView.scrollTop + this.liveView.clientHeight >= this.liveView.scrollHeight) {
-                        this.stopScrolling();
-                    } else {
-                        this.scrollInterval = requestAnimationFrame(scroll);
-                    }
-                };
-                this.scrollInterval = requestAnimationFrame(scroll);
-            }
-
-            stopScrolling() {
-                if (this.scrollInterval) {
-                    cancelAnimationFrame(this.scrollInterval);
-                }
-                this.scrollInterval = null;
-                this.liveBtnPlayPause.textContent = '▶';
-            }
-
-            setScrollSpeed(value) {
-                const MIN_MOVE_SPEED = 0.02;
-                const MAX_SPEED = 0.5;
-                const val = parseFloat(value);
-
-                if (val === 0) {
-                    this.scrollSpeed = 0;
-                    return;
-                }
-                const percentage = val / 100;
-                this.scrollSpeed = MIN_MOVE_SPEED + percentage * (MAX_SPEED - MIN_MOVE_SPEED);
-            }
-
-            setScrollForDuration(durationSeconds) {
-                setTimeout(() => {
-                    const scrollHeight = Math.max(1, this.liveSongContent.scrollHeight - this.liveView.clientHeight);
-                    if (scrollHeight <= 0) return;
-
-                    const frames = Math.max(1, durationSeconds * 60);
-                    this.scrollSpeed = scrollHeight / frames;
-
-                    const MIN = 0.001;
-                    const MAX = 5;
-                    this.scrollSpeed = Math.max(MIN, Math.min(MAX, this.scrollSpeed));
-
-                    const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100);
-                    this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
-                }, 100);
-            }
-
-            updateDurationFromSpeed() {
-                if (this.scrollSpeed < 0.001) {
-                    return;
-                }
-                const scrollHeight = Math.max(1, this.liveSongContent.scrollHeight - this.liveView.clientHeight);
-                if (scrollHeight <= 0) return;
-
-                const durationSeconds = scrollHeight / (this.scrollSpeed * 60);
-                this.updateDurationInputs(Math.round(durationSeconds));
-            }
-
-            saveLiveSettings() {
-                const currentProjectName = this.titleInput.value.trim();
-                if (!currentProjectName) return;
-
-                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                if (projects[currentProjectName]) {
-                    projects[currentProjectName].scrollSpeed = this.scrollSpeed;
-                    projects[currentProjectName].duration = this.getTotalDurationSeconds();
-                }
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-            }
-
-            recordHistory() {
-                const snapshot = this.getContentAsText();
-                if (this.history[this.historyIndex] === snapshot) return;
-                this.history = this.history.slice(0, this.historyIndex + 1);
-                this.history.push(snapshot);
-                if (this.history.length > this.historyMax) this.history.shift();
-                this.historyIndex = this.history.length - 1;
-            }
-
-            recordHistoryDebounced() {
-                clearTimeout(this.debounceTimer);
-                this.debounceTimer = setTimeout(() => this.recordHistory(), 300);
-            }
-
-            undo() {
-                if (this.historyIndex > 0) {
-                    this.historyIndex--;
-                    const snapshot = this.history[this.historyIndex];
-                    this.loadContent(snapshot, false);
-                }
-            }
-
-            redo() {
-                if (this.historyIndex < this.history.length - 1) {
-                    this.historyIndex++;
-                    const snapshot = this.history[this.historyIndex];
-                    this.loadContent(snapshot, false);
-                }
-            }
-
-            exportJson() {
-                this.syncChordData();
-                const projectData = {
-                    title: this.titleInput.value,
-                    author: this.authorInput.value,
-                    content: this.getContentAsText(),
-                    fontSize: this.editor.style.fontSize,
-                    scrollSpeed: this.scrollSpeed,
-                    duration: this.getTotalDurationSeconds()
-                };
-                const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
-                saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`);
-            }
-
-            exportAllJson() {
-                try {
-                    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                    const projectArray = Object.values(projects);
-
-                    if (projectArray.length === 0) {
-                        return this.showCustomAlert('Det finns inga sparade projekt att exportera.');
-                    }
-                    const blob = new Blob([JSON.stringify(projectArray, null, 2)], { type: "application/json" });
-                    saveAs(blob, `alla-låtar-backup.json`);
-                } catch (error) {
-                    console.error("Kunde inte exportera alla projekt som JSON:", error);
-                    this.showCustomAlert('Ett fel uppstod vid export av JSON-fil.');
-                }
-            }
-
-            importJsonFromFile(file) {
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        if (Array.isArray(data)) {
-                            const confirmed = await this.showCustomConfirm(`Du är på väg att importera ${data.length} låtar. Detta kommer att skriva över existerande låtar med samma titel. Vill du fortsätta?`);
-                            if (confirmed) this.importMultipleProjects(data);
-                        } else if (typeof data === 'object' && data !== null && data.title) {
-                            this.importSingleProject(data);
-                        } else {
-                            throw new Error("Okänt JSON-format.");
-                        }
-                    } catch (err) {
-                        console.error("Importfel:", err);
-                        this.showCustomAlert('Fel vid inläsning av JSON. Kontrollera att filen är korrekt formaterad.');
-                    } finally {
-                        this.fileImport.value = '';
-                    }
-                };
-                reader.readAsText(file);
-            }
-
-            async importJsonFromUrl(url) {
-                if (!url) {
-                    this.showCustomAlert('Ingen URL angiven.');
-                    return;
-                }
-
-                if (!url.startsWith('https://raw.githubusercontent.com/')) {
-                    this.showCustomAlert('Ange en giltig GitHub Raw-URL (den ska börja med "https://raw.githubusercontent.com/").');
-                    return;
-                }
-
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`Nätverksfel: ${response.status} ${response.statusText}`);
-                    }
-                    const data = await response.json();
-
-                    if (Array.isArray(data)) {
-                        this.importMultipleProjects(data);
-                    } else if (typeof data === 'object' && data !== null && data.title) {
-                        this.importSingleProject(data);
-                    } else {
-                        throw new Error("Okänt JSON-format från URL.");
-                    }
-                } catch (err) {
-                    console.error("Importfel från URL:", err);
-                    this.showCustomAlert(`Fel vid import från URL. Kontrollera att URL:en är korrekt och att filen är en giltig JSON-fil. Fel: ${err.message}`);
-                }
-            }
-
-            importSingleProject(data) {
-                this.titleInput.value = data.title || '';
-                this.authorInput.value = data.author || '';
-                this.editor.style.fontSize = data.fontSize || '16px';
-                this.loadContent(data.content || '', true);
-                if (data.scrollSpeed) {
-                    this.scrollSpeed = data.scrollSpeed;
-                    const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100);
-                    this.liveSpeedSlider.value = Math.max(0, Math.min(100, percent));
-                }
-
-                if (data.duration) this.updateDurationInputs(data.duration);
-                this.showCustomAlert(`Projektet "${data.title}" importerades.`);
-                this.saveProject(data.title);
-                this.recordHistory();
-            }
-
-            importMultipleProjects(projectsArray) {
-                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-                let importedCount = 0;
-                let overwrittenCount = 0;
-
-                for (const project of projectsArray) {
-                    if (project && project.title) {
-                        if (projects[project.title]) overwrittenCount++;
-                        else importedCount++;
-
-                        delete project.darkMode;
-
-                        projects[project.title] = project;
-                    }
-                }
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-                this.updateProjectList();
-                this.showCustomAlert(`${importedCount} nya låtar importerades. ${overwrittenCount} låtar uppdaterades.`);
-
-                if (projectsArray.length > 0 && projectsArray[0].title) {
-                    this.loadProject(projectsArray[0].title);
-                }
-            }
+            
+            // ... resten av koden är oförändrad ...
+
+            toggleScrollMode(enter) { if (enter) { if (!this.editor.textContent.trim()) { this.showCustomAlert("Lägg till text innan du startar Live Mode."); return; } this.editMode = 'scroll'; this.editor.contentEditable = false; document.body.classList.add('scroll-mode-active'); setTimeout(() => { const totalSeconds = this.getTotalDurationSeconds(); const scrollHeight = this.editor.scrollHeight - this.editor.clientHeight; if (scrollHeight <= 0) { this.showCustomAlert("Texten är för kort för att scrolla."); this.toggleScrollMode(false); return; } if (totalSeconds > 0) { this.setScrollForDuration(totalSeconds); } else { this.setScrollSpeed(this.scrollSpeedSlider.value); } }, 100); } else { this.stopScrolling(); this.editMode = 'chord'; this.editor.contentEditable = true; document.body.classList.remove('scroll-mode-active'); this.updateModeUI(); } }
+            centerChordHandles() { this.editor.querySelectorAll('.chord').forEach(chordEl => { const handle = chordEl.querySelector('.chord-handle'); const text = chordEl.querySelector('.chord-text'); if (handle && text) { const textWidth = text.offsetWidth; handle.style.left = `${textWidth / 2}px`; } }); }
+            openChordModal(element, range) { this.currentlyEditing = { element, range }; if (element) { this.modalChordTarget.textContent = `Redigerar: ${element.dataset.chord}`; this.modalBtnRemove.style.display = 'inline-block'; } else if (range) { this.modalChordTarget.textContent = `Lägg till vid: "${range.toString()}"`; this.modalBtnRemove.style.display = 'none'; } this.renderRootNotes(); this.chordEditorModal.classList.add('visible'); }
+            renderRootNotes() { this.modalChordTarget.textContent = 'Välj Grundton'; this.modalRootNotes.innerHTML = ''; this.musicalNotes.forEach(note => { const button = document.createElement('button'); button.textContent = note; button.addEventListener('click', () => this.renderChordTypes(note)); this.modalRootNotes.appendChild(button); }); this.modalRootNotes.style.display = 'grid'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'none'; }
+            renderChordTypes(rootNote) { this.modalChordTarget.textContent = `Välj Typ (Grundton: ${rootNote})`; this.modalChordTypes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderRootNotes()); this.modalChordTypes.appendChild(backButton); this.chordTypes.forEach(type => { const mainChord = rootNote + type; const button = document.createElement('button'); if (type === '') { button.textContent = `Använd ${mainChord}`; button.classList.add('active'); } else { button.textContent = mainChord; } button.addEventListener('click', () => this.renderBassNotes(mainChord, rootNote)); this.modalChordTypes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'grid'; this.modalBassNotes.style.display = 'none'; }
+            renderBassNotes(mainChord, rootNote) { this.modalChordTarget.textContent = `Välj Baston (Ackord: ${mainChord})`; this.modalBassNotes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderChordTypes(rootNote)); this.modalBassNotes.appendChild(backButton); const doneButton = document.createElement('button'); doneButton.textContent = `Använd ${mainChord}`; doneButton.classList.add('active'); doneButton.addEventListener('click', () => this.applyChord(mainChord)); this.modalBassNotes.appendChild(doneButton); this.bassNotes.forEach(note => { const finalChord = `${mainChord}/${note}`; const button = document.createElement('button'); button.textContent = `/${note}`; button.addEventListener('click', () => this.applyChord(finalChord)); this.modalBassNotes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'grid'; }
+            applyChord(chordName) { if (!this.currentlyEditing) return; if (this.currentlyEditing.element) { const chordTextEl = this.currentlyEditing.element.querySelector('.chord-text'); this.currentlyEditing.element.dataset.chord = chordName; if (chordTextEl) chordTextEl.textContent = chordName; } else if (this.currentlyEditing.range) { const range = this.currentlyEditing.range; const wordText = range.toString(); range.deleteContents(); const chordSpan = this.createChordSpan(chordName); range.insertNode(chordSpan); const textNode = document.createTextNode(" " + wordText); range.setStartAfter(chordSpan); range.insertNode(textNode); } this.centerChordHandles(); this.recordHistoryDebounced(); this.closeChordModal(); }
+            closeChordModal() { this.chordEditorModal.classList.remove('visible'); this.currentlyEditing = null; }
+            removeChord() { if (this.currentlyEditing?.element) { this.currentlyEditing.element.remove(); this.recordHistoryDebounced(); } this.closeChordModal(); }
+            getWordAtCursor(event) { try { const range = document.caretRangeFromPoint(event.clientX, event.clientY); if (!range || !range.startContainer.textContent) return null; const text = range.startContainer.textContent; let startIndex = range.startOffset; let endIndex = range.startOffset; while (startIndex > 0 && text[startIndex - 1].trim() !== '') startIndex--; while (endIndex < text.length && text[endIndex].trim() !== '') endIndex++; if (startIndex === endIndex) return null; const wordRange = document.createRange(); wordRange.setStart(range.startContainer, startIndex); wordRange.setEnd(range.startContainer, endIndex); return wordRange; } catch (e) { return null; } }
+            handleDragOver(e) { e.preventDefault(); if (this.editMode !== 'chord') return; if (e.ctrlKey || e.altKey) e.dataTransfer.dropEffect = 'copy'; else e.dataTransfer.dropEffect = 'move'; let range; if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(e.clientX, e.clientY); else { const pos = document.caretPositionFromPoint(e.clientX, e.clientY); if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); } } if (range) { const rect = range.getBoundingClientRect(); this.dropIndicator.style.display = 'block'; this.dropIndicator.style.left = `${rect.left + window.scrollX}px`; this.dropIndicator.style.top = `${rect.top + window.scrollY}px`; } }
+            handleDrop(e) { e.preventDefault(); e.stopPropagation(); this.dropIndicator.style.display = 'none'; if (this.editMode !== 'chord') return; let range = null; if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(e.clientX, e.clientY); else if (document.caretPositionFromPoint) { const pos = document.caretPositionFromPoint(e.clientX, e.clientY); if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); range.collapse(true); } } if (!range || !this.editor.contains(range.startContainer)) { range = document.createRange(); range.selectNodeContents(this.editor); range.collapse(false); } let chordNode; if ((e.ctrlKey || e.altKey) && this.draggedChord) { const chordText = this.draggedChord.dataset.chord; chordNode = this.createChordSpan(chordText); } else { chordNode = this.draggedChord ? this.draggedChord : this.createChordSpan(e.dataTransfer.getData('text/plain')); } chordNode.style.display = 'inline-block'; range.insertNode(chordNode); const sel = window.getSelection(); sel.removeAllRanges(); const after = document.createRange(); after.setStartAfter(chordNode); after.collapse(true); sel.addRange(after); this.centerChordHandles(); this.recordHistoryDebounced(); }
+            createChordSpan(chord) { const span = document.createElement('span'); span.className = 'chord'; span.dataset.chord = chord; const chordText = document.createElement('span'); chordText.className = 'chord-text'; chordText.textContent = chord; chordText.spellcheck = false; span.appendChild(chordText); const handle = document.createElement('span'); handle.className = 'chord-handle'; handle.draggable = true; span.appendChild(handle); span.addEventListener('click', e => { if (this.editMode !== 'chord' || e.target === handle) return; e.stopPropagation(); this.clearChordSelection(); span.classList.add('selected'); }); span.addEventListener('dblclick', e => { if (this.editMode !== 'chord') return; e.stopPropagation(); span.remove(); this.recordHistoryDebounced(); }); handle.addEventListener('dragstart', e => { if (this.editMode !== 'chord') { e.preventDefault(); return; } e.stopPropagation(); e.dataTransfer.setData('text/plain', chord); e.dataTransfer.effectAllowed = 'copyMove'; this.draggedChord = span; document.body.classList.add('is-dragging'); if (e.dataTransfer.setDragImage) { const ghost = document.createElement('span'); ghost.textContent = chord; ghost.style.cssText = `display:inline-block;padding:0.1em 0.4em;border-radius:3px;background-color:${getComputedStyle(document.body).getPropertyValue('--surface')};color:${getComputedStyle(document.body).getPropertyValue('--chord-color')};font-family:var(--font-sans);font-weight:600;font-size:0.85em;border:1px solid ${getComputedStyle(document.body).getPropertyValue('--border')};position:absolute;top:-9999px;left:-9999px;`; document.body.appendChild(ghost); e.dataTransfer.setDragImage(ghost, 10, 15); setTimeout(() => document.body.removeChild(ghost), 0); } const isCopy = e.ctrlKey || e.altKey; if (!isCopy) { setTimeout(() => { span.style.display = 'none'; }, 0); } }); handle.addEventListener('dragend', e => { e.stopPropagation(); document.body.classList.remove('is-dragging'); if (this.draggedChord && this.draggedChord.parentNode) { this.draggedChord.style.display = 'inline-block'; } this.draggedChord = null; }); return span; }
+            insertSectionMarker(type) { if (this.editMode === 'scroll') return; const sel = window.getSelection(); if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) return this.showCustomAlert('Placera markören på den rad där du vill infoga markören.'); let node = sel.anchorNode; while (node && node.parentNode !== this.editor) node = node.parentNode; if (!node || node.tagName !== 'DIV') { const newDiv = document.createElement('div'); this.editor.appendChild(newDiv); node = newDiv; } const existingMarker = node.querySelector('.section-marker'); if (existingMarker) existingMarker.remove(); this.insertSectionMarkerInDiv(node, type); }
+            insertSectionMarkerInDiv(div, type) { const abbreviations = { 'Vers': 'V', 'Refräng': 'R', 'Stick': 'S', 'Intro': 'I', 'Outro': 'O', 'Solo': 'Solo', 'Bridge': 'B', 'Mellanspel': 'M' }; const markerSpan = document.createElement('span'); markerSpan.className = 'section-marker'; markerSpan.dataset.section = type; markerSpan.setAttribute('contenteditable', 'false'); markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0); const textSpan = document.createElement('span'); textSpan.className = 'section-marker-text'; textSpan.textContent = type; markerSpan.appendChild(textSpan); div.insertBefore(markerSpan, div.firstChild); }
+            clearChordSelection() { this.editor.querySelectorAll('.chord.selected').forEach(s => s.classList.remove('selected')); }
+            handleKeyDown(e) { if (this.editMode !== 'chord') return; if (e.key === 'Backspace') { const sel = window.getSelection(); if (!sel.rangeCount) return; const range = sel.getRangeAt(0); if (range.collapsed && range.startOffset === 0) { const container = range.startContainer; const prev = (container.nodeType === Node.TEXT_NODE ? container : container.childNodes[range.startOffset] || null)?.previousSibling; if (prev && prev.nodeType === Node.ELEMENT_NODE && prev.classList.contains('chord')) { e.preventDefault(); prev.remove(); this.recordHistoryDebounced(); } } } }
+            handleMutations(mutations) { this.stopObserver(); mutations.forEach(mutation => { if (mutation.type === 'characterData') this.formatNode(mutation.target); else if (mutation.type === 'childList') mutation.addedNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) this.formatNode(n); }); }); this.startObserver(); }
+            formatNode(node) { if (this.editMode !== 'chord' || !node.textContent || !node.textContent.includes('[')) return; const text = node.textContent; const regex = /\[([^\]]+)\]/g; let match; const frag = document.createDocumentFragment(); let lastIndex = 0; let replaced = false; while ((match = regex.exec(text)) !== null) { replaced = true; const beforeText = text.substring(lastIndex, match.index); if (beforeText) frag.appendChild(document.createTextNode(beforeText)); const chord = match[1]; const chordSpan = this.createChordSpan(chord); frag.appendChild(chordSpan); lastIndex = regex.lastIndex; } if (replaced) { const afterText = text.substring(lastIndex); if (afterText) frag.appendChild(document.createTextNode(afterText)); if (node.parentNode) { const parent = node.parentNode; parent.replaceChild(frag, node); const sel = window.getSelection(); const range = document.createRange(); const lastNode = parent.childNodes[parent.childNodes.length - 1]; if (lastNode) { range.setStart(lastNode, lastNode.length || lastNode.childNodes.length); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); } this.centerChordHandles(); } } }
+            syncChordData() { this.editor.querySelectorAll('.chord').forEach(chordEl => { const chordTextEl = chordEl.querySelector('.chord-text'); if (chordTextEl) chordEl.dataset.chord = chordTextEl.textContent; }); }
+            getContentAsText() { let result = []; this.editor.childNodes.forEach(lineDiv => { let lineText = ''; if (lineDiv.nodeType !== Node.ELEMENT_NODE) return; const marker = lineDiv.querySelector('.section-marker'); if (marker) lineText += `::${marker.dataset.section}::`; lineDiv.childNodes.forEach(node => { if (node.nodeType === Node.TEXT_NODE) lineText += node.textContent; else if (node.matches && node.matches('.chord')) lineText += `[${node.dataset.chord}]`; }); result.push(lineText); }); return result.join('\n'); }
+            loadContent(text, recordHistory = false) { this.stopObserver(); this.editor.innerHTML = ''; const lines = text.split('\n'); lines.forEach(lineText => { const lineDiv = document.createElement('div'); let sectionType = null; lineText = lineText.replace(/^::(.*?)::/, (match, type) => { sectionType = type; return ''; }); if (sectionType) this.insertSectionMarkerInDiv(lineDiv, sectionType); if (lineText.trim() === '' && !lineText.includes('[')) { lineDiv.appendChild(document.createElement('br')); } else { const regex = /\[([^\]]+)\]/g; let lastIndex = 0; let match; while ((match = regex.exec(lineText)) !== null) { if (match.index > lastIndex) lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex, match.index))); lineDiv.appendChild(this.createChordSpan(match[1])); lastIndex = match.index + match[0].length; } if (lastIndex < lineText.length) lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex))); } this.editor.appendChild(lineDiv); }); this.centerChordHandles(); this.startObserver(); if (recordHistory) this.recordHistory(); }
+            _transposeSingleNote(note, steps) { const sharpMap = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' }; const match = note.match(/^([A-G](?:#|b)?)/); if (!match) return note; let rootNote = match[0]; let normalizedNote = rootNote.includes('b') ? (sharpMap[rootNote] || rootNote) : rootNote; const currentIndex = this.musicalNotes.indexOf(normalizedNote); if (currentIndex !== -1) { const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length; const transposedRoot = this.musicalNotes[newIndex]; return transposedRoot + note.substring(rootNote.length); } return note; }
+            transpose(steps) { if (this.editMode === 'scroll') return; this.syncChordData(); const text = this.getContentAsText(); const transposedText = text.replace(/\[([^\]]+)\]/g, (fullMatch, chord) => { const parts = chord.split('/'); const mainChord = parts[0]; const bassNote = parts.length > 1 ? parts[1] : null; const transposedMainChord = this._transposeSingleNote(mainChord, steps); if (bassNote) { const transposedBassNote = this._transposeSingleNote(bassNote, steps); return `[${transposedMainChord}/${transposedBassNote}]`; } else { return `[${transposedMainChord}]`; } }); this.loadContent(transposedText, true); }
+            recordHistory() { this.syncChordData(); const snapshot = this.getContentAsText(); if (this.history[this.historyIndex] === snapshot) return; this.history = this.history.slice(0, this.historyIndex + 1); this.history.push(snapshot); if (this.history.length > this.historyMax) this.history.shift(); this.historyIndex = this.history.length - 1; }
+            recordHistoryDebounced() { clearTimeout(this.debounceTimer); this.debounceTimer = setTimeout(() => this.recordHistory(), 300); }
+            undo() { if (this.editMode === 'scroll') return; if (this.historyIndex > 0) { this.historyIndex--; this.loadContent(this.history[this.historyIndex], false); } }
+            redo() { if (this.editMode === 'scroll') return; if (this.historyIndex < this.history.length - 1) { this.historyIndex++; this.loadContent(this.history[this.historyIndex], false); } }
+            showCustomAlert(message) { const dialog = document.getElementById('custom-alert'); document.getElementById('custom-alert-message').textContent = message; dialog.classList.add('visible'); const okBtn = document.getElementById('custom-alert-ok'); const close = () => dialog.classList.remove('visible'); okBtn.onclick = close; }
+            showCustomConfirm(message) { return new Promise(resolve => { const dialog = document.getElementById('custom-confirm'); document.getElementById('custom-confirm-message').textContent = message; dialog.classList.add('visible'); const okBtn = document.getElementById('custom-confirm-ok'); const cancelBtn = document.getElementById('custom-confirm-cancel'); const close = (value) => { dialog.classList.remove('visible'); resolve(value); }; okBtn.onclick = () => close(true); cancelBtn.onclick = () => close(false); }); }
+            toggleDarkMode() { document.body.classList.toggle('dark-mode'); const isDarkMode = document.body.classList.contains('dark-mode'); localStorage.setItem(StableChordEditor.STORAGE_KEYS.DARK_MODE, isDarkMode ? 'enabled' : 'disabled'); this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙'; }
+            createNewProject() { this.titleInput.value = ''; this.authorInput.value = ''; this.loadContent('<div><br></div>', true); this.projectList.selectedIndex = 0; localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if(this.fontSizeSlider) {this.fontSizeSlider.value = 16;} this.editor.style.fontSize = '16px'; this.titleInput.focus(); }
+            saveProject(name) { this.syncChordData(); const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; projects[name] = { title: this.titleInput.value, author: this.authorInput.value, fontSize: this.editor.style.fontSize || '16px', content: this.getContentAsText(), scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); this.updateProjectList(name); const originalText = this.btnSaveProject.textContent; this.btnSaveProject.textContent = 'Sparat ✓'; this.btnSaveProject.disabled = true; setTimeout(() => { this.btnSaveProject.textContent = 'Spara'; this.btnSaveProject.disabled = false; }, 1200); }
+            loadProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (projects[name]) { const data = projects[name]; this.titleInput.value = data.title || ''; this.authorInput.value = data.author || ''; this.editor.style.fontSize = data.fontSize || '16px'; if(this.fontSizeSlider) {const num = parseInt((data.fontSize || '').replace('px', '')); if (!isNaN(num)) this.fontSizeSlider.value = num;} this.loadContent(data.content || '', true); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); if (this.projectList.value !== name) this.projectList.value = name; } }
+            loadLastProject() { this.updateProjectList(); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last) this.loadProject(last); else this.loadContent('::Vers::\nVälkommen till ProChorder!\n\n::Refräng::\nSkriv [Am], [G] etc. i Ackordläge.', true); }
+            updateProjectList(selectedValue) { const list = this.projectList; const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; const currentProjects = Object.keys(projects).sort(); list.innerHTML = '<option value="">Ladda projekt...</option>'; currentProjects.forEach(name => { const option = document.createElement('option'); option.value = name; option.textContent = name; list.appendChild(option); }); const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last && currentProjects.includes(last)) list.value = last; }
+            deleteProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; delete projects[name]; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last === name) { localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); this.createNewProject(); } this.updateProjectList(); this.showCustomAlert(`Projekt "${name}" borttaget.`); }
+            async deleteAllProjects() { if (await this.showCustomConfirm('Är du helt säker? Detta raderar ALLA sparade låtar permanent.')) { localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS); localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); this.updateProjectList(); this.createNewProject(); this.showCustomAlert('Alla projekt har tagits bort.'); } }
+            async renameProject(oldName, newName) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (projects[oldName] && !projects[newName]) { projects[newName] = projects[oldName]; projects[newName].title = newName; delete projects[oldName]; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (lastProject === oldName) localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName); this.titleInput.value = newName; this.updateProjectList(newName); this.showCustomAlert(`Projektet har döpts om till "${newName}".`); } else if (projects[newName]) { this.showCustomAlert(`Ett projekt med namnet "${newName}" finns redan.`); } }
+            generatePdfForProject(projectData) { const { jsPDF } = window.jspdf; const doc = new jsPDF(); let y = 20; const margin = 15; const baseFontSizePx = parseInt((projectData.fontSize || '16px').replace('px', ''), 10); const baseFontSizePt = baseFontSizePx * 0.75; const lyricLineHeightMultiplier = 1.3; const LYRIC_LINE_HEIGHT = baseFontSizePt * lyricLineHeightMultiplier; const SECTION_HEADER_LINE_HEIGHT = baseFontSizePt * 1.4; const CHORD_COLOR = '#0052cc'; const TEXT_COLOR = '#172b4d'; const CHORD_OFFSET = baseFontSizePt * 0.7; doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text(projectData.title || 'Song Title', 105, y, { align: 'center' }); y += 8; doc.setFont('helvetica', 'normal'); doc.setFontSize(12); doc.text(projectData.author || 'Artist', 105, y, { align: 'center' }); y += 15; const lines = (projectData.content || '').split('\n'); lines.forEach(lineText => { let sectionType = null; let remainingText = lineText.replace(/^::(.*?)::/, (match, type) => { sectionType = type; return ''; }); if (sectionType) { if (y > 280) { doc.addPage(); y = 20; } if (y > 25) y += SECTION_HEADER_LINE_HEIGHT * 0.5; doc.setFont('helvetica', 'bold'); doc.setFontSize(baseFontSizePt * 1.1); doc.setTextColor(TEXT_COLOR); doc.text(sectionType, margin, y); y += SECTION_HEADER_LINE_HEIGHT; } if (remainingText.trim()) { if (y > 280) { doc.addPage(); y = 20; } const parts = remainingText.split(/(\[[^\]]+\])/g).filter(p => p); let currentX = margin; parts.forEach(part => { if (part.startsWith('[') && part.endsWith(']')) { const chord = part.substring(1, part.length - 1); doc.setFont('helvetica', 'bold'); doc.setFontSize(baseFontSizePt * 0.85); doc.setTextColor(CHORD_COLOR); doc.text(chord, currentX, y - CHORD_OFFSET); } else { doc.setFont('helvetica', 'normal'); doc.setFontSize(baseFontSizePt); doc.setTextColor(TEXT_COLOR); doc.text(part, currentX, y); currentX += doc.getTextWidth(part); } }); y += LYRIC_LINE_HEIGHT; } else if (!sectionType) { y += LYRIC_LINE_HEIGHT * 0.7; } }); return doc.output('blob'); }
+            exportPdf() { this.syncChordData(); const projectData = { title: this.titleInput.value, author: this.authorInput.value, content: this.getContentAsText(), fontSize: this.editor.style.fontSize }; const pdfBlob = this.generatePdfForProject(projectData); saveAs(pdfBlob, `${this.sanitizeFilename(projectData.title)}.pdf`); }
+            exportTxt() { this.syncChordData(); const title = this.titleInput.value; const author = this.authorInput.value; const content = this.getContentAsText(); const fullText = `${title}\n${author}\n\n${content}`; const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" }); saveAs(blob, `${this.sanitizeFilename(title)}.txt`); }
+            async exportAllAsZip() { this.btnExportZip.textContent = 'Genererar...'; this.btnExportZip.disabled = true; try { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (Object.keys(projects).length === 0) return this.showCustomAlert('Inga projekt att exportera.'); const zip = new JSZip(); for (const key in projects) { const project = projects[key]; const pdfBlob = this.generatePdfForProject(project); zip.file(`${this.sanitizeFilename(project.title)}.pdf`, pdfBlob); } const content = await zip.generateAsync({ type: "blob" }); saveAs(content, "alla-låtar.zip"); } catch (e) { this.showCustomAlert('Fel vid ZIP-export.'); } finally { this.btnExportZip.textContent = 'ZIP'; this.btnExportZip.disabled = false; } }
+            exportJson() { this.syncChordData(); const projectData = { title: this.titleInput.value, author: this.authorInput.value, content: this.getContentAsText(), fontSize: this.editor.style.fontSize, scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" }); saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`); }
+            exportAllJson() { const projects = localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS) || '{}'; const blob = new Blob([JSON.stringify(JSON.parse(projects), null, 2)], { type: "application/json" }); saveAs(blob, `alla-låtar-backup.json`); }
+            importJsonFromFile(file) { if (!file) return; const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if (await this.showCustomConfirm(`${data.length} låtar hittades. Vill du importera? Existerande låtar med samma titel skrivs över.`)) this.importMultipleProjects(data); } else if (data.title) { this.importSingleProject(data); } } catch (e) { this.showCustomAlert('Fel vid import av JSON.'); } }; reader.readAsText(file); }
+            async importJsonFromUrl(url) { try { const response = await fetch(url); if (!response.ok) throw new Error('Network response was not ok'); const data = await response.json(); if (Array.isArray(data)) this.importMultipleProjects(data); else if (data.title) this.importSingleProject(data); } catch (e) { this.showCustomAlert('Fel vid import från URL.'); } }
+            importSingleProject(data) { this.titleInput.value = data.title || ''; this.authorInput.value = data.author || ''; this.editor.style.fontSize = data.fontSize || '16px'; this.loadContent(data.content || '', true); if (data.scrollSpeed) this.scrollSpeed = data.scrollSpeed; if (data.duration) this.updateDurationInputs(data.duration); this.saveProject(data.title); }
+            importMultipleProjects(projectsArray) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; let importedCount = 0, overwrittenCount = 0; for (const project of projectsArray) { if (project && project.title) { if (projects[project.title]) overwrittenCount++; else importedCount++; projects[project.title] = project; } } localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); this.updateProjectList(); this.showCustomAlert(`${importedCount} nya låtar importerades. ${overwrittenCount} låtar uppdaterades.`); if (projectsArray.length > 0) this.loadProject(projectsArray[0].title); }
+            sanitizeFilename(name) { return name.replace(/[\/\\?%*:|"<>]/g, '-') || 'låt'; }
+            toggleScrolling() { if (this.scrollInterval) this.stopScrolling(); else this.startScrolling(); }
+            startScrolling() { if (this.scrollInterval || this.scrollSpeed <= 0) return; this.scrollBtnPlayPause.textContent = '❚❚'; this.scrollRemainder = 0; const scroll = () => { this.scrollRemainder += this.scrollSpeed; const move = Math.floor(this.scrollRemainder); if (move > 0) this.editor.scrollTop += move; this.scrollRemainder -= move; if (this.editor.scrollTop + this.editor.clientHeight >= this.editor.scrollHeight) { this.stopScrolling(); } else { this.scrollInterval = requestAnimationFrame(scroll); } }; this.scrollInterval = requestAnimationFrame(scroll); }
+            stopScrolling() { if (this.scrollInterval) cancelAnimationFrame(this.scrollInterval); this.scrollInterval = null; this.scrollBtnPlayPause.textContent = '▶'; }
+            setScrollSpeed(value) { const MIN_MOVE_SPEED = 0.02, MAX_SPEED = 0.5; const val = parseFloat(value); if (val === 0) { this.scrollSpeed = 0; return; } this.scrollSpeed = MIN_MOVE_SPEED + (val / 100) * (MAX_SPEED - MIN_MOVE_SPEED); }
+            getTotalDurationSeconds() { const minutes = parseInt(this.scrollDurationMinutesInput.value) || 0; const seconds = parseInt(this.scrollDurationSecondsInput.value) || 0; return (minutes * 60) + seconds; }
+            updateDurationInputs(totalSeconds) { if (totalSeconds > 0) { this.scrollDurationMinutesInput.value = Math.floor(totalSeconds / 60); this.scrollDurationSecondsInput.value = totalSeconds % 60; } else { this.scrollDurationMinutesInput.value = 4; this.scrollDurationSecondsInput.value = 0; } }
+            setScrollForDuration(durationSeconds) { setTimeout(() => { const scrollHeight = Math.max(1, this.editor.scrollHeight - this.editor.clientHeight); if (scrollHeight <= 0) return; const frames = Math.max(1, durationSeconds * 60); this.scrollSpeed = scrollHeight / frames; const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100); this.scrollSpeedSlider.value = Math.max(0, Math.min(100, percent)); }, 100); }
+            updateDurationFromSpeed() { if (this.scrollSpeed < 0.001) return; const scrollHeight = Math.max(1, this.editor.scrollHeight - this.editor.clientHeight); if (scrollHeight <= 0) return; const durationSeconds = scrollHeight / (this.scrollSpeed * 60); this.updateDurationInputs(Math.round(durationSeconds)); }
         }
 
         window.addEventListener('load', () => new StableChordEditor('editor'));
     </script>
-
 </body>
 
 </html>

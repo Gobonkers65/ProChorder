@@ -83,7 +83,7 @@
         #project-list {
             flex-grow: 1;
             /* Tillåt den att växa */
-            min-width: 180px;
+            min-width: 140px;
             /* Men aldrig bli mindre än så här */
             max-width: 500px;
             /* Och aldrig bli större än så här */
@@ -303,7 +303,7 @@
             padding: 2em;
             border-radius: 8px;
             box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
-            height: 75vh;
+            height: calc(100vh - 90px);
             font-family: var(--font-sans);
             line-height: 1.8;
             outline: none;
@@ -712,7 +712,7 @@
             <span>Fast</span>
         </div>
         <div class="duration-control">
-            <label>Duration:</label>
+            <label>Time:</label>
             <input type="number" id="scroll-duration-minutes" min="0" max="60" value="4">
             <span>m</span>
             <input type="number" id="scroll-duration-seconds" min="0" max="59" step="5" value="0">

@@ -80,8 +80,13 @@
             min-width: 0;
         }
 
-        .top-bar #project-list {
+        #project-list {
             flex-grow: 1;
+            /* Tillåt den att växa */
+            min-width: 180px;
+            /* Men aldrig bli mindre än så här */
+            max-width: 500px;
+            /* Och aldrig bli större än så här */
         }
 
         .top-bar select,
@@ -116,7 +121,7 @@
             font-size: 24px;
             font-weight: normal;
         }
-        
+
         #btn-toggle-dark-mode {
             font-size: 1.5em;
         }
@@ -378,13 +383,27 @@
         #editor .section-marker {
             display: block;
             margin-bottom: 0.25em;
-            line-height: 1.5;
+            line-height: 2.5;
             font-weight: 700;
             font-size: 1.1em;
             color: var(--text-color);
             background-color: transparent;
             padding: 0;
             user-select: none;
+        }
+
+        #editor.text-mode .chord-handle {
+            display: none !important;
+        }
+
+        #editor.text-mode .chord {
+            opacity: 0.6;
+        }
+
+        body.scroll-mode-active #editor {
+            caret-color: transparent;
+            border-color: transparent;
+            box-shadow: none;
         }
 
         .custom-dialog-overlay,
@@ -443,6 +462,26 @@
             background-color: var(--primary);
             color: var(--button-text-light);
         }
+        /* Ny stil för siffer-rutorna i live-läget */
+        #scroll-controls input[type="number"] {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--button-text-light);
+            border-radius: 8px;
+            height: 38px;
+            width: 60px;
+            font-size: 1.2em;
+            font-weight: 700;
+            text-align: center;
+            -moz-appearance: textfield; /* Döljer pilarna i Firefox */
+        }
+
+        /* Döljer upp/ner-pilarna i Chrome, Safari, etc. */
+        #scroll-controls input[type="number"]::-webkit-outer-spin-button,
+        #scroll-controls input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
         #drop-indicator {
             position: absolute;
@@ -458,30 +497,46 @@
             cursor: none !important;
         }
 
-        #scroll-controls {
+       #scroll-controls {
+            /* Positionering och grundläggande layout */
             display: none;
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(6px);
             padding: 0.8em 1em;
-            align-items: center;
-            justify-content: center;
-            gap: 1em;
-            border-top: 1px solid var(--border);
-        }
+            z-index: 2000;
 
-        body.scroll-mode-active #scroll-controls {
-            display: grid;
-        }
+            /* Den nya "glas-stilen" */
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
 
-        #scroll-controls {
+            /* Grid-layout för innehållet */
             grid-template-columns: auto 1fr auto;
             grid-template-rows: auto auto;
             align-items: center;
             gap: .75em 1em;
+        }
+
+        #scroll-btn-play-pause, #scroll-btn-exit {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--button-text-light);
+            border-radius: 8px;
+            height: 38px;
+            width: 60px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #scroll-btn-play-pause:hover, #scroll-btn-exit:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        body.scroll-mode-active #scroll-controls {
+            display: grid;
         }
 
         #scroll-controls .speed-control {
@@ -507,9 +562,9 @@
         }
 
         #scroll-btn-exit {
-            grid-column: 3;
+            grid-column: 5;
             grid-row: 2;
-            justify-self: end;
+            justify-self: flex-end;
         }
 
         body.scroll-mode-active #editor {
@@ -567,7 +622,7 @@
     <div class="top-bar">
         <div class="top-bar-left">
             <select id="project-list"></select>
-            <button id="btn-new-project" class="btn-primary" title="Nytt projekt">+</button>
+            <button id="btn-new-project" class="btn-primary" title="New Project">+</button>
         </div>
         <div class="top-bar-right">
             <button id="main-toggle-edit-mode-btn" title="Växla Redigeringsläge">A</button>
@@ -593,28 +648,28 @@
                         <button id="btn-transpose-down">-1</button>
                     </div>
                     <div class="sidebar-controls horizontal">
-                        <span>Textstorlek</span>
+                        <span>Font size</span>
                         <input type="range" id="font-size-slider" min="12" max="32" value="16">
                     </div>
                 </div>
             </div>
         </div>
         <div class="sidebar-group">
-            <span class="sidebar-group-label">Sektioner</span>
+            <span class="sidebar-group-label">Sections</span>
             <div class="sidebar-group-content is-collapsed">
                 <div class="sidebar-controls horizontal">
                     <select id="section-type-select-menu"></select>
-                    <button id="btn-insert-section">Infoga</button>
+                    <button id="btn-insert-section">Insert</button>
                 </div>
             </div>
         </div>
         <div class="sidebar-group">
-            <span class="sidebar-group-label">Projekt</span>
+            <span class="sidebar-group-label">Project</span>
             <div class="sidebar-group-content is-collapsed">
                 <div class="sidebar-controls vertical">
-                    <button id="btn-save-project" class="btn-success">Spara</button>
-                    <button id="btn-delete-project" class="btn-danger">Ta bort</button>
-                    <button id="btn-delete-all-projects" class="btn-danger">Rensa allt</button>
+                    <button id="btn-save-project" class="btn-success">Save</button>
+                    <button id="btn-delete-project" class="btn-danger">Remove</button>
+                    <button id="btn-delete-all-projects" class="btn-danger">Erase all</button>
                 </div>
             </div>
         </div>
@@ -628,12 +683,12 @@
                         <button id="btn-export-zip">ZIP</button>
                     </div>
                     <div class="sidebar-controls horizontal">
-                        <button id="btn-export-json">Låt JSON</button>
-                        <button id="btn-export-all-json">Allt JSON</button>
+                        <button id="btn-export-json">Song->JSON</button>
+                        <button id="btn-export-all-json">All->JSON</button>
                     </div>
                     <div class="sidebar-controls horizontal">
-                        <button id="btn-import-json">Imp. JSON</button>
-                        <button id="btn-import-url" class="btn-primary">Importera URL</button>
+                        <button id="btn-import-json">Imp.->JSON</button>
+                        <button id="btn-import-url" class="btn-primary">Import URL</button>
                     </div>
                     <input type="file" id="file-import" accept="application/json" class="hidden-file">
                 </div>
@@ -652,18 +707,18 @@
     <div id="scroll-controls">
         <button id="scroll-btn-play-pause">▶</button>
         <div class="speed-control">
-            <span>Långsamt</span>
+            <span>Slow</span>
             <input type="range" id="scroll-speed-slider" min="0" max="100" value="20">
-            <span>Snabbt</span>
+            <span>Fast</span>
         </div>
         <div class="duration-control">
-            <label>Speltid:</label>
+            <label>Duration:</label>
             <input type="number" id="scroll-duration-minutes" min="0" max="60" value="4">
             <span>m</span>
             <input type="number" id="scroll-duration-seconds" min="0" max="59" step="5" value="0">
             <span>s</span>
         </div>
-        <button id="scroll-btn-exit">Avsluta</button>
+        <button id="scroll-btn-exit">Stop</button>
     </div>
 
     <div id="custom-alert" class="custom-dialog-overlay">
@@ -676,7 +731,7 @@
         <div class="custom-dialog-box">
             <p id="custom-confirm-message"></p>
             <div class="dialog-buttons">
-                <button id="custom-confirm-cancel">Avbryt</button>
+                <button id="custom-confirm-cancel">Cancel</button>
                 <button id="custom-confirm-ok" class="btn-danger">OK</button>
             </div>
         </div>
@@ -684,7 +739,7 @@
 
     <div id="chord-editor-modal" class="custom-dialog-overlay">
         <div class="custom-dialog-box" style="min-width: 400px;">
-            <h3 id="modal-chord-target">Välj ackord</h3>
+            <h3 id="modal-chord-target">Select Chord</h3>
             <div id="modal-chord-builder">
                 <div id="modal-root-notes" class="chord-grid"></div>
                 <div id="modal-chord-types" class="chord-grid" style="display: none;"></div>
@@ -799,13 +854,13 @@
             }
 
             populateSelects() {
-                const sectionData = ["Intro", "Vers", "Refräng", "Stick", "Bridge", "Solo", "Outro", "Mellanspel"];
+                const sectionData = ["Intro", "Verse", "Chorus", "Stick", "Bridge", "Solo", "Outro", "Dig"];
                 const populate = (sel, options, placeholder) => {
                     if (!sel) return;
                     sel.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
                     options.forEach(o => sel.innerHTML += `<option value="${o}">${o}</option>`);
                 };
-                populate(this.sectionTypeSelect, sectionData, 'Välj sektion...');
+                populate(this.sectionTypeSelect, sectionData, 'Select Section...');
             }
 
             applySavedTheme() {
@@ -830,7 +885,7 @@
             stopObserver() {
                 this.observer.disconnect();
             }
-            
+
             // *** NYTT: Återanvändbar funktion för att växla läge ***
             toggleEditMode() {
                 this.editMode = this.editMode === 'chord' ? 'text' : 'chord';
@@ -849,7 +904,7 @@
                     const oldName = this.projectList.value;
                     const newName = this.titleInput.value.trim();
                     if (oldName && newName && oldName !== newName) {
-                        const confirmed = await this.showCustomConfirm(`Vill du döpa om projektet "${oldName}" till "${newName}"?`);
+                        const confirmed = await this.showCustomConfirm(`Do you want to rename this project "${oldName}" till "${newName}"?`);
                         if (confirmed) {
                             this.renameProject(oldName, newName);
                         } else {
@@ -857,7 +912,7 @@
                         }
                     }
                 });
-                
+
                 // *** NYTT: Båda knapparna anropar samma funktion ***
                 this.btnToggleEditMode.addEventListener('click', () => this.toggleEditMode());
                 this.mainToggleEditModeBtn.addEventListener('click', () => this.toggleEditMode());
@@ -915,19 +970,19 @@
                     }
                 });
                 this.btnNewProject.addEventListener('click', async () => {
-                    if (await this.showCustomConfirm('Är du säker? Osparade ändringar försvinner.')) {
+                    if (await this.showCustomConfirm('Are you sure? Unsaved changes will be lost!.')) {
                         this.createNewProject();
                     }
                 });
                 this.btnSaveProject.addEventListener('click', () => {
                     const name = this.titleInput.value.trim();
-                    if (!name) return this.showCustomAlert('Ange en låttitel för att kunna spara.');
+                    if (!name) return this.showCustomAlert('Name your song.');
                     this.saveProject(name);
                 });
                 this.btnDeleteProject.addEventListener('click', async () => {
                     const name = this.projectList.value;
-                    if (!name) return this.showCustomAlert('Välj ett projekt att ta bort.');
-                    if (await this.showCustomConfirm(`Ta bort projekt "${name}"? Detta går inte att ångra.`)) this.deleteProject(name);
+                    if (!name) return this.showCustomAlert('Select a project to remove.');
+                    if (await this.showCustomConfirm(`Delete projeckt "${name}"? This cannot be undone!`)) this.deleteProject(name);
                 });
                 this.btnDeleteAllProjects.addEventListener('click', () => this.deleteAllProjects());
                 this.btnTransposeUp.addEventListener('click', () => this.transpose(1));
@@ -973,7 +1028,7 @@
                         this.recordHistoryDebounced();
                         this.sectionTypeSelect.selectedIndex = 0;
                     } else {
-                        this.showCustomAlert('Välj en sektionstyp från rullistan.');
+                        this.showCustomAlert('Choose selection type');
                     }
                 });
             }
@@ -981,48 +1036,60 @@
             // *** NYTT: updateModeUI uppdaterar nu båda knapparna ***
             updateModeUI() {
                 if (this.editMode === 'chord') {
-                    this.editModeLabel.textContent = 'Redigera (Ackord)';
-                    this.btnToggleEditMode.textContent = 'Byt till Textläge';
+                    // Texter inuti hamburgermenyn
+                    this.editModeLabel.textContent = 'Edit (Chords)';
+                    this.btnToggleEditMode.textContent = 'Switch to Lyrics Mode';
+                    
+                    // Text för knappen i toppraden
                     if (this.mainToggleEditModeBtn) {
-                        this.mainToggleEditModeBtn.textContent = 'A';
-                        this.mainToggleEditModeBtn.title = 'Växla till Textläge';
+                        this.mainToggleEditModeBtn.textContent = 'C'; // Visar nuvarande läge: Chords
+                        this.mainToggleEditModeBtn.title = 'Switch to Lyrics Mode';
                     }
                     this.editor.classList.remove('text-mode');
                 } else if (this.editMode === 'text') {
-                    this.editModeLabel.textContent = 'Redigera (Text)';
-                    this.btnToggleEditMode.textContent = 'Byt till Ackordläge';
+                    // Texter inuti hamburgermenyn
+                    this.editModeLabel.textContent = 'Edit (Lyrics)';
+                    this.btnToggleEditMode.textContent = 'Switch to Chord Mode';
+
+                    // Text för knappen i toppraden
                     if (this.mainToggleEditModeBtn) {
-                        this.mainToggleEditModeBtn.textContent = 'T';
-                        this.mainToggleEditModeBtn.title = 'Växla till Ackordläge';
+                        this.mainToggleEditModeBtn.textContent = 'L'; // Visar nuvarande läge: Lyrics
+                        this.mainToggleEditModeBtn.title = 'Switch to Chord Mode';
                     }
                     this.editor.classList.add('text-mode');
                 }
             }
-            
+
             // ... resten av koden är oförändrad ...
 
             toggleScrollMode(enter) { if (enter) { if (!this.editor.textContent.trim()) { this.showCustomAlert("Lägg till text innan du startar Live Mode."); return; } this.editMode = 'scroll'; this.editor.contentEditable = false; document.body.classList.add('scroll-mode-active'); setTimeout(() => { const totalSeconds = this.getTotalDurationSeconds(); const scrollHeight = this.editor.scrollHeight - this.editor.clientHeight; if (scrollHeight <= 0) { this.showCustomAlert("Texten är för kort för att scrolla."); this.toggleScrollMode(false); return; } if (totalSeconds > 0) { this.setScrollForDuration(totalSeconds); } else { this.setScrollSpeed(this.scrollSpeedSlider.value); } }, 100); } else { this.stopScrolling(); this.editMode = 'chord'; this.editor.contentEditable = true; document.body.classList.remove('scroll-mode-active'); this.updateModeUI(); } }
             centerChordHandles() { this.editor.querySelectorAll('.chord').forEach(chordEl => { const handle = chordEl.querySelector('.chord-handle'); const text = chordEl.querySelector('.chord-text'); if (handle && text) { const textWidth = text.offsetWidth; handle.style.left = `${textWidth / 2}px`; } }); }
             openChordModal(element, range) { this.currentlyEditing = { element, range }; if (element) { this.modalChordTarget.textContent = `Redigerar: ${element.dataset.chord}`; this.modalBtnRemove.style.display = 'inline-block'; } else if (range) { this.modalChordTarget.textContent = `Lägg till vid: "${range.toString()}"`; this.modalBtnRemove.style.display = 'none'; } this.renderRootNotes(); this.chordEditorModal.classList.add('visible'); }
-            renderRootNotes() { this.modalChordTarget.textContent = 'Välj Grundton'; this.modalRootNotes.innerHTML = ''; this.musicalNotes.forEach(note => { const button = document.createElement('button'); button.textContent = note; button.addEventListener('click', () => this.renderChordTypes(note)); this.modalRootNotes.appendChild(button); }); this.modalRootNotes.style.display = 'grid'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'none'; }
-            renderChordTypes(rootNote) { this.modalChordTarget.textContent = `Välj Typ (Grundton: ${rootNote})`; this.modalChordTypes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderRootNotes()); this.modalChordTypes.appendChild(backButton); this.chordTypes.forEach(type => { const mainChord = rootNote + type; const button = document.createElement('button'); if (type === '') { button.textContent = `Använd ${mainChord}`; button.classList.add('active'); } else { button.textContent = mainChord; } button.addEventListener('click', () => this.renderBassNotes(mainChord, rootNote)); this.modalChordTypes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'grid'; this.modalBassNotes.style.display = 'none'; }
-            renderBassNotes(mainChord, rootNote) { this.modalChordTarget.textContent = `Välj Baston (Ackord: ${mainChord})`; this.modalBassNotes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderChordTypes(rootNote)); this.modalBassNotes.appendChild(backButton); const doneButton = document.createElement('button'); doneButton.textContent = `Använd ${mainChord}`; doneButton.classList.add('active'); doneButton.addEventListener('click', () => this.applyChord(mainChord)); this.modalBassNotes.appendChild(doneButton); this.bassNotes.forEach(note => { const finalChord = `${mainChord}/${note}`; const button = document.createElement('button'); button.textContent = `/${note}`; button.addEventListener('click', () => this.applyChord(finalChord)); this.modalBassNotes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'grid'; }
+            renderRootNotes() { this.modalChordTarget.textContent = 'Select keynote'; this.modalRootNotes.innerHTML = ''; this.musicalNotes.forEach(note => { const button = document.createElement('button'); button.textContent = note; button.addEventListener('click', () => this.renderChordTypes(note)); this.modalRootNotes.appendChild(button); }); this.modalRootNotes.style.display = 'grid'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'none'; }
+            renderChordTypes(rootNote) { this.modalChordTarget.textContent = `Select type (Keynote: ${rootNote})`; this.modalChordTypes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderRootNotes()); this.modalChordTypes.appendChild(backButton); this.chordTypes.forEach(type => { const mainChord = rootNote + type; const button = document.createElement('button'); if (type === '') { button.textContent = `Använd ${mainChord}`; button.classList.add('active'); } else { button.textContent = mainChord; } button.addEventListener('click', () => this.renderBassNotes(mainChord, rootNote)); this.modalChordTypes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'grid'; this.modalBassNotes.style.display = 'none'; }
+            renderBassNotes(mainChord, rootNote) { this.modalChordTarget.textContent = `Select Bass Key (Chord: ${mainChord})`; this.modalBassNotes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderChordTypes(rootNote)); this.modalBassNotes.appendChild(backButton); const doneButton = document.createElement('button'); doneButton.textContent = `Använd ${mainChord}`; doneButton.classList.add('active'); doneButton.addEventListener('click', () => this.applyChord(mainChord)); this.modalBassNotes.appendChild(doneButton); this.bassNotes.forEach(note => { const finalChord = `${mainChord}/${note}`; const button = document.createElement('button'); button.textContent = `/${note}`; button.addEventListener('click', () => this.applyChord(finalChord)); this.modalBassNotes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'grid'; }
             applyChord(chordName) { if (!this.currentlyEditing) return; if (this.currentlyEditing.element) { const chordTextEl = this.currentlyEditing.element.querySelector('.chord-text'); this.currentlyEditing.element.dataset.chord = chordName; if (chordTextEl) chordTextEl.textContent = chordName; } else if (this.currentlyEditing.range) { const range = this.currentlyEditing.range; const wordText = range.toString(); range.deleteContents(); const chordSpan = this.createChordSpan(chordName); range.insertNode(chordSpan); const textNode = document.createTextNode(" " + wordText); range.setStartAfter(chordSpan); range.insertNode(textNode); } this.centerChordHandles(); this.recordHistoryDebounced(); this.closeChordModal(); }
             closeChordModal() { this.chordEditorModal.classList.remove('visible'); this.currentlyEditing = null; }
             removeChord() { if (this.currentlyEditing?.element) { this.currentlyEditing.element.remove(); this.recordHistoryDebounced(); } this.closeChordModal(); }
             getWordAtCursor(event) { try { const range = document.caretRangeFromPoint(event.clientX, event.clientY); if (!range || !range.startContainer.textContent) return null; const text = range.startContainer.textContent; let startIndex = range.startOffset; let endIndex = range.startOffset; while (startIndex > 0 && text[startIndex - 1].trim() !== '') startIndex--; while (endIndex < text.length && text[endIndex].trim() !== '') endIndex++; if (startIndex === endIndex) return null; const wordRange = document.createRange(); wordRange.setStart(range.startContainer, startIndex); wordRange.setEnd(range.startContainer, endIndex); return wordRange; } catch (e) { return null; } }
             handleDragOver(e) { e.preventDefault(); if (this.editMode !== 'chord') return; if (e.ctrlKey || e.altKey) e.dataTransfer.dropEffect = 'copy'; else e.dataTransfer.dropEffect = 'move'; let range; if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(e.clientX, e.clientY); else { const pos = document.caretPositionFromPoint(e.clientX, e.clientY); if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); } } if (range) { const rect = range.getBoundingClientRect(); this.dropIndicator.style.display = 'block'; this.dropIndicator.style.left = `${rect.left + window.scrollX}px`; this.dropIndicator.style.top = `${rect.top + window.scrollY}px`; } }
             handleDrop(e) { e.preventDefault(); e.stopPropagation(); this.dropIndicator.style.display = 'none'; if (this.editMode !== 'chord') return; let range = null; if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(e.clientX, e.clientY); else if (document.caretPositionFromPoint) { const pos = document.caretPositionFromPoint(e.clientX, e.clientY); if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); range.collapse(true); } } if (!range || !this.editor.contains(range.startContainer)) { range = document.createRange(); range.selectNodeContents(this.editor); range.collapse(false); } let chordNode; if ((e.ctrlKey || e.altKey) && this.draggedChord) { const chordText = this.draggedChord.dataset.chord; chordNode = this.createChordSpan(chordText); } else { chordNode = this.draggedChord ? this.draggedChord : this.createChordSpan(e.dataTransfer.getData('text/plain')); } chordNode.style.display = 'inline-block'; range.insertNode(chordNode); const sel = window.getSelection(); sel.removeAllRanges(); const after = document.createRange(); after.setStartAfter(chordNode); after.collapse(true); sel.addRange(after); this.centerChordHandles(); this.recordHistoryDebounced(); }
-            createChordSpan(chord) { const span = document.createElement('span'); span.className = 'chord'; span.dataset.chord = chord; const chordText = document.createElement('span'); chordText.className = 'chord-text'; chordText.textContent = chord; chordText.spellcheck = false; span.appendChild(chordText); const handle = document.createElement('span'); handle.className = 'chord-handle'; handle.draggable = true; span.appendChild(handle); span.addEventListener('click', e => { if (this.editMode !== 'chord' || e.target === handle) return; e.stopPropagation(); this.clearChordSelection(); span.classList.add('selected'); }); span.addEventListener('dblclick', e => { if (this.editMode !== 'chord') return; e.stopPropagation(); span.remove(); this.recordHistoryDebounced(); }); handle.addEventListener('dragstart', e => { if (this.editMode !== 'chord') { e.preventDefault(); return; } e.stopPropagation(); e.dataTransfer.setData('text/plain', chord); e.dataTransfer.effectAllowed = 'copyMove'; this.draggedChord = span; document.body.classList.add('is-dragging'); if (e.dataTransfer.setDragImage) { const ghost = document.createElement('span'); ghost.textContent = chord; ghost.style.cssText = `display:inline-block;padding:0.1em 0.4em;border-radius:3px;background-color:${getComputedStyle(document.body).getPropertyValue('--surface')};color:${getComputedStyle(document.body).getPropertyValue('--chord-color')};font-family:var(--font-sans);font-weight:600;font-size:0.85em;border:1px solid ${getComputedStyle(document.body).getPropertyValue('--border')};position:absolute;top:-9999px;left:-9999px;`; document.body.appendChild(ghost); e.dataTransfer.setDragImage(ghost, 10, 15); setTimeout(() => document.body.removeChild(ghost), 0); } const isCopy = e.ctrlKey || e.altKey; if (!isCopy) { setTimeout(() => { span.style.display = 'none'; }, 0); } }); handle.addEventListener('dragend', e => { e.stopPropagation(); document.body.classList.remove('is-dragging'); if (this.draggedChord && this.draggedChord.parentNode) { this.draggedChord.style.display = 'inline-block'; } this.draggedChord = null; }); return span; }
-            insertSectionMarker(type) { if (this.editMode === 'scroll') return; const sel = window.getSelection(); if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) return this.showCustomAlert('Placera markören på den rad där du vill infoga markören.'); let node = sel.anchorNode; while (node && node.parentNode !== this.editor) node = node.parentNode; if (!node || node.tagName !== 'DIV') { const newDiv = document.createElement('div'); this.editor.appendChild(newDiv); node = newDiv; } const existingMarker = node.querySelector('.section-marker'); if (existingMarker) existingMarker.remove(); this.insertSectionMarkerInDiv(node, type); }
-            insertSectionMarkerInDiv(div, type) { const abbreviations = { 'Vers': 'V', 'Refräng': 'R', 'Stick': 'S', 'Intro': 'I', 'Outro': 'O', 'Solo': 'Solo', 'Bridge': 'B', 'Mellanspel': 'M' }; const markerSpan = document.createElement('span'); markerSpan.className = 'section-marker'; markerSpan.dataset.section = type; markerSpan.setAttribute('contenteditable', 'false'); markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0); const textSpan = document.createElement('span'); textSpan.className = 'section-marker-text'; textSpan.textContent = type; markerSpan.appendChild(textSpan); div.insertBefore(markerSpan, div.firstChild); }
+            createChordSpan(chord) {
+                const span = document.createElement('span');
+                span.className = 'chord';
+                span.dataset.chord = chord;
+                span.setAttribute('contenteditable', 'false');
+                const chordText = document.createElement('span'); chordText.className = 'chord-text'; chordText.textContent = chord; chordText.spellcheck = false; span.appendChild(chordText); const handle = document.createElement('span'); handle.className = 'chord-handle'; handle.draggable = true; span.appendChild(handle); span.addEventListener('click', e => { if (this.editMode !== 'chord' || e.target === handle) return; e.stopPropagation(); this.clearChordSelection(); span.classList.add('selected'); }); span.addEventListener('dblclick', e => { if (this.editMode !== 'chord') return; e.stopPropagation(); span.remove(); this.recordHistoryDebounced(); }); handle.addEventListener('dragstart', e => { if (this.editMode !== 'chord') { e.preventDefault(); return; } e.stopPropagation(); e.dataTransfer.setData('text/plain', chord); e.dataTransfer.effectAllowed = 'copyMove'; this.draggedChord = span; document.body.classList.add('is-dragging'); if (e.dataTransfer.setDragImage) { const ghost = document.createElement('span'); ghost.textContent = chord; ghost.style.cssText = `display:inline-block;padding:0.1em 0.4em;border-radius:3px;background-color:${getComputedStyle(document.body).getPropertyValue('--surface')};color:${getComputedStyle(document.body).getPropertyValue('--chord-color')};font-family:var(--font-sans);font-weight:600;font-size:0.85em;border:1px solid ${getComputedStyle(document.body).getPropertyValue('--border')};position:absolute;top:-9999px;left:-9999px;`; document.body.appendChild(ghost); e.dataTransfer.setDragImage(ghost, 10, 15); setTimeout(() => document.body.removeChild(ghost), 0); } const isCopy = e.ctrlKey || e.altKey; if (!isCopy) { setTimeout(() => { span.style.display = 'none'; }, 0); } }); handle.addEventListener('dragend', e => { e.stopPropagation(); document.body.classList.remove('is-dragging'); if (this.draggedChord && this.draggedChord.parentNode) { this.draggedChord.style.display = 'inline-block'; } this.draggedChord = null; }); return span;
+            }
+            insertSectionMarker(type) { if (this.editMode === 'scroll') return; const sel = window.getSelection(); if (!sel.rangeCount || !this.editor.contains(sel.anchorNode)) return this.showCustomAlert('Place the marker on the row where yot want to insert the section marker.'); let node = sel.anchorNode; while (node && node.parentNode !== this.editor) node = node.parentNode; if (!node || node.tagName !== 'DIV') { const newDiv = document.createElement('div'); this.editor.appendChild(newDiv); node = newDiv; } const existingMarker = node.querySelector('.section-marker'); if (existingMarker) existingMarker.remove(); this.insertSectionMarkerInDiv(node, type); }
+            insertSectionMarkerInDiv(div, type) { const abbreviations = { 'Verse': 'V', 'Chorus': 'R', 'Stick': 'S', 'Intro': 'I', 'Outro': 'O', 'Solo': 'Solo', 'Bridge': 'B', 'Dig': 'M' }; const markerSpan = document.createElement('span'); markerSpan.className = 'section-marker'; markerSpan.dataset.section = type; markerSpan.setAttribute('contenteditable', 'false'); markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0); const textSpan = document.createElement('span'); textSpan.className = 'section-marker-text'; textSpan.textContent = type; markerSpan.appendChild(textSpan); div.insertBefore(markerSpan, div.firstChild); }
             clearChordSelection() { this.editor.querySelectorAll('.chord.selected').forEach(s => s.classList.remove('selected')); }
             handleKeyDown(e) { if (this.editMode !== 'chord') return; if (e.key === 'Backspace') { const sel = window.getSelection(); if (!sel.rangeCount) return; const range = sel.getRangeAt(0); if (range.collapsed && range.startOffset === 0) { const container = range.startContainer; const prev = (container.nodeType === Node.TEXT_NODE ? container : container.childNodes[range.startOffset] || null)?.previousSibling; if (prev && prev.nodeType === Node.ELEMENT_NODE && prev.classList.contains('chord')) { e.preventDefault(); prev.remove(); this.recordHistoryDebounced(); } } } }
             handleMutations(mutations) { this.stopObserver(); mutations.forEach(mutation => { if (mutation.type === 'characterData') this.formatNode(mutation.target); else if (mutation.type === 'childList') mutation.addedNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) this.formatNode(n); }); }); this.startObserver(); }
             formatNode(node) { if (this.editMode !== 'chord' || !node.textContent || !node.textContent.includes('[')) return; const text = node.textContent; const regex = /\[([^\]]+)\]/g; let match; const frag = document.createDocumentFragment(); let lastIndex = 0; let replaced = false; while ((match = regex.exec(text)) !== null) { replaced = true; const beforeText = text.substring(lastIndex, match.index); if (beforeText) frag.appendChild(document.createTextNode(beforeText)); const chord = match[1]; const chordSpan = this.createChordSpan(chord); frag.appendChild(chordSpan); lastIndex = regex.lastIndex; } if (replaced) { const afterText = text.substring(lastIndex); if (afterText) frag.appendChild(document.createTextNode(afterText)); if (node.parentNode) { const parent = node.parentNode; parent.replaceChild(frag, node); const sel = window.getSelection(); const range = document.createRange(); const lastNode = parent.childNodes[parent.childNodes.length - 1]; if (lastNode) { range.setStart(lastNode, lastNode.length || lastNode.childNodes.length); range.collapse(true); sel.removeAllRanges(); sel.addRange(range); } this.centerChordHandles(); } } }
             syncChordData() { this.editor.querySelectorAll('.chord').forEach(chordEl => { const chordTextEl = chordEl.querySelector('.chord-text'); if (chordTextEl) chordEl.dataset.chord = chordTextEl.textContent; }); }
             getContentAsText() { let result = []; this.editor.childNodes.forEach(lineDiv => { let lineText = ''; if (lineDiv.nodeType !== Node.ELEMENT_NODE) return; const marker = lineDiv.querySelector('.section-marker'); if (marker) lineText += `::${marker.dataset.section}::`; lineDiv.childNodes.forEach(node => { if (node.nodeType === Node.TEXT_NODE) lineText += node.textContent; else if (node.matches && node.matches('.chord')) lineText += `[${node.dataset.chord}]`; }); result.push(lineText); }); return result.join('\n'); }
-            loadContent(text, recordHistory = false) { this.stopObserver(); this.editor.innerHTML = ''; const lines = text.split('\n'); lines.forEach(lineText => { const lineDiv = document.createElement('div'); let sectionType = null; lineText = lineText.replace(/^::(.*?)::/, (match, type) => { sectionType = type; return ''; }); if (sectionType) this.insertSectionMarkerInDiv(lineDiv, sectionType); if (lineText.trim() === '' && !lineText.includes('[')) { lineDiv.appendChild(document.createElement('br')); } else { const regex = /\[([^\]]+)\]/g; let lastIndex = 0; let match; while ((match = regex.exec(lineText)) !== null) { if (match.index > lastIndex) lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex, match.index))); lineDiv.appendChild(this.createChordSpan(match[1])); lastIndex = match.index + match[0].length; } if (lastIndex < lineText.length) lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex))); } this.editor.appendChild(lineDiv); }); this.centerChordHandles(); this.startObserver(); if (recordHistory) this.recordHistory(); }
+            loadContent(text, recordHistory = false) { this.stopObserver(); this.editor.innerHTML = ''; const lines = text.split('\n'); lines.forEach(lineText => { lineText = lineText.replace(/\[\s*\]/g, ''); const lineDiv = document.createElement('div'); let sectionType = null; lineText = lineText.replace(/^::(.*?)::/, (match, type) => { sectionType = type; return ''; }); if (sectionType) this.insertSectionMarkerInDiv(lineDiv, sectionType); if (lineText.trim() === '' && !lineText.includes('[')) { lineDiv.appendChild(document.createElement('br')); } else { const regex = /\[([^\]]+)\]/g; let lastIndex = 0; let match; while ((match = regex.exec(lineText)) !== null) { if (match.index > lastIndex) lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex, match.index))); lineDiv.appendChild(this.createChordSpan(match[1])); lastIndex = match.index + match[0].length; } if (lastIndex < lineText.length) lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex))); } this.editor.appendChild(lineDiv); }); this.centerChordHandles(); this.startObserver(); if (recordHistory) this.recordHistory(); }
             _transposeSingleNote(note, steps) { const sharpMap = { 'Db': 'C#', 'Eb': 'D#', 'Gb': 'F#', 'Ab': 'G#', 'Bb': 'A#' }; const match = note.match(/^([A-G](?:#|b)?)/); if (!match) return note; let rootNote = match[0]; let normalizedNote = rootNote.includes('b') ? (sharpMap[rootNote] || rootNote) : rootNote; const currentIndex = this.musicalNotes.indexOf(normalizedNote); if (currentIndex !== -1) { const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length; const transposedRoot = this.musicalNotes[newIndex]; return transposedRoot + note.substring(rootNote.length); } return note; }
             transpose(steps) { if (this.editMode === 'scroll') return; this.syncChordData(); const text = this.getContentAsText(); const transposedText = text.replace(/\[([^\]]+)\]/g, (fullMatch, chord) => { const parts = chord.split('/'); const mainChord = parts[0]; const bassNote = parts.length > 1 ? parts[1] : null; const transposedMainChord = this._transposeSingleNote(mainChord, steps); if (bassNote) { const transposedBassNote = this._transposeSingleNote(bassNote, steps); return `[${transposedMainChord}/${transposedBassNote}]`; } else { return `[${transposedMainChord}]`; } }); this.loadContent(transposedText, true); }
             recordHistory() { this.syncChordData(); const snapshot = this.getContentAsText(); if (this.history[this.historyIndex] === snapshot) return; this.history = this.history.slice(0, this.historyIndex + 1); this.history.push(snapshot); if (this.history.length > this.historyMax) this.history.shift(); this.historyIndex = this.history.length - 1; }
@@ -1032,18 +1099,85 @@
             showCustomAlert(message) { const dialog = document.getElementById('custom-alert'); document.getElementById('custom-alert-message').textContent = message; dialog.classList.add('visible'); const okBtn = document.getElementById('custom-alert-ok'); const close = () => dialog.classList.remove('visible'); okBtn.onclick = close; }
             showCustomConfirm(message) { return new Promise(resolve => { const dialog = document.getElementById('custom-confirm'); document.getElementById('custom-confirm-message').textContent = message; dialog.classList.add('visible'); const okBtn = document.getElementById('custom-confirm-ok'); const cancelBtn = document.getElementById('custom-confirm-cancel'); const close = (value) => { dialog.classList.remove('visible'); resolve(value); }; okBtn.onclick = () => close(true); cancelBtn.onclick = () => close(false); }); }
             toggleDarkMode() { document.body.classList.toggle('dark-mode'); const isDarkMode = document.body.classList.contains('dark-mode'); localStorage.setItem(StableChordEditor.STORAGE_KEYS.DARK_MODE, isDarkMode ? 'enabled' : 'disabled'); this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙'; }
-            createNewProject() { this.titleInput.value = ''; this.authorInput.value = ''; this.loadContent('<div><br></div>', true); this.projectList.selectedIndex = 0; localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if(this.fontSizeSlider) {this.fontSizeSlider.value = 16;} this.editor.style.fontSize = '16px'; this.titleInput.focus(); }
-            saveProject(name) { this.syncChordData(); const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; projects[name] = { title: this.titleInput.value, author: this.authorInput.value, fontSize: this.editor.style.fontSize || '16px', content: this.getContentAsText(), scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); this.updateProjectList(name); const originalText = this.btnSaveProject.textContent; this.btnSaveProject.textContent = 'Sparat ✓'; this.btnSaveProject.disabled = true; setTimeout(() => { this.btnSaveProject.textContent = 'Spara'; this.btnSaveProject.disabled = false; }, 1200); }
-            loadProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (projects[name]) { const data = projects[name]; this.titleInput.value = data.title || ''; this.authorInput.value = data.author || ''; this.editor.style.fontSize = data.fontSize || '16px'; if(this.fontSizeSlider) {const num = parseInt((data.fontSize || '').replace('px', '')); if (!isNaN(num)) this.fontSizeSlider.value = num;} this.loadContent(data.content || '', true); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); if (this.projectList.value !== name) this.projectList.value = name; } }
-            loadLastProject() { this.updateProjectList(); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last) this.loadProject(last); else this.loadContent('::Vers::\nVälkommen till ProChorder!\n\n::Refräng::\nSkriv [Am], [G] etc. i Ackordläge.', true); }
-            updateProjectList(selectedValue) { const list = this.projectList; const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; const currentProjects = Object.keys(projects).sort(); list.innerHTML = '<option value="">Ladda projekt...</option>'; currentProjects.forEach(name => { const option = document.createElement('option'); option.value = name; option.textContent = name; list.appendChild(option); }); const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last && currentProjects.includes(last)) list.value = last; }
-            deleteProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; delete projects[name]; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last === name) { localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); this.createNewProject(); } this.updateProjectList(); this.showCustomAlert(`Projekt "${name}" borttaget.`); }
-            async deleteAllProjects() { if (await this.showCustomConfirm('Är du helt säker? Detta raderar ALLA sparade låtar permanent.')) { localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS); localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); this.updateProjectList(); this.createNewProject(); this.showCustomAlert('Alla projekt har tagits bort.'); } }
-            async renameProject(oldName, newName) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (projects[oldName] && !projects[newName]) { projects[newName] = projects[oldName]; projects[newName].title = newName; delete projects[oldName]; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (lastProject === oldName) localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName); this.titleInput.value = newName; this.updateProjectList(newName); this.showCustomAlert(`Projektet har döpts om till "${newName}".`); } else if (projects[newName]) { this.showCustomAlert(`Ett projekt med namnet "${newName}" finns redan.`); } }
-            generatePdfForProject(projectData) { const { jsPDF } = window.jspdf; const doc = new jsPDF(); let y = 20; const margin = 15; const baseFontSizePx = parseInt((projectData.fontSize || '16px').replace('px', ''), 10); const baseFontSizePt = baseFontSizePx * 0.75; const lyricLineHeightMultiplier = 1.3; const LYRIC_LINE_HEIGHT = baseFontSizePt * lyricLineHeightMultiplier; const SECTION_HEADER_LINE_HEIGHT = baseFontSizePt * 1.4; const CHORD_COLOR = '#0052cc'; const TEXT_COLOR = '#172b4d'; const CHORD_OFFSET = baseFontSizePt * 0.7; doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text(projectData.title || 'Song Title', 105, y, { align: 'center' }); y += 8; doc.setFont('helvetica', 'normal'); doc.setFontSize(12); doc.text(projectData.author || 'Artist', 105, y, { align: 'center' }); y += 15; const lines = (projectData.content || '').split('\n'); lines.forEach(lineText => { let sectionType = null; let remainingText = lineText.replace(/^::(.*?)::/, (match, type) => { sectionType = type; return ''; }); if (sectionType) { if (y > 280) { doc.addPage(); y = 20; } if (y > 25) y += SECTION_HEADER_LINE_HEIGHT * 0.5; doc.setFont('helvetica', 'bold'); doc.setFontSize(baseFontSizePt * 1.1); doc.setTextColor(TEXT_COLOR); doc.text(sectionType, margin, y); y += SECTION_HEADER_LINE_HEIGHT; } if (remainingText.trim()) { if (y > 280) { doc.addPage(); y = 20; } const parts = remainingText.split(/(\[[^\]]+\])/g).filter(p => p); let currentX = margin; parts.forEach(part => { if (part.startsWith('[') && part.endsWith(']')) { const chord = part.substring(1, part.length - 1); doc.setFont('helvetica', 'bold'); doc.setFontSize(baseFontSizePt * 0.85); doc.setTextColor(CHORD_COLOR); doc.text(chord, currentX, y - CHORD_OFFSET); } else { doc.setFont('helvetica', 'normal'); doc.setFontSize(baseFontSizePt); doc.setTextColor(TEXT_COLOR); doc.text(part, currentX, y); currentX += doc.getTextWidth(part); } }); y += LYRIC_LINE_HEIGHT; } else if (!sectionType) { y += LYRIC_LINE_HEIGHT * 0.7; } }); return doc.output('blob'); }
+            createNewProject() { this.titleInput.value = ''; this.authorInput.value = ''; this.loadContent('<div><br></div>', true); this.projectList.selectedIndex = 0; localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (this.fontSizeSlider) { this.fontSizeSlider.value = 16; } this.editor.style.fontSize = '16px'; this.titleInput.focus(); }
+            saveProject(name) { this.syncChordData(); const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; projects[name] = { title: this.titleInput.value, author: this.authorInput.value, fontSize: this.editor.style.fontSize || '16px', content: this.getContentAsText(), scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); this.updateProjectList(name); const originalText = this.btnSaveProject.textContent; this.btnSaveProject.textContent = 'Saved'; this.btnSaveProject.disabled = true; setTimeout(() => { this.btnSaveProject.textContent = 'Save'; this.btnSaveProject.disabled = false; }, 1200); }
+            loadProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (projects[name]) { const data = projects[name]; this.titleInput.value = data.title || ''; this.authorInput.value = data.author || ''; this.editor.style.fontSize = data.fontSize || '16px'; if (this.fontSizeSlider) { const num = parseInt((data.fontSize || '').replace('px', '')); if (!isNaN(num)) this.fontSizeSlider.value = num; } this.loadContent(data.content || '', true); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); if (this.projectList.value !== name) this.projectList.value = name; } }
+            loadLastProject() { this.updateProjectList(); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last) this.loadProject(last); else this.loadContent('::Vers::\nWelcome to ProChorder!\n\n::Chorus::\nSkriv [Am], [G] etc. i Ackordläge.', true); }
+            updateProjectList(selectedValue) { const list = this.projectList; const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; const currentProjects = Object.keys(projects).sort(); list.innerHTML = '<option value="">Load project...</option>'; currentProjects.forEach(name => { const option = document.createElement('option'); option.value = name; option.textContent = name; list.appendChild(option); }); const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last && currentProjects.includes(last)) list.value = last; }
+            deleteProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; delete projects[name]; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last === name) { localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); this.createNewProject(); } this.updateProjectList(); this.showCustomAlert(`Project "${name}" Removed.`); }
+            async deleteAllProjects() { if (await this.showCustomConfirm('Are you sure? This erase ALL songs permanently.')) { localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS); localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); this.updateProjectList(); this.createNewProject(); this.showCustomAlert('All projects are removed.'); } }
+            async renameProject(oldName, newName) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (projects[oldName] && !projects[newName]) { projects[newName] = projects[oldName]; projects[newName].title = newName; delete projects[oldName]; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (lastProject === oldName) localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName); this.titleInput.value = newName; this.updateProjectList(newName); this.showCustomAlert(`This project is now renamed "${newName}".`); } else if (projects[newName]) { this.showCustomAlert(`A project called "${newName}" already exist.`); } }
+            generatePdfForProject(projectData) {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                let y = 20; const margin = 15;
+                const baseFontSizePx = parseInt((projectData.fontSize || '16px').replace('px', ''), 10);
+                const baseFontSizePt = baseFontSizePx * 0.75;
+                const lyricLineHeightMultiplier = 0.7;
+                const LYRIC_LINE_HEIGHT = baseFontSizePt * lyricLineHeightMultiplier;
+                const SECTION_HEADER_LINE_HEIGHT = baseFontSizePt * 0.9;
+                const CHORD_COLOR = '#0052cc';
+                const TEXT_COLOR = '#172b4d';
+                const CHORD_OFFSET = baseFontSizePt * 0.3;
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(18);
+                doc.text(projectData.title || 'Song Title', 105, y, {
+                    align: 'center'
+                }); y += 8;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(12);
+                doc.text(projectData.author || 'Artist', 105, y, { align: 'center' });
+                y += 15; const lines = (projectData.content || '').split('\n');
+                lines.forEach(lineText => {
+                    let sectionType = null;
+                    let remainingText = lineText.replace(/^::(.*?)::/, (match, type) => {
+                        sectionType = type; return '';
+                    });
+                    if (sectionType) {
+                        if (y > 280) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        if (y > 25) y += SECTION_HEADER_LINE_HEIGHT * 0.5; doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(baseFontSizePt * 1.1);
+                        doc.setTextColor(TEXT_COLOR);
+                        doc.text(sectionType, margin, y);
+                        y += SECTION_HEADER_LINE_HEIGHT;
+                    }
+                    if (remainingText.trim()) {
+                        if (y > 280) {
+                            doc.addPage();
+                            y = 20;
+                        } const parts = remainingText.split(/(\[[^\]]+\])/g).filter(p => p);
+                        let currentX = margin; parts.forEach(part => {
+                            if (part.startsWith('[') && part.endsWith(']')) {
+                                const chord = part.substring(1, part.length - 1);
+                                doc.setFont('helvetica', 'bold');
+                                doc.setFontSize(baseFontSizePt * 0.85);
+                                doc.setTextColor(CHORD_COLOR);
+                                doc.text(chord, currentX, y - CHORD_OFFSET);
+                            }
+                            else {
+                                doc.setFont('helvetica', 'normal');
+                                doc.setFontSize(baseFontSizePt);
+                                doc.setTextColor(TEXT_COLOR);
+                                doc.text(part, currentX, y);
+                                currentX += doc.getTextWidth(part);
+                            }
+                        });
+                        y += LYRIC_LINE_HEIGHT;
+                    }
+                    else if (!sectionType) {
+                        y += LYRIC_LINE_HEIGHT * 0.7;
+                    }
+                });
+                return doc.output('blob'
+
+                );
+            }
             exportPdf() { this.syncChordData(); const projectData = { title: this.titleInput.value, author: this.authorInput.value, content: this.getContentAsText(), fontSize: this.editor.style.fontSize }; const pdfBlob = this.generatePdfForProject(projectData); saveAs(pdfBlob, `${this.sanitizeFilename(projectData.title)}.pdf`); }
             exportTxt() { this.syncChordData(); const title = this.titleInput.value; const author = this.authorInput.value; const content = this.getContentAsText(); const fullText = `${title}\n${author}\n\n${content}`; const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" }); saveAs(blob, `${this.sanitizeFilename(title)}.txt`); }
-            async exportAllAsZip() { this.btnExportZip.textContent = 'Genererar...'; this.btnExportZip.disabled = true; try { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (Object.keys(projects).length === 0) return this.showCustomAlert('Inga projekt att exportera.'); const zip = new JSZip(); for (const key in projects) { const project = projects[key]; const pdfBlob = this.generatePdfForProject(project); zip.file(`${this.sanitizeFilename(project.title)}.pdf`, pdfBlob); } const content = await zip.generateAsync({ type: "blob" }); saveAs(content, "alla-låtar.zip"); } catch (e) { this.showCustomAlert('Fel vid ZIP-export.'); } finally { this.btnExportZip.textContent = 'ZIP'; this.btnExportZip.disabled = false; } }
+            async exportAllAsZip() { this.btnExportZip.textContent = 'Genererar...'; this.btnExportZip.disabled = true; try { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (Object.keys(projects).length === 0) return this.showCustomAlert('No project to export.'); const zip = new JSZip(); for (const key in projects) { const project = projects[key]; const pdfBlob = this.generatePdfForProject(project); zip.file(`${this.sanitizeFilename(project.title)}.pdf`, pdfBlob); } const content = await zip.generateAsync({ type: "blob" }); saveAs(content, "alla-låtar.zip"); } catch (e) { this.showCustomAlert('Fel vid ZIP-export.'); } finally { this.btnExportZip.textContent = 'ZIP'; this.btnExportZip.disabled = false; } }
             exportJson() { this.syncChordData(); const projectData = { title: this.titleInput.value, author: this.authorInput.value, content: this.getContentAsText(), fontSize: this.editor.style.fontSize, scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" }); saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`); }
             exportAllJson() { const projects = localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS) || '{}'; const blob = new Blob([JSON.stringify(JSON.parse(projects), null, 2)], { type: "application/json" }); saveAs(blob, `alla-låtar-backup.json`); }
             importJsonFromFile(file) { if (!file) return; const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if (await this.showCustomConfirm(`${data.length} låtar hittades. Vill du importera? Existerande låtar med samma titel skrivs över.`)) this.importMultipleProjects(data); } else if (data.title) { this.importSingleProject(data); } } catch (e) { this.showCustomAlert('Fel vid import av JSON.'); } }; reader.readAsText(file); }

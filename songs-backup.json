@@ -1,6 +1,5 @@
 [
-{
-  "201 - Bad moon rising": {
+  {
     "title": "201 - Bad moon rising",
     "author": "16 Horsepower",
     "fontSize": "16px",
@@ -8,7 +7,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "202 - Road house Blues": {
+  {
     "title": "202 - Road house Blues",
     "author": "The Doors",
     "fontSize": "16px",
@@ -16,7 +15,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "203 - Sweet home chicago": {
+  {
     "title": "203 - Sweet home chicago",
     "author": "fg",
     "fontSize": "16px",
@@ -24,7 +23,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "210 - The letter": {
+  {
     "title": "210 - The letter",
     "author": "Joe Cocker",
     "fontSize": "15px",
@@ -32,7 +31,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "209 - Mercury Blues": {
+  {
     "title": "209 - Mercury Blues",
     "author": "David Lindly",
     "fontSize": "17px",
@@ -40,7 +39,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "208 - Long train running": {
+  {
     "title": "208 - Long train running",
     "author": "Doobie Brothers",
     "fontSize": "16px",
@@ -48,7 +47,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "207 - Burning love": {
+  {
     "title": "207 - Burning love",
     "author": "Elvisp Resley",
     "fontSize": "16px",
@@ -56,7 +55,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "206 - Road to hell": {
+  {
     "title": "206 - Road to hell",
     "author": "-",
     "fontSize": "16px",
@@ -64,7 +63,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "204 - Be good to yourself": {
+  {
     "title": "204 - Be good to yourself",
     "author": "Frankie Miller",
     "fontSize": "17px",
@@ -72,7 +71,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "310 - Paint it black": {
+  {
     "title": "310 - Paint it black",
     "author": "Stones",
     "fontSize": "16px",
@@ -80,7 +79,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "309 - Somebody to love": {
+  {
     "title": "309 - Somebody to love",
     "author": "Jefferson Airplane",
     "fontSize": "16px",
@@ -88,7 +87,7 @@
     "scrollSpeed": 0.116,
     "duration": 240
   },
-  "308 - With a little help": {
+  {
     "title": "308 - With a little help",
     "author": "Joe Cocker",
     "fontSize": "16px",
@@ -96,7 +95,7 @@
     "scrollSpeed": 0.3752,
     "duration": 239
   },
-  "301 - Light My Fire": {
+  {
     "title": "301 - Light My Fire",
     "author": "The Doors",
     "fontSize": "16px",
@@ -104,7 +103,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "302 - Hymn 43": {
+  {
     "title": "302 - Hymn 43",
     "author": "Jethro Tull",
     "fontSize": "16px",
@@ -112,7 +111,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "307 - Suspisious mind": {
+  {
     "title": "307 - Suspisious mind",
     "author": "kjhg",
     "fontSize": "16px",
@@ -120,7 +119,7 @@
     "scrollSpeed": 0.116,
     "duration": 240
   },
-  "306 - Hard to handle": {
+  {
     "title": "306 - Hard to handle",
     "author": "Black Crows",
     "fontSize": "18px",
@@ -128,7 +127,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "303 - Unchain my heart": {
+  {
     "title": "303 - Unchain my heart",
     "author": "Joe Cocker",
     "fontSize": "16px",
@@ -136,7 +135,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "304 - Peace Frog": {
+  {
     "title": "304 - Peace Frog",
     "author": "The Doors",
     "fontSize": "16px",
@@ -144,7 +143,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "305 - I know a little": {
+  {
     "title": "305 - I know a little",
     "author": "Lyard",
     "fontSize": "16px",
@@ -152,7 +151,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "101 - Start me up": {
+  {
     "title": "101 - Start me up",
     "author": "The Rolling Stones",
     "fontSize": "16px",
@@ -160,7 +159,7 @@
     "scrollSpeed": 0.16533052039381152,
     "duration": 237
   },
-  "102 - Gimme Some Lovin": {
+  {
     "title": "102 - Gimme Some Lovin",
     "author": "The Spencer Davis Group",
     "fontSize": "16px",
@@ -168,7 +167,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "110 - Shake a tail feather": {
+  {
     "title": "110 - Shake a tail feather",
     "author": "Ray Charles",
     "fontSize": "19px",
@@ -176,7 +175,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "109 - Hipi hipi shake": {
+  {
     "title": "109 - Hipi hipi shake",
     "author": "vb",
     "fontSize": "16px",
@@ -184,7 +183,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "108- Give Me One Reason": {
+  {
     "title": "108- Give Me One Reason",
     "author": "Tracy Chapman",
     "fontSize": "16px",
@@ -192,7 +191,7 @@
     "scrollSpeed": 0.08364928909952607,
     "duration": 211
   },
-  "107- Dont let me be missunderstod": {
+  {
     "title": "107- Dont let me be missunderstod",
     "author": "The Animals",
     "fontSize": "15px",
@@ -200,7 +199,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "106- Back in the U.S.S.R": {
+  {
     "title": "106- Back in the U.S.S.R",
     "author": "Beatles",
     "fontSize": "18px",
@@ -208,7 +207,7 @@
     "scrollSpeed": 0.116,
     "duration": 240
   },
-  "105 - Messing with the Kid": {
+  {
     "title": "105 - Messing with the Kid",
     "author": "Blues brother",
     "fontSize": "16px",
@@ -216,7 +215,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "104 - Love me 2 times": {
+  {
     "title": "104 - Love me 2 times",
     "author": " The Doors",
     "fontSize": "18px",
@@ -224,7 +223,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "103 - Carry me home": {
+  {
     "title": "103 - Carry me home",
     "author": "Crayons",
     "fontSize": "15px",
@@ -232,7 +231,7 @@
     "scrollSpeed": 0.05,
     "duration": 275
   },
-  "VÄNTA MED Try A Little Tenderness": {
+  {
     "title": "VÄNTA MED Try A Little Tenderness",
     "author": "Otis Redding",
     "fontSize": "16px",
@@ -240,5 +239,4 @@
     "scrollSpeed": 0.05,
     "duration": 275
   }
-}
 ]

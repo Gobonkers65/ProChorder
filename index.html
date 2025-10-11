@@ -12,13 +12,13 @@
             --bg: #f4f5f7;
             --surface: #ffffff;
             --text-color: #172b4d;
-            --primary: #0052cc;
+            --primary: #1951a5;
             --border: #dfe1e6;
             --shadow: 0 4px 8px -2px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
             --chord-color: var(--primary);
             --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            --success-bg: #28a745;
-            --danger-bg: #dc3545;
+            --success-bg: #376e43;
+            --danger-bg: #8d323b;
             --button-text-light: #ffffff;
             --primary-bg-hover: rgba(0, 82, 204, 0.1);
             --section-marker-color: var(--danger-bg);
@@ -68,7 +68,7 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .top-bar-left,
+        .top-bar-left, /*Knapper överst*/
         .top-bar-right {
             display: flex;
             align-items: center;
@@ -97,7 +97,7 @@
             border-radius: 8px;
             box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
             font-size: 1em;
-            height: 44px;
+            height: 33px;
             box-sizing: border-box;
         }
 
@@ -105,7 +105,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
+            width: 33px;
             padding: 0;
             font-size: 1.2em;
             flex-shrink: 0;
@@ -245,7 +245,7 @@
             font-family: var(--font-sans);
             font-weight: 600;
             font-size: 0.85em;
-            height: 38px;
+            height: 33px;
             background-color: var(--bg);
             color: var(--text-color);
             border: 1px solid var(--border);
@@ -253,7 +253,7 @@
             cursor: pointer;
             padding: 0 0.7em;
             box-sizing: border-box;
-            width: 100%;
+            width: 70%;
         }
 
         #side-menu #song-title {
@@ -265,7 +265,7 @@
         }
 
         #side-menu button:hover {
-            transform: translateY(-1px);
+            transform: translateY(1px);
             border-color: var(--primary);
         }
 
@@ -300,12 +300,12 @@
         #editor {
             background-color: var(--surface);
             border: 1px solid var(--border);
-            padding: 2em;
+            padding: 0.5em;
             border-radius: 8px;
             box-shadow: 0 1px 1px rgba(9, 30, 66, 0.25), 0 0 1px rgba(9, 30, 66, 0.31);
             height: calc(100vh - 90px);
             font-family: var(--font-sans);
-            line-height: 1.8;
+            line-height: 1.9;
             outline: none;
             font-size: 16px;
             overflow-y: scroll;
@@ -331,7 +331,7 @@
             user-select: none;
             cursor: default;
             vertical-align: middle;
-            top: -1.8em;
+            top: -1.6em; /* ................Ackord avstånd till text..........*/
             height: 0;
             width: 0;
             padding: 0;
@@ -366,7 +366,7 @@
             left: 50%;
             transform: translateX(-50%);
             width: 20px;
-            height: 5px;
+            height: 10px;
             background-color: var(--primary);
             border-radius: 3px;
             cursor: grab;
@@ -462,6 +462,7 @@
             background-color: var(--primary);
             color: var(--button-text-light);
         }
+
         /* Ny stil för siffer-rutorna i live-läget */
         #scroll-controls input[type="number"] {
             background-color: rgba(255, 255, 255, 0.15);
@@ -473,7 +474,8 @@
             font-size: 1.2em;
             font-weight: 700;
             text-align: center;
-            -moz-appearance: textfield; /* Döljer pilarna i Firefox */
+            -moz-appearance: textfield;
+            /* Döljer pilarna i Firefox */
         }
 
         /* Döljer upp/ner-pilarna i Chrome, Safari, etc. */
@@ -497,7 +499,7 @@
             cursor: none !important;
         }
 
-       #scroll-controls {
+        #scroll-controls {
             /* Positionering och grundläggande layout */
             display: none;
             position: fixed;
@@ -519,7 +521,8 @@
             gap: .75em 1em;
         }
 
-        #scroll-btn-play-pause, #scroll-btn-exit {
+        #scroll-btn-play-pause,
+        #scroll-btn-exit {
             background-color: rgba(255, 255, 255, 0.15);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: var(--button-text-light);
@@ -531,7 +534,8 @@
             transition: background-color 0.2s ease;
         }
 
-        #scroll-btn-play-pause:hover, #scroll-btn-exit:hover {
+        #scroll-btn-play-pause:hover,
+        #scroll-btn-exit:hover {
             background-color: rgba(255, 255, 255, 0.3);
         }
 
@@ -564,7 +568,7 @@
         #scroll-btn-exit {
             grid-column: 5;
             grid-row: 2;
-            justify-self: flex-end;
+            /*justify-self: flex-end; Lägger stopp-knapp till höger*/
         }
 
         body.scroll-mode-active #editor {
@@ -1039,7 +1043,7 @@
                     // Texter inuti hamburgermenyn
                     this.editModeLabel.textContent = 'Edit (Chords)';
                     this.btnToggleEditMode.textContent = 'Switch to Lyrics Mode';
-                    
+
                     // Text för knappen i toppraden
                     if (this.mainToggleEditModeBtn) {
                         this.mainToggleEditModeBtn.textContent = 'C'; // Visar nuvarande läge: Chords
@@ -1179,7 +1183,15 @@
             exportTxt() { this.syncChordData(); const title = this.titleInput.value; const author = this.authorInput.value; const content = this.getContentAsText(); const fullText = `${title}\n${author}\n\n${content}`; const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" }); saveAs(blob, `${this.sanitizeFilename(title)}.txt`); }
             async exportAllAsZip() { this.btnExportZip.textContent = 'Genererar...'; this.btnExportZip.disabled = true; try { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (Object.keys(projects).length === 0) return this.showCustomAlert('No project to export.'); const zip = new JSZip(); for (const key in projects) { const project = projects[key]; const pdfBlob = this.generatePdfForProject(project); zip.file(`${this.sanitizeFilename(project.title)}.pdf`, pdfBlob); } const content = await zip.generateAsync({ type: "blob" }); saveAs(content, "alla-låtar.zip"); } catch (e) { this.showCustomAlert('Fel vid ZIP-export.'); } finally { this.btnExportZip.textContent = 'ZIP'; this.btnExportZip.disabled = false; } }
             exportJson() { this.syncChordData(); const projectData = { title: this.titleInput.value, author: this.authorInput.value, content: this.getContentAsText(), fontSize: this.editor.style.fontSize, scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" }); saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`); }
-            exportAllJson() { const projects = localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS) || '{}'; const blob = new Blob([JSON.stringify(JSON.parse(projects), null, 2)], { type: "application/json" }); saveAs(blob, `alla-låtar-backup.json`); }
+            exportAllJson() {
+                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+                // Convert the object of projects into an array of projects
+                const projectsArray = Object.values(projects);
+                const blob = new Blob([JSON.stringify(projectsArray, null, 2)], {
+                    type: "application/json"
+                });
+                saveAs(blob, `songs-backup.json`);
+            }
             importJsonFromFile(file) { if (!file) return; const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); if (Array.isArray(data)) { if (await this.showCustomConfirm(`${data.length} låtar hittades. Vill du importera? Existerande låtar med samma titel skrivs över.`)) this.importMultipleProjects(data); } else if (data.title) { this.importSingleProject(data); } } catch (e) { this.showCustomAlert('Fel vid import av JSON.'); } }; reader.readAsText(file); }
             async importJsonFromUrl(url) { try { const response = await fetch(url); if (!response.ok) throw new Error('Network response was not ok'); const data = await response.json(); if (Array.isArray(data)) this.importMultipleProjects(data); else if (data.title) this.importSingleProject(data); } catch (e) { this.showCustomAlert('Fel vid import från URL.'); } }
             importSingleProject(data) { this.titleInput.value = data.title || ''; this.authorInput.value = data.author || ''; this.editor.style.fontSize = data.fontSize || '16px'; this.loadContent(data.content || '', true); if (data.scrollSpeed) this.scrollSpeed = data.scrollSpeed; if (data.duration) this.updateDurationInputs(data.duration); this.saveProject(data.title); }

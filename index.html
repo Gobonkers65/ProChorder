@@ -332,7 +332,7 @@
             user-select: none;
             cursor: default;
             vertical-align: middle;
-            top: -1.6em;
+            top: -1.7em;
             /* ................Ackord avstånd till text..........*/
             height: 0;
             width: 0;
@@ -568,7 +568,7 @@
         }
 
         #scroll-btn-exit {
-            grid-column: 5;
+            grid-column: -3;
             grid-row: 2;
             /*justify-self: flex-end; Lägger stopp-knapp till höger*/
         }
@@ -632,7 +632,7 @@
             background-color: var(--primary);
             color: var(--button-text-light);
             border: none;
-            font-size: 1.3em;
+            font-size: 0.8em;
             /* Gör play-symbolen lite större */
             font-weight: 700;
             display: flex;
@@ -760,7 +760,7 @@
             <input type="number" id="scroll-duration-seconds" min="0" max="59" step="5" value="0">
             <span>s</span>
         </div>
-        <button id="scroll-btn-exit">Stop</button>
+        <button id="scroll-btn-exit">Exit</button>
     </div>
 
     <div id="custom-alert" class="custom-dialog-overlay">

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProChorder 9.7 - Final</title>
+    <title>ProChorder 9.8</title>
     <style>
         :root {
             --chord-btn-width: 65px;
@@ -68,7 +68,8 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .top-bar-left, /*Knapper överst*/
+        .top-bar-left,
+        /*Knapper överst*/
         .top-bar-right {
             display: flex;
             align-items: center;
@@ -331,7 +332,8 @@
             user-select: none;
             cursor: default;
             vertical-align: middle;
-            top: -1.6em; /* ................Ackord avstånd till text..........*/
+            top: -1.6em;
+            /* ................Ackord avstånd till text..........*/
             height: 0;
             width: 0;
             padding: 0;
@@ -619,6 +621,42 @@
         .hidden-file {
             display: none;
         }
+
+        #floating-live-btn {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: var(--button-text-light);
+            border: none;
+            font-size: 1.3em;
+            /* Gör play-symbolen lite större */
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            /* Ser till att den ligger ovanpå texten */
+            transition: transform 0.2s ease-out, opacity 0.3s ease;
+        }
+
+        #floating-live-btn:hover {
+            transform: scale(1.05);
+            /* En trevlig effekt när man hovrar */
+        }
+
+        /* Dölj knappen när scroll-läget redan är aktivt */
+        body.scroll-mode-active #floating-live-btn {
+            opacity: 0;
+            pointer-events: none;
+            /* Gör den oklickbar när den är osynlig */
+            transform: scale(0.8);
+        }
     </style>
 </head>
 
@@ -844,6 +882,7 @@
                 this.dropIndicator = document.createElement('div');
                 this.dropIndicator.id = 'drop-indicator';
                 document.body.appendChild(this.dropIndicator);
+                this.floatingLiveBtn = document.getElementById('floating-live-btn');
             }
 
             init() {
@@ -897,6 +936,9 @@
             }
 
             setupEventListeners() {
+                this.floatingLiveBtn.addEventListener('click', () => {
+                    this.toggleScrollMode(true, true);
+                });
                 const toggleMenu = () => {
                     this.sideMenu.classList.toggle('is-closed');
                     this.menuOverlay.classList.toggle('is-closed');
@@ -1066,11 +1108,75 @@
 
             // ... resten av koden är oförändrad ...
 
-            toggleScrollMode(enter) { if (enter) { if (!this.editor.textContent.trim()) { this.showCustomAlert("Lägg till text innan du startar Live Mode."); return; } this.editMode = 'scroll'; this.editor.contentEditable = false; document.body.classList.add('scroll-mode-active'); setTimeout(() => { const totalSeconds = this.getTotalDurationSeconds(); const scrollHeight = this.editor.scrollHeight - this.editor.clientHeight; if (scrollHeight <= 0) { this.showCustomAlert("Texten är för kort för att scrolla."); this.toggleScrollMode(false); return; } if (totalSeconds > 0) { this.setScrollForDuration(totalSeconds); } else { this.setScrollSpeed(this.scrollSpeedSlider.value); } }, 100); } else { this.stopScrolling(); this.editMode = 'chord'; this.editor.contentEditable = true; document.body.classList.remove('scroll-mode-active'); this.updateModeUI(); } }
+            // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA
+            toggleScrollMode(enter, startImmediately = false) {
+                if (enter) {
+                    if (!this.editor.textContent.trim()) {
+                        this.showCustomAlert("Lägg till text innan du startar Live Mode.");
+                        return;
+                    }
+                    this.editMode = 'scroll';
+                    this.editor.contentEditable = false;
+                    document.body.classList.add('scroll-mode-active');
+                    setTimeout(() => {
+                        const scrollHeight = this.editor.scrollHeight - this.editor.clientHeight;
+                        if (scrollHeight <= 0) {
+                            this.showCustomAlert("Texten är för kort för att scrolla.");
+                            this.toggleScrollMode(false);
+                            return;
+                        }
+
+                         // Vi behöver inte längre beräkna hastigheten här.
+                        // Det sköter startScrolling() själv.
+
+                        if (startImmediately) {
+                            this.startScrolling();
+                        }
+                    }, 100);
+                } else {
+                    this.stopScrolling();
+                    this.editMode = 'chord';
+                    this.editor.contentEditable = true;
+                    document.body.classList.remove('scroll-mode-active');
+                    this.updateModeUI();
+                }
+            }
             centerChordHandles() { this.editor.querySelectorAll('.chord').forEach(chordEl => { const handle = chordEl.querySelector('.chord-handle'); const text = chordEl.querySelector('.chord-text'); if (handle && text) { const textWidth = text.offsetWidth; handle.style.left = `${textWidth / 2}px`; } }); }
             openChordModal(element, range) { this.currentlyEditing = { element, range }; if (element) { this.modalChordTarget.textContent = `Redigerar: ${element.dataset.chord}`; this.modalBtnRemove.style.display = 'inline-block'; } else if (range) { this.modalChordTarget.textContent = `Lägg till vid: "${range.toString()}"`; this.modalBtnRemove.style.display = 'none'; } this.renderRootNotes(); this.chordEditorModal.classList.add('visible'); }
             renderRootNotes() { this.modalChordTarget.textContent = 'Select keynote'; this.modalRootNotes.innerHTML = ''; this.musicalNotes.forEach(note => { const button = document.createElement('button'); button.textContent = note; button.addEventListener('click', () => this.renderChordTypes(note)); this.modalRootNotes.appendChild(button); }); this.modalRootNotes.style.display = 'grid'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'none'; }
-            renderChordTypes(rootNote) { this.modalChordTarget.textContent = `Select type (Keynote: ${rootNote})`; this.modalChordTypes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderRootNotes()); this.modalChordTypes.appendChild(backButton); this.chordTypes.forEach(type => { const mainChord = rootNote + type; const button = document.createElement('button'); if (type === '') { button.textContent = `Använd ${mainChord}`; button.classList.add('active'); } else { button.textContent = mainChord; } button.addEventListener('click', () => this.renderBassNotes(mainChord, rootNote)); this.modalChordTypes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'grid'; this.modalBassNotes.style.display = 'none'; }
+            // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA NYA VERSION
+            renderChordTypes(rootNote) {
+                this.modalChordTarget.textContent = `Select type (Keynote: ${rootNote})`;
+                this.modalChordTypes.innerHTML = '';
+                const backButton = document.createElement('button');
+                backButton.textContent = '‹ Tillbaka';
+                backButton.addEventListener('click', () => this.renderRootNotes());
+                this.modalChordTypes.appendChild(backButton);
+
+                this.chordTypes.forEach(type => {
+                    const mainChord = rootNote + type;
+                    const button = document.createElement('button');
+
+                    // HÄR ÄR DEN VIKTIGA LOGIKEN:
+                    if (type === '') {
+                        // Om det är ett rent grundackord (t.ex. "A")
+                        button.textContent = `Använd ${mainChord}`;
+                        button.classList.add('active');
+                        // Denna knapp anropar applyChord DIREKT och avslutar.
+                        button.addEventListener('click', () => this.applyChord(mainChord));
+                    } else {
+                        // För alla andra ackord (Am, A7 etc.)
+                        button.textContent = mainChord;
+                        // Dessa knappar går vidare till sista steget som vanligt.
+                        button.addEventListener('click', () => this.renderBassNotes(mainChord, rootNote));
+                    }
+                    this.modalChordTypes.appendChild(button);
+                });
+
+                this.modalRootNotes.style.display = 'none';
+                this.modalChordTypes.style.display = 'grid';
+                this.modalBassNotes.style.display = 'none';
+            }
             renderBassNotes(mainChord, rootNote) { this.modalChordTarget.textContent = `Select Bass Key (Chord: ${mainChord})`; this.modalBassNotes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderChordTypes(rootNote)); this.modalBassNotes.appendChild(backButton); const doneButton = document.createElement('button'); doneButton.textContent = `Använd ${mainChord}`; doneButton.classList.add('active'); doneButton.addEventListener('click', () => this.applyChord(mainChord)); this.modalBassNotes.appendChild(doneButton); this.bassNotes.forEach(note => { const finalChord = `${mainChord}/${note}`; const button = document.createElement('button'); button.textContent = `/${note}`; button.addEventListener('click', () => this.applyChord(finalChord)); this.modalBassNotes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'grid'; }
             applyChord(chordName) { if (!this.currentlyEditing) return; if (this.currentlyEditing.element) { const chordTextEl = this.currentlyEditing.element.querySelector('.chord-text'); this.currentlyEditing.element.dataset.chord = chordName; if (chordTextEl) chordTextEl.textContent = chordName; } else if (this.currentlyEditing.range) { const range = this.currentlyEditing.range; const wordText = range.toString(); range.deleteContents(); const chordSpan = this.createChordSpan(chordName); range.insertNode(chordSpan); const textNode = document.createTextNode(" " + wordText); range.setStartAfter(chordSpan); range.insertNode(textNode); } this.centerChordHandles(); this.recordHistoryDebounced(); this.closeChordModal(); }
             closeChordModal() { this.chordEditorModal.classList.remove('visible'); this.currentlyEditing = null; }
@@ -1198,7 +1304,46 @@
             importMultipleProjects(projectsArray) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; let importedCount = 0, overwrittenCount = 0; for (const project of projectsArray) { if (project && project.title) { if (projects[project.title]) overwrittenCount++; else importedCount++; projects[project.title] = project; } } localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); this.updateProjectList(); this.showCustomAlert(`${importedCount} nya låtar importerades. ${overwrittenCount} låtar uppdaterades.`); if (projectsArray.length > 0) this.loadProject(projectsArray[0].title); }
             sanitizeFilename(name) { return name.replace(/[\/\\?%*:|"<>]/g, '-') || 'låt'; }
             toggleScrolling() { if (this.scrollInterval) this.stopScrolling(); else this.startScrolling(); }
-            startScrolling() { if (this.scrollInterval || this.scrollSpeed <= 0) return; this.scrollBtnPlayPause.textContent = '❚❚'; this.scrollRemainder = 0; const scroll = () => { this.scrollRemainder += this.scrollSpeed; const move = Math.floor(this.scrollRemainder); if (move > 0) this.editor.scrollTop += move; this.scrollRemainder -= move; if (this.editor.scrollTop + this.editor.clientHeight >= this.editor.scrollHeight) { this.stopScrolling(); } else { this.scrollInterval = requestAnimationFrame(scroll); } }; this.scrollInterval = requestAnimationFrame(scroll); }
+            // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA
+            startScrolling() {
+                // Stoppa om den redan är igång
+                if (this.scrollInterval) return;
+
+                // Om hastigheten är 0, försök att beräkna den nu
+                if (this.scrollSpeed <= 0) {
+                    this.calculateAndSetScrollSpeed();
+                }
+
+                // Kontrollera IGEN. Om hastigheten fortfarande är 0 (t.ex. texten är för kort),
+                // kan vi inte starta.
+                if (this.scrollSpeed <= 0) {
+                    // Om du vill kan du lägga till en alert här, men det är inte nödvändigt.
+                    // this.showCustomAlert("Kan inte starta scrollningen, kontrollera tiden.");
+                    return;
+                }
+
+                // NU fortsätter vi som vanligt
+                this.scrollBtnPlayPause.textContent = '❚❚';
+                this.scrollRemainder = 0;
+
+                const scroll = () => {
+                    this.scrollRemainder += this.scrollSpeed;
+                    const move = Math.floor(this.scrollRemainder);
+
+                    if (move > 0) {
+                        this.editor.scrollTop += move;
+                        this.scrollRemainder -= move;
+                    }
+
+                    if (this.editor.scrollTop + this.editor.clientHeight >= this.editor.scrollHeight) {
+                        this.stopScrolling();
+                    } else {
+                        this.scrollInterval = requestAnimationFrame(scroll);
+                    }
+                };
+                this.scrollInterval = requestAnimationFrame(scroll);
+            }
+
             stopScrolling() { if (this.scrollInterval) cancelAnimationFrame(this.scrollInterval); this.scrollInterval = null; this.scrollBtnPlayPause.textContent = '▶'; }
             setScrollSpeed(value) { const MIN_MOVE_SPEED = 0.02, MAX_SPEED = 0.5; const val = parseFloat(value); if (val === 0) { this.scrollSpeed = 0; return; } this.scrollSpeed = MIN_MOVE_SPEED + (val / 100) * (MAX_SPEED - MIN_MOVE_SPEED); }
             getTotalDurationSeconds() { const minutes = parseInt(this.scrollDurationMinutesInput.value) || 0; const seconds = parseInt(this.scrollDurationSecondsInput.value) || 0; return (minutes * 60) + seconds; }
@@ -1209,6 +1354,10 @@
 
         window.addEventListener('load', () => new StableChordEditor('editor'));
     </script>
+    </script>
+
+    <button id="floating-live-btn" title="Starta Live-läge">▶</button>
+
 </body>
 
 </html>

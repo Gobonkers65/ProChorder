@@ -820,62 +820,67 @@
                 DARK_MODE: 'darkMode'
             };
             // *** LÄGG TILL HELA DENNA NYA FUNKTION ***
+            // ERSÄTT HELA DIN GAMLA handleAutoLinking-FUNKTION MED DENNA NYA
+            // ERSÄTT HELA DIN GAMLA handleAutoLinking-FUNKTION MED DENNA FÖRBÄTTRADE VERSION
             handleAutoLinking(e) {
-                // Kör bara logiken om man trycker på mellanslag eller Enter
-                if (e.key !== ' ' && e.key !== 'Enter') {
-                    return;
-                }
+                if (e.key !== ' ' && e.key !== 'Enter') return;
 
                 const selection = window.getSelection();
-                if (!selection.rangeCount || !selection.isCollapsed) {
-                    return; // Gör inget om text är markerad
-                }
+                if (!selection.rangeCount || !selection.isCollapsed) return;
 
                 const range = selection.getRangeAt(0);
                 const container = range.startContainer;
-
-                // Vi jobbar bara med rena textnoder
-                if (container.nodeType !== Node.TEXT_NODE) {
-                    return;
-                }
+                if (container.nodeType !== Node.TEXT_NODE) return;
 
                 const textContent = container.textContent.substring(0, range.startOffset);
 
-                // Regex för att hitta en URL i slutet av en textsträng
-                const urlRegex = /(?:^|\s)((?:https?:\/\/\S+|(?:www|ftp)\.\S+))\s*$/;
-                const match = textContent.match(urlRegex);
+                // -- MER ROBUST REGEX HÄR --
+                const customLinkRegex = /\[\[(.+?)(?:\|(.*?))?\]\]\s*$/;
+                const autoLinkRegex = /(?:^|\s)((?:https?:\/\/\S+|(?:www|ftp)\.\S+))\s*$/;
 
-                if (match) {
-                    const url = match[1]; // Den faktiska URL:en
-                    const urlStartIndex = textContent.lastIndexOf(url);
+                const customMatch = textContent.match(customLinkRegex);
+                const autoMatch = !customMatch && textContent.match(autoLinkRegex); // Kör bara auto om custom misslyckas
 
-                    // Skapa ett nytt Range-objekt som täcker exakt URL-texten
-                    const urlRange = document.createRange();
-                    urlRange.setStart(container, urlStartIndex);
-                    urlRange.setEnd(container, urlStartIndex + url.length);
+                let url, linkText, startIndex, fullMatchLength;
 
-                    // Skapa länk-elementet
-                    const link = document.createElement('a');
-                    // Lägg till http:// om det saknas (t.ex. för www.chordsite.com)
-                    link.href = url.startsWith('http') ? url : `http://${url}`;
-                    link.target = '_blank'; // Öppna i ny flik
-                    link.rel = 'noopener noreferrer';
-
-                    // Använd surroundContents för att slå in texten i länken
-                    // Detta är ett robust sätt som bevarar resten av innehållet
-                    try {
-                        urlRange.surroundContents(link);
-
-                        // Flytta markören till efter den nya länken
-                        selection.collapse(link.nextSibling, 1);
-
-                        // Spara ändringen i historiken
-                        this.recordHistoryDebounced();
-
-                    } catch (err) {
-                        console.error("Kunde inte skapa länk:", err);
-                    }
+                if (customMatch) {
+                    url = customMatch[1].trim();
+                    linkText = (customMatch[2] || '').trim() || url; // Använd text om den finns, annars URL
+                    const fullMatchString = customMatch[0].trimEnd();
+                    startIndex = textContent.lastIndexOf(fullMatchString);
+                    fullMatchLength = fullMatchString.length;
+                } else if (autoMatch) {
+                    url = autoMatch[1];
+                    linkText = url;
+                    startIndex = textContent.lastIndexOf(url);
+                    fullMatchLength = url.length;
+                } else {
+                    return; // Ingen matchning
                 }
+
+                if (!url || startIndex === -1) return; // Säkerhetskoll
+
+                e.preventDefault(); // Förhindra att mellanslag/enter skrivs ut
+
+                const replaceRange = document.createRange();
+                replaceRange.setStart(container, startIndex);
+                replaceRange.setEnd(container, startIndex + fullMatchLength);
+                replaceRange.deleteContents();
+
+                const link = document.createElement('a');
+                link.href = url.startsWith('http') || url.startsWith('//') ? url : `http://${url}`;
+                link.textContent = linkText;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                replaceRange.insertNode(link);
+
+                // Återställ markören efter den nya länken
+                range.setStartAfter(link);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+
+                this.recordHistoryDebounced();
             }
 
             constructor(editorId) {
@@ -1307,7 +1312,7 @@
                 });
                 return result.join('\n');
             }
-            // ERSÄTT HELA loadContent-FUNKTIONEN MED DENNA
+            // ERSÄTT HELA DIN GAMLA loadContent-FUNKTION MED DENNA DEFINITIVA VERSION
             loadContent(text, recordHistory = false) {
                 this.stopObserver();
                 this.editor.innerHTML = '';
@@ -1325,27 +1330,34 @@
                     if (lineText.trim() === '' && !lineText.includes('[')) {
                         lineDiv.appendChild(document.createElement('br'));
                     } else {
-                        // *** UPPDATERAD REGEX som matchar BÅDE ackord och länkar ***
-                        const regex = /(\[([^\]]+)\]|\[\[(.*?)\|(.*?)\]\])/g;
+                        // -- DEN NYA, SMARTARE REGEXEN SOM LÖSER ALLT --
+                        // Denna regex kan nu tydligt skilja på [[Länk]] och [Ackord].
+                        const regex = /\[\[(.+?)(?:\|(.*?))?\]\]|\[([^\]]+)\]/g;
                         let lastIndex = 0;
                         let match;
+
                         while ((match = regex.exec(lineText)) !== null) {
-                            // Lägg till texten före matchningen
+                            // Lägg till texten som kommer före matchningen
                             if (match.index > lastIndex) {
                                 lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex, match.index)));
                             }
 
-                            // *** UPPDATERAD LOGIK för att hantera BÅDA fallen ***
-                            if (match[2]) { // Om det är ett ackord (match[2] är innehållet i [...])
-                                lineDiv.appendChild(this.createChordSpan(match[2]));
-                            } else if (match[3] && match[4]) { // Om det är en länk (match[3] är URL, match[4] är texten)
+                            // KOLLA OM DET ÄR EN LÄNK (grupp 1 finns) ELLER ETT ACKORD (grupp 3 finns)
+                            if (match[1]) { // Det är en länk, t.ex. [[URL|Text]]
+                                const url = match[1].trim();
+                                const linkText = (match[2] || '').trim() || url; // Använd text om den finns, annars URL
+
                                 const link = document.createElement('a');
-                                link.href = match[3];
-                                link.textContent = match[4];
-                                link.target = '_blank'; // Öppna i ny flik
+                                link.href = url.startsWith('http') ? url : `http://${url}`; // Säkerställ http
+                                link.textContent = linkText;
+                                link.target = '_blank';
                                 link.rel = 'noopener noreferrer';
                                 lineDiv.appendChild(link);
+
+                            } else if (match[3]) { // Det är ett ackord, t.ex. [Am]
+                                lineDiv.appendChild(this.createChordSpan(match[3]));
                             }
+
                             lastIndex = match.index + match[0].length;
                         }
                         // Lägg till eventuell text efter sista matchningen

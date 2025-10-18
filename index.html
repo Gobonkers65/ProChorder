@@ -1382,7 +1382,49 @@
             toggleDarkMode() { document.body.classList.toggle('dark-mode'); const isDarkMode = document.body.classList.contains('dark-mode'); localStorage.setItem(StableChordEditor.STORAGE_KEYS.DARK_MODE, isDarkMode ? 'enabled' : 'disabled'); this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙'; }
             createNewProject() { this.titleInput.value = ''; this.authorInput.value = ''; this.loadContent('<div><br></div>', true); this.projectList.selectedIndex = 0; localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (this.fontSizeSlider) { this.fontSizeSlider.value = 16; } this.editor.style.fontSize = '16px'; this.titleInput.focus(); }
             saveProject(name) { this.syncChordData(); const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; projects[name] = { title: this.titleInput.value, author: this.authorInput.value, fontSize: this.editor.style.fontSize || '16px', content: this.getContentAsText(), scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); this.updateProjectList(name); const originalText = this.btnSaveProject.textContent; this.btnSaveProject.textContent = 'Saved'; this.btnSaveProject.disabled = true; setTimeout(() => { this.btnSaveProject.textContent = 'Save'; this.btnSaveProject.disabled = false; }, 1200); }
-            loadProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; if (projects[name]) { const data = projects[name]; this.titleInput.value = data.title || ''; this.authorInput.value = data.author || ''; this.editor.style.fontSize = data.fontSize || '16px'; if (this.fontSizeSlider) { const num = parseInt((data.fontSize || '').replace('px', '')); if (!isNaN(num)) this.fontSizeSlider.value = num; } this.loadContent(data.content || '', true); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); if (this.projectList.value !== name) this.projectList.value = name; } }
+            // ERSÄTT HELA loadProject-FUNKTIONEN MED DENNA
+            loadProject(name) {
+                const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+                if (projects[name]) {
+                    const data = projects[name];
+                    this.titleInput.value = data.title || '';
+                    this.authorInput.value = data.author || '';
+                    this.editor.style.fontSize = data.fontSize || '16px';
+                    if (this.fontSizeSlider) {
+                        const num = parseInt((data.fontSize || '').replace('px', ''));
+                        if (!isNaN(num)) this.fontSizeSlider.value = num;
+                    }
+                    this.loadContent(data.content || '', true);
+
+                    // *** START PÅ KORRIGERING ***
+
+                    // Ladda scroll-hastighet
+                    if (data.scrollSpeed !== undefined) {
+                        // Beräkna och sätt slider-värdet från det sparade this.scrollSpeed
+                        const sliderVal = ((data.scrollSpeed - this.MIN_MOVE_SPEED) / (this.MAX_MOVE_SPEED - this.MIN_MOVE_SPEED)) * 100;
+                        this.scrollSpeedSlider.value = Math.max(0, Math.min(100, Math.round(sliderVal)));
+                        // Sätt själva hastigheten
+                        this.setScrollSpeed(this.scrollSpeedSlider.value);
+                    } else {
+                        // Återställ till standard om inget värde finns sparat
+                        this.scrollSpeedSlider.value = 20; // Standardvärdet från HTML
+                        this.setScrollSpeed(20);
+                    }
+
+                    // Ladda scroll-tid
+                    if (data.duration !== undefined) {
+                        this.updateDurationInputs(data.duration);
+                    } else {
+                        // Om ingen tid finns sparad, beräkna den från den nyladdade hastigheten
+                        this.updateDurationFromSpeed();
+                    }
+
+                    // *** SLUT PÅ KORRIGERING ***
+
+                    localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
+                    if (this.projectList.value !== name) this.projectList.value = name;
+                }
+            }
             loadLastProject() { this.updateProjectList(); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last) this.loadProject(last); else this.loadContent('::Vers::\nWelcome to ProChorder!\n\n::Chorus::\nSkriv [Am], [G] etc. i Ackordläge.', true); }
             updateProjectList(selectedValue) { const list = this.projectList; const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; const currentProjects = Object.keys(projects).sort(); list.innerHTML = '<option value="">Load project...</option>'; currentProjects.forEach(name => { const option = document.createElement('option'); option.value = name; option.textContent = name; list.appendChild(option); }); const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last && currentProjects.includes(last)) list.value = last; }
             deleteProject(name) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; delete projects[name]; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (last === name) { localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); this.createNewProject(); } this.updateProjectList(); this.showCustomAlert(`Project "${name}" Removed.`); }
@@ -1516,7 +1558,15 @@
             }
 
             stopScrolling() { if (this.scrollInterval) cancelAnimationFrame(this.scrollInterval); this.scrollInterval = null; this.scrollBtnPlayPause.textContent = '▶'; }
-            setScrollSpeed(value) { const MIN_MOVE_SPEED = 0.02, MAX_SPEED = 0.5; const val = parseFloat(value); if (val === 0) { this.scrollSpeed = 0; return; } this.scrollSpeed = MIN_MOVE_SPEED + (val / 100) * (MAX_SPEED - MIN_MOVE_SPEED); }
+            setScrollSpeed(value) {
+                // Använd klass-egenskaperna (this.) istället för lokala konstanter
+                const val = parseFloat(value);
+                if (val === 0) {
+                    this.scrollSpeed = 0;
+                    return;
+                }
+                this.scrollSpeed = this.MIN_MOVE_SPEED + (val / 100) * (this.MAX_MOVE_SPEED - this.MIN_MOVE_SPEED);
+            }
             getTotalDurationSeconds() { const minutes = parseInt(this.scrollDurationMinutesInput.value) || 0; const seconds = parseInt(this.scrollDurationSecondsInput.value) || 0; return (minutes * 60) + seconds; }
             updateDurationInputs(totalSeconds) { if (totalSeconds > 0) { this.scrollDurationMinutesInput.value = Math.floor(totalSeconds / 60); this.scrollDurationSecondsInput.value = totalSeconds % 60; } else { this.scrollDurationMinutesInput.value = 4; this.scrollDurationSecondsInput.value = 0; } }
             setScrollForDuration(durationSeconds) { setTimeout(() => { const scrollHeight = Math.max(1, this.editor.scrollHeight - this.editor.clientHeight); if (scrollHeight <= 0) return; const frames = Math.max(1, durationSeconds * 60); this.scrollSpeed = scrollHeight / frames; const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100); this.scrollSpeedSlider.value = Math.max(0, Math.min(100, percent)); }, 100); }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="sv">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +9,10 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.7;
-            background-color: #f8f9fa; /* Ljusgrå bakgrund */
-            color: #212529; /* Mörk textfärg */
+            background-color: #f8f9fa;
+            /* Ljusgrå bakgrund */
+            color: #212529;
+            /* Mörk textfärg */
             margin: 0;
             padding: 20px;
         }
@@ -18,15 +21,18 @@
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: #ffffff; /* Vit bakgrund för innehållet */
+            background-color: #ffffff;
+            /* Vit bakgrund för innehållet */
             border-radius: 8px;
             padding: 2em 3em;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             border: 1px solid #dee2e6;
         }
 
-        h1, h3 {
-            color: #1951a5; /* En blå färg som matchar appen */
+        h1,
+        h3 {
+            color: #1951a5;
+            /* En blå färg som matchar appen */
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 8px;
         }
@@ -38,7 +44,8 @@
 
         h3 {
             font-size: 1.8em;
-            margin-top: 2.5em; /* Mer luft ovanför rubriker */
+            margin-top: 2.5em;
+            /* Mer luft ovanför rubriker */
         }
 
         /* Gör bilder responsiva */
@@ -57,11 +64,13 @@
             padding: 0.2em 0.5em;
             font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 0.9em;
-            color: #c7254e; /* Rödaktig färg för kod */
+            color: #c7254e;
+            /* Rödaktig färg för kod */
         }
 
         /* Korrekt indrag för listor */
-        ul, ol {
+        ul,
+        ol {
             padding-left: 25px;
         }
 
@@ -71,7 +80,8 @@
         }
 
         /* Nästlade listor får marginal */
-        ul ul, ol ul {
+        ul ul,
+        ol ul {
             margin-top: 10px;
         }
 
@@ -80,183 +90,260 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
         <h1>ProChorder 9.8</h1>
-        
-        <p>Välkommen till ProChorder! Här är en guide för att hjälpa dig komma igång och använda appens alla funktioner.</p>
-        
-        <h3>Gränssnittet i korthet</h3>
-        <p><img src="https://gobonkers65.github.io/ProChorder/upper_tool_bar.png" alt="Toppmenyn" style="max-width: 455px;"></p>
+        <h2><span style="color: #ff0000;">OBS!&nbsp;</span></h2>
+        <p><strong>Låtarna du skapar är knutna till den mobil eller dator du startar ditt projekt i. För backup och
+                flytt, se avsnittet om Export JSON.</strong></p>
+        <h2>Välkommen till ProChorder!</h2>
+        <p><strong>Här är en guide för att hjälpa dig komma igång och använda appens alla funktioner.</strong></p>
+        <h2>Gränssnittet i korthet</h2>
         <ul>
             <li>
-                <p><strong>Toppmenyn:</strong> Här byter du projekt, skapar nya, byter redigeringsläge <code>C</code> / <code>L</code>), slår på mörkt läge <code>🌙</code> och öppnar sidomenyn <code>☰</code>.</p>
-            </li>
-            <li>
-                <p><strong>Textfönstret:</strong> Ditt huvudsakliga arbetsområde där du skriver text och ackord.</p>
-            </li>
-            <li>
-                <p><strong>Sidomenyn (☰):</strong> Innehåller alla verktyg som "LIVE"-läge, transponering, textstorlek, sektionsmarkörer, import/export och projektinställningar.</p>
+                <p><strong>Toppmenyn:</strong>&nbsp;Här byter du projekt, skapar nya, byter
+                    redigeringsläge&nbsp;<code>C</code>&nbsp;/&nbsp;<code>L</code>, slår på mörkt
+                    läge&nbsp;<code>🌙</code>&nbsp;och öppnar sidomenyn&nbsp;<code>☰</code>.</p>
+                <img src="https://gobonkers65.github.io/ProChorder/upper_tool_bar.png" alt="Toppmenyn" width="455"
+                    height="41" />
             </li>
         </ul>
-        
-        <h3>1. Hantera dina projekt</h3>
-        <p>Allt sparas lokalt i din webbläsare. Du behöver inte klicka "Spara" för att byta låt, men det är bra att göra det när du är klar.</p>
+        <p>&nbsp;</p>
         <ul>
             <li>
-                <p><strong>Ny låt:</strong> Klicka på <code>+</code> i toppmenyn.</p>
+                <p><strong>Textf&ouml;nstret:</strong>&nbsp;Ditt huvudsakliga arbetsomr&aring;de d&auml;r du skriver
+                    text och ackord.</p>
+                <img src="https://gobonkers65.github.io/ProChorder/textwin.png" alt="Ackord editor" width="270"
+                    height="250" />
             </li>
             <li>
-                <p><strong>Ladda låt:</strong> Välj en låt från rullgardinsmenyn i toppmenyn.</p>
-            </li>
-            <li>
-                <p><strong>Spara låt:</strong> Öppna sidomenyn (<code>☰</code>) &gt; <strong>Project</strong> &gt; <strong>Save</strong>.</p>
-            </li>
-            <li>
-                <p><strong>Byta namn på låt:</strong> Ladda låten, ändra texten i fältet "Låttitel" i sidomenyn och klicka "Save".</p>
-            </li>
-            <li>
-                <p><strong>Ta bort låt:</strong> Öppna (<code>☰</code>) &gt; <strong>Project</strong> &gt; <strong>Remove</strong>.</p>
-            </li>
-            <li>
-                <p><strong>Ta bort ALLA låtar:</strong> Öppna (<code>☰</code>) &gt; <strong>Project</strong> &gt; <strong>Erase all</strong>.</p>
+                <p><strong>Sidomenyn (☰):</strong>&nbsp;Inneh&aring;ller alla verktyg som "LIVE"-l&auml;ge,
+                    transponering, textstorlek, sektionsmark&ouml;rer, import/export och projektinst&auml;llningar.</p>
             </li>
         </ul>
-        
-        <h3>2. De två redigeringslägena: Text vs. Ackord</h3>
-        <p>Detta är appens viktigaste funktion. Du byter läge med <code>[C]</code> / <code>[L]</code>-knappen i toppmenyn.</p>
+        <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<img src="https://gobonkers65.github.io/ProChorder/side_tools.png"
+                alt="Verktyg i sidomenyn" width="226" height="301" /></p>
+        <hr />
+        <h2>&nbsp;</h2>
+        <h2>1. Hantera dina projekt</h2>
+        <p>Allt sparas lokalt i din webbl&auml;sare. Du beh&ouml;ver inte klicka "Spara" f&ouml;r att byta l&aring;t,
+            men det &auml;r bra att g&ouml;ra det n&auml;r du &auml;r klar.</p>
         <ul>
             <li>
-                <strong><code>[C]</code> - Ackordläge (Chord Mode):</strong>
-                <p>Detta är standardläget. Här är editorn "smart" och hjälper dig med ackord.</p>
-                <ul>
-                    <li><strong>Skapa ackord:</strong> Klicka på ett ord i texten för att öppna ackord-väljaren.</li>
-                    <li><strong>Skapa ackord (snabbt):</strong> Skriv <code>[Am]</code> eller <code>[G7]</code> och tryck <strong>Mellanslag</strong>. Ackordet skapas automatiskt.</li>
-                    <li><strong>Redigera ackord:</strong> Klicka på ett befintligt ackord för att ändra det.</li>
-                    <li><strong>Flytta ackord:</strong> Klicka och dra i det lilla handtaget över ett ackord för att flytta det.</li>
-                    <li><strong>Drag-Kopiera ackord:</strong> Håll ner [alt], klicka och dra i det lilla handtaget över ett ackord för att kopiera det.</li>
-                </ul>
+                <p><strong>Ny l&aring;t:</strong>&nbsp;Klicka p&aring;&nbsp;<code>+</code>&nbsp;i toppmenyn.<span
+                        style="color: #993300;"><strong> OBS!!</strong></span> Du m&aring;ste namnge din l&aring;t
+                    f&ouml;r att kunna spara.</p>
             </li>
             <li>
-                <strong><code>[L]</code> - Textläge (Lyrics Mode):</strong>
-                <p>I detta läge fungerar editorn som en helt vanlig textredigerare. Du kan inte klicka på ord för att skapa ackord. Detta läge är perfekt när du bara vill skriva in långa stycken text utan att råka skapa ackord av misstag.</p>
+                <p><strong>Ladda l&aring;t:</strong>&nbsp;V&auml;lj en l&aring;t fr&aring;n rullgardinsmenyn i
+                    toppmenyn.</p>
+            </li>
+            <li>
+                <p><strong>Spara l&aring;t:</strong>&nbsp;&Ouml;ppna sidomenyn (<code>☰</code>)
+                    &gt;&nbsp;<strong>Project</strong>&nbsp;&gt;&nbsp;<strong>Save</strong>.</p>
+            </li>
+            <li>
+                <p><strong>Byta namn p&aring; l&aring;t:</strong>&nbsp;Ladda l&aring;ten, &auml;ndra texten i
+                    f&auml;ltet "L&aring;ttitel" i sidomenyn och klicka n&aring;gonstan i editorn och tryck p&aring;
+                    "Ok" i dialogrutan som dyker upp.</p>
+            </li>
+            <li>
+                <p><strong>Ta bort l&aring;t:</strong>&nbsp;&Ouml;ppna (<code>☰</code>)
+                    &gt;&nbsp;<strong>Project</strong>&nbsp;&gt;&nbsp;<strong>Remove</strong>.</p>
+            </li>
+            <li>
+                <p><strong>Ta bort ALLA l&aring;tar:</strong>&nbsp;&Ouml;ppna (<code>☰</code>)
+                    &gt;&nbsp;<strong>Project</strong>&nbsp;&gt;&nbsp;<strong>Erase all</strong>.</p>
             </li>
         </ul>
-        
-        <h3>3. Formatera din låttext (Sektionsmarkörer)</h3>
-        <p>För att strukturera din låt:</p>
+        <p>&nbsp;</p>
+        <hr />
+        <h2>&nbsp;</h2>
+        <h2>2. De tv&aring; redigeringsl&auml;gena: Text v/s Ackord</h2>
+        <p>Detta &auml;r appens viktigaste funktion. Du byter l&auml;ge
+            med&nbsp;<code>[C]</code>&nbsp;/&nbsp;<code>[L]</code>-knappen i toppmenyn.</p>
+        <ul>
+            <li>
+                <h3><code>[C]</code>&nbsp;- Ackordl&auml;ge (Chord Mode):</h3>
+                <p>Detta &auml;r standardl&auml;get. H&auml;r &auml;r editorn "smart" och hj&auml;lper dig med ackord.
+                </p>
+            </li>
+        </ul>
+        <p style="padding-left: 30px;"><strong>Skapa ackord:</strong>&nbsp;Klicka p&aring; ett ord i texten f&ouml;r att
+            &ouml;ppna ackord-v&auml;ljaren.</p>
+        <p style="padding-left: 30px;"><img src="https://gobonkers65.github.io/ProChorder/chordbuilder.png"
+                alt="Bygg ackord" width="320" height="222" /></p>
+        <p style="padding-left: 30px;"><strong>Skapa ackord
+                (snabbt):</strong>&nbsp;Skriv&nbsp;<code>[Am]</code>&nbsp;eller&nbsp;<code>[G7]</code>&nbsp;och
+            tryck&nbsp;<strong>Mellanslag</strong>. Ackordet skapas automatiskt.</p>
+        <p style="padding-left: 30px;"><strong><img src="https://gobonkers65.github.io/ProChorder/ackord.png"
+                    alt="Toppmenyn" width="200" height="100" /></strong></p>
+        <ul>
+            <li><strong>Redigera ackord:</strong>&nbsp;Klicka p&aring; ett befintligt ackord f&ouml;r att &auml;ndra
+                det.<br /><br /></li>
+            <li><strong>Flytta ackord:</strong>&nbsp;Klicka och dra i det lilla handtaget &ouml;ver ett ackord f&ouml;r
+                att flytta det.<br /><br /></li>
+            <li><strong>Drag-Kopiera ackord:</strong>&nbsp;H&aring;ll ner [alt], klicka och dra i det lilla handtaget
+                &ouml;ver ett ackord f&ouml;r att kopiera det.<br /><br /></li>
+        </ul>
+        <ul>
+            <li>
+                <h3><code>[L]</code>&nbsp;- Textl&auml;ge (Lyrics Mode):</h3>
+                <p>I detta l&auml;ge fungerar editorn som en helt vanlig textredigerare. Du kan inte klicka p&aring; ord
+                    f&ouml;r att skapa ackord. Detta l&auml;ge &auml;r perfekt n&auml;r du bara vill skriva in
+                    l&aring;nga stycken text utan att r&aring;ka skapa ackord av misstag.</p>
+            </li>
+        </ul>
+        <p>&nbsp;</p>
+        <hr />
+        <h2>&nbsp;</h2>
+        <h2>3. Formatera din l&aring;ttext (Verse, Chorus mm.)</h2>
+        <p>F&ouml;r att strukturera din l&aring;t:</p>
         <ol>
             <li>
-                <p>Ställ textmarkören på den rad du vill att markören ska hamna ovanför (t.ex. "Solen skiner idag").</p>
+                <p>St&auml;ll textmark&ouml;ren p&aring; den rad du vill att vers, chorus, stick-mark&ouml;ren ska hamna
+                    ovanf&ouml;r (t.ex. "Solen skiner idag").</p>
             </li>
             <li>
-                <p>Öppna (<code>☰</code>) &gt; <strong>Sections</strong>.</p>
+                <p>&Ouml;ppna (<code>☰</code>) &gt;&nbsp;<strong>Sections</strong>.</p>
             </li>
             <li>
-                <p>Välj "Verse" i rullgardinsmenyn och klicka <strong>Insert</strong>.</p>
+                <p>V&auml;lj "Verse" i rullgardinsmenyn och klicka&nbsp;<strong>Insert</strong>.<br /><br /><img
+                        src="https://gobonkers65.github.io/ProChorder/section_selector.png" alt="Sektionsval"
+                        width="226" height="301" /></p>
             </li>
             <li>
-                <p>Raden kommer nu att visa "<code>Verse</code>" i större textstorlek och texten flyttas till raden under.</p>
+                <p>Raden kommer nu att visa "<code>Verse</code>" i st&ouml;rre textstorlek och texten flyttas till raden
+                    under.</p>
+                <img src="https://gobonkers65.github.io/ProChorder/verse.png" alt="Toppmenyn" width="240"
+                    height="150" />
             </li>
+            <li></li>
         </ol>
-        
-        <h3>4. Länkar</h3>
-        <p>Du kan skapa klickbara länkar på tre olika sätt. Skriv texten nedan och tryck <strong>Mellanslag</strong>.</p>
+        <hr />
+        <h3>&nbsp;</h3>
+        <h2>4. L&auml;nkar</h2>
+        <p>Du kan skapa klickbara l&auml;nkar p&aring; tre olika s&auml;tt. Skriv texten nedan och
+            tryck&nbsp;<strong>Mellanslag</strong>.</p>
         <ol>
             <li>
-                <p><strong>Automatisk länk:</strong></p>
+                <p><strong>Automatisk l&auml;nk:</strong></p>
                 <ul>
                     <li>
-                        <p><strong>Skriv</strong>: <code>www.ultimate-guitar.com</code></p>
+                        <p><strong>Skriv</strong>:&nbsp;<code>www.ultimate-guitar.com</code></p>
                     </li>
                     <li>
-                        <p><strong>Resultat</strong>: <a href="https://www.ultimate-guitar.com" target="_blank" rel="noopener">www.ultimate-guitar.com</a></p>
+                        <p><strong>Resultat</strong>:&nbsp;<a href="https://www.ultimate-guitar.com/" target="_blank"
+                                rel="noopener">www.ultimate-guitar.com</a></p>
                     </li>
                 </ul>
             </li>
             <li>
-                <p><strong>Länk med kort text:</strong></p>
+                <p><strong>L&auml;nk med kort text:</strong></p>
                 <ul>
                     <li>
-                        <p><strong>Skriv</strong>: <code>[[http://googleusercontent.com/spotify.com|Lyssna på Spotify]]</code></p>
+                        <p><strong>Skriv</strong>:&nbsp;<code>[[http://googleusercontent.com/spotify.com|Lyssna p&aring; Spotify]]</code>
+                        </p>
                     </li>
                     <li>
-                        <p><strong>Resultat</strong>: <a href="http://googleusercontent.com/spotify.com" target="_blank" rel="noopener">Lyssna på Spotify</a></p>
+                        <p><strong>Resultat</strong>:&nbsp;<a href="http://googleusercontent.com/spotify.com"
+                                target="_blank" rel="noopener">Lyssna på Spotify</a></p>
                     </li>
                 </ul>
             </li>
         </ol>
-        
-        <h3>5. Verktyg</h3>
-        <p><img src="https://gobonkers65.github.io/ProChorder/side_tools.png" alt="Verktyg i sidomenyn" style="max-width: 167px;"></p>
-        <p>Alla verktyg hittar du i sidomenyn <code>☰</code> &gt; <strong>Redigera</strong>.</p>
+        <hr />
+        <h2>&nbsp;</h2>
+        <h2>5. Verktyg</h2>
+        <p><img src="https://gobonkers65.github.io/ProChorder/side_tools.png" alt="Verktyg i sidomenyn" width="226"
+                height="301" /></p>
+        <p>Alla verktyg hittar du i sidomenyn&nbsp;<code>☰</code>&nbsp;&gt;&nbsp;<strong>Redigera</strong>.</p>
         <ul>
             <li>
-                <p><strong>Transponera +1 / -:</strong> Höjer eller sänker alla ackord i låten ett halvsteg.</p>
+                <p><strong>Transponera +1 / -:</strong>&nbsp;H&ouml;jer eller s&auml;nker alla ackord i l&aring;ten ett
+                    halvsteg.</p>
             </li>
             <li>
-                <p><strong>Font size:</strong> Dra i reglaget för att ändra textstorleken i fönstret.</p>
+                <p><strong>Font size:</strong>&nbsp;Dra i reglaget f&ouml;r att &auml;ndra textstorleken i
+                    f&ouml;nstret.</p>
             </li>
         </ul>
-        
-        <h3>6. LIVE-läge (Autoscroll)</h3>
-        <p><img src="https://gobonkers65.github.io/ProChorder/direct_scroll.png" alt="Live-läge ikon" style="max-width: 28px; vertical-align: middle; margin-right: 5px;"> Perfekt för att spela live utan att behöva röra skärmen.</p>
+        <p>&nbsp;</p>
+        <hr />
+        <p>&nbsp;</p>
+        <h2>6. LIVE-l&auml;ge (Autoscroll)</h2>
+        <p></strong><img src="https://gobonkers65.github.io/ProChorder/direct_scroll.png" alt="Live-l&auml;ge ikon" width="43"
+                height="44" /><br />Perfekt f&ouml;r att spela live utan att beh&ouml;va r&ouml;ra sk&auml;rmen.</p>
         <ol>
             <li>
-                <p>Starta läget via <code>☰</code> &gt; <strong>LIVE!</strong> eller den flytande <strong>▶</strong>-knappen.</p>
+                <p>Starta l&auml;get via&nbsp;<code>☰</code>&nbsp;&gt;&nbsp;<strong>LIVE!</strong>&nbsp;(G&aring;r till
+                    Livel&auml;ge utaneller den bl&aring; flytande&nbsp;<strong>▶</strong>-knappen (Startar
+                    skrollningenomedelbart.</p>
             </li>
             <li>
-                <p>Ett kontrollfält dyker upp längst ner.</p>
+                <p>Ett kontrollf&lt; dyker upp l&auml;ngst ner.</p>
             </li>
             <li>
-                <p><strong>Spela/Pausa ▶ / ❚❚:</strong> Startar och pausar scrollningen. Mellanslag fungerar också.</p>
+                <p><strong>Spela/Pausa ▶ / ❚❚:</strong>&nbsp;Startar och pausar scrollningen. Mellanslag fungerar
+                    ocks&aring;.</p>
             </li>
             <li>
-                <p><strong>Hastighet Slider:</strong> Dra reglaget för att ställa in hastigheten.</p>
+                <p><strong>Hastighet Slider:</strong>&nbsp;Dra reglaget f&ouml;r att st&auml;lla in hastigheten.</p>
             </li>
             <li>
-                <p><strong>Tid m / s:</strong> Du kan också ställa in en exakt tid t.ex. 3 minuter 30 sekunder som låten ska ta. Hastigheten räknas då ut automatiskt.</p>
+                <p><strong>Tid m / s:</strong>&nbsp;Du kan ocks&aring; st&auml;lla in en exakt tid t.ex. 3 minuter 30
+                    sekunder som l&aring;ten ska ta. Hastigheten r&auml;knas d&aring; ut automatiskt.</p>
             </li>
             <li>
-                <p><strong>Exit:</strong> Avslutar LIVE-läget. Escape-tangenten fungerar också.</p>
+                <p><strong>Exit:</strong>&nbsp;Avslutar LIVE-l&auml;get. Escape-tangenten fungerar ocks&å.</p>
             </li>
         </ol>
-        
-        <h3>7. Import &amp; Export</h3>
-        <p>Du kan enkelt säkerhetskopiera och dela dina låtar.</p>
+        <p>&nbsp;</p>
+        <hr />
+        <p>&nbsp;</p>
+        <h2>7. Import &amp; Export</h2>
+        <p>Du kan enkelt s&auml;kerhetskopiera och dela dina l&aring;tar.</p>
         <ul>
             <li>
-                <p><strong>Exportera:</strong></p>
+                <h3>Exportera:</h3>
                 <ul>
                     <li>
-                        <p><strong>PDF:</strong> Skapar en snygg PDF av den låt du tittar på.</p>
+                        <p><strong>PDF:</strong>&nbsp;Skapar en snygg PDF av den l&aring;t du tittar p&aring;.</p>
                     </li>
                     <li>
-                        <p><strong>TXT:</strong> Sparar låten som en ren textfil.</p>
+                        <p><strong>TXT:</strong>&nbsp;Sparar l&aring;ten som en ren textfil.</p>
                     </li>
                     <li>
-                        <p><strong>Song-&gt;JSON:</strong> Sparar den aktuella låten i ett speciellt format som appen kan läsa in igen. <strong>Använd detta för backup!</strong></p>
+                        <p><strong>Song-&gt;JSON:</strong>&nbsp;Sparar den aktuella l&aring;ten i ett speciellt format
+                            som appen kan l&auml;sa in igen.&nbsp;<strong>Anv&auml;nd detta f&ouml;r backup!</strong>
+                        </p>
                     </li>
                     <li>
-                        <p><strong>All-&gt;JSON:</strong> Sparar <strong>alla dina låtar</strong> i en enda fil. Perfekt för total backup.</p>
+                        <p><strong>All-&gt;JSON:</strong>&nbsp;Sparar&nbsp;<strong>alla dina l&aring;tar</strong>&nbsp;i
+                            en enda fil. Perfekt f&ouml;r total backup.</p>
                     </li>
                     <li>
-                        <p><strong>ZIP:</strong> Sparar alla dina låtar som separata PDF-filer i en ZIP-fil.</p>
+                        <p><strong>ZIP:</strong>&nbsp;Sparar alla dina l&tar som separata PDF-filer i en ZIP-fil.</p>
                     </li>
                 </ul>
             </li>
             <li>
-                <p><strong>Importera:</strong></p>
+                <h3>Importera:</h3>
                 <ul>
                     <li>
-                        <p><strong>Imp.-&gt;JSON:</strong> Välj en <code>.json</code>-fil (som du tidigare exporterat) för att ladda in en eller flera låtar.</p>
+                        <p><strong>Imp.-&gt;JSON:</strong>&nbsp;V&auml;lj en&nbsp;<code>.json</code>-fil (som du
+                            tidigare exporterat) f&ouml;r att ladda in en eller flera l&aring;tar.</p>
                     </li>
                     <li>
-                        <p><strong>Import URL:</strong> Hämtar en samling låtar direkt från GitHub (används för att ladda in en "start-samling").</p>
+                        <p><strong>Import URL:</strong>&nbsp;H&auml;mtar en samling l&aring;tar direkt fr&aring;n GitHub
+                            (anv&auml;nds f&ouml;r att ladda in en "start-samling").</p>
                     </li>
                 </ul>
             </li>
         </ul>
-    </div> </body>
+    </div>
+</body>
+
 </html>

@@ -1,0 +1,144 @@
+Bruksanvisning för ProChorder
+Välkommen till ProChorder! Här är en guide för att hjälpa dig komma igång och använda appens alla funktioner.
+
+Gränssnittet i korthet
+Toppmenyn: Här byter du projekt, skapar nya, byter redigeringsläge ([C] / [L]), slår på mörkt läge (🌙) och öppnar sidomenyn (☰).
+
+Textfönstret: Ditt huvudsakliga arbetsområde där du skriver text och ackord.
+
+Sidomenyn (☰): Innehåller alla verktyg som "LIVE"-läge, transponering, textstorlek, sektionsmarkörer, import/export och projektinställningar.
+
+1. Hantera dina projekt
+Allt sparas lokalt i din webbläsare. Du behöver inte klicka "Spara" för att byta låt, men det är bra att göra det när du är klar.
+
+Ny låt: Klicka på + i toppmenyn.
+
+Ladda låt: Välj en låt från rullgardinsmenyn i toppmenyn.
+
+Spara låt: Öppna sidomenyn (☰) > Project > Save.
+
+Byta namn på låt: Ladda låten, ändra texten i fältet "Låttitel" i sidomenyn och klicka "Save".
+
+Ta bort låt: Öppna (☰) > Project > Remove.
+
+Ta bort ALLA låtar: Öppna (☰) > Project > Erase all.
+
+2. De två redigeringslägena: Text vs. Ackord
+Detta är appens viktigaste funktion. Du byter läge med [C] / [L]-knappen i toppmenyn.
+
+[C] - Ackordläge (Chord Mode):
+Detta är standardläget. Här är editorn "smart" och hjälper dig med ackord.
+
+Skapa ackord: Klicka på ett ord i texten för att öppna ackord-väljaren.
+
+Skapa ackord (snabbt): Skriv [Am] eller [G7] och tryck Mellanslag. Ackordet skapas automatiskt.
+
+Redigera ackord: Klicka på ett befintligt ackord för att ändra det.
+
+Flytta ackord: Klicka och dra i det lilla handtaget under ett ackord för att flytta det.
+
+[L] - Textläge (Lyrics Mode):
+I detta läge fungerar editorn som en helt vanlig textredigerare. Du kan inte klicka på ord för att skapa ackord. Detta läge är perfekt när du bara vill skriva in långa stycken text utan att råka skapa ackord av misstag.
+
+3. Formatera din låttext
+Sektionsmarkörer
+För att strukturera din låt:
+
+Ställ textmarkören på den rad du vill ha markören (t.ex. "Solen skiner idag").
+
+Öppna (☰) > Sections.
+
+Välj "Verse" i rullgardinsmenyn och klicka Insert.
+
+Raden kommer nu att visa ::Verse:: och texten flyttas till raden under.
+
+Länkar
+Du kan skapa klickbara länkar på tre olika sätt. Skriv texten nedan och tryck Mellanslag.
+
+Automatisk länk:
+
+Skriv: www.ultimate-guitar.com
+
+Resultat: <ins>www.ultimate-guitar.com</ins>
+
+Länk med kort text:
+
+Skriv: [[http://googleusercontent.com/spotify.com|Lyssna på Spotify]]
+
+Resultat: <ins>Lyssna på Spotify</ins>
+
+Länk där URL:en är texten:
+
+Skriv: [[http://googleusercontent.com/spotify.com]]
+
+Resultat: <ins>[ogiltig webbadress har tagits bort]</ins>
+
+Bilder
+Du kan infoga bilder som finns på nätet (t.ex. uppladdade till GitHub).
+
+Ladda upp din bild till en onlinetjänst (t.ex. GitHub eller Imgur).
+
+Kopiera den direkta webbadressen (URL:en) till bilden.
+
+Öppna (☰) > Redigera > Infoga bild.
+
+Klistra in din URL och klicka "OK".
+
+4. Verktyg
+Alla verktyg hittar du i sidomenyn (☰) > Redigera.
+
+Transponera (+1 / -1): Höjer eller sänker alla ackord i låten ett halvsteg.
+
+Font size: Dra i reglaget för att ändra textstorleken i fönstret.
+
+5. LIVE-läge (Autoscroll)
+Perfekt för att spela live utan att behöva röra skärmen.
+
+Starta läget via (☰) > LIVE! eller den flytande ▶-knappen.
+
+Ett kontrollfält dyker upp längst ner.
+
+Spela/Pausa (▶ / ❚❚): Startar och pausar scrollningen. (Mellanslag fungerar också).
+
+Hastighet (Slider): Dra reglaget för att ställa in hastigheten.
+
+Tid (m / s): Du kan också ställa in en exakt tid (t.ex. 3 minuter 30 sekunder) som låten ska ta. Hastigheten räknas då ut automatiskt.
+
+Exit: Avslutar LIVE-läget. (Escape-tangenten fungerar också).
+
+6. Import & Export
+Du kan enkelt säkerhetskopiera och dela dina låtar.
+
+Exportera:
+
+PDF: Skapar en snygg PDF av den låt du tittar på.
+
+TXT: Sparar låten som en ren textfil.
+
+Song->JSON: Sparar den aktuella låten i ett speciellt format som appen kan läsa in igen. Använd detta för backup!
+
+All->JSON: Sparar alla dina låtar i en enda fil. Perfekt för total backup.
+
+ZIP: Sparar alla dina låtar som separata PDF-filer i en ZIP-fil.
+
+Importera:
+
+Imp.->JSON: Välj en .json-fil (som du tidigare exporterat) för att ladda in en eller flera låtar.
+
+Import URL: Hämtar en samling låtar direkt från GitHub (används för att ladda in en "start-samling").
+
+Svar på din fråga: WYSIWYG-editorer
+Ja, absolut! Det du letar efter är ett verktyg där du kan skriva och dra in bilder visuellt, och som genererar HTML-koden åt dig. Här är några utmärkta alternativ:
+
+För din hjälpsida (Enklast & Bäst): GitHubs egen editor
+Du behöver inte ens lämna GitHub! När du skapar eller redigerar en fil som slutar på .md (Markdown, som texten ovan) på GitHubs webbplats, får du en inbyggd editor.
+
+Den har en "Preview"-flik så du ser resultatet direkt.
+
+Du kan dra och släppa bilder direkt från skrivbordet in i textrutan! GitHub laddar automatiskt upp bilden till ditt projekt och klistrar in den korrekta länken åt dig. Det är den absolut smidigaste lösningen för ditt behov.
+
+Visual Studio Code (VS Code) - Gratis proffsverktyg
+Detta är industristandarden för kodning. Det är en texteditor, men med tillägget (extension) "Live Preview" kan du se en live-förhandsvisning av din HTML-fil precis bredvid koden. Det är inte 100% "dra-och-släpp" som Word, men det är otroligt kraftfullt och vad de flesta utvecklare använder.
+
+BlueGriffon - En "äkta" WYSIWYG
+Om du vill ha ett program som ser ut och fungerar mer som gamla Dreamweaver eller Word, är detta ett bra gratisalternativ. Du klickar på "Infoga bild" från en meny och ser resultatet direkt.

@@ -91,7 +91,7 @@
             /* Tillåt den att växa */
             min-width: 140px;
             /* Men aldrig bli mindre än så här */
-            max-width: 500px;
+            max-width: 450px;
             /* Och aldrig bli större än så här */
         }
 
@@ -677,7 +677,8 @@
         </div>
         <div class="top-bar-right">
             <button id="main-toggle-edit-mode-btn" title="Växla Redigeringsläge">A</button>
-            <button id="btn-toggle-dark-mode" title="Växla ljust/mörkt läge">🌙</button>
+            <button id="btn-show-help" title="Hjälp & HOW TO">?</button> <button id="btn-toggle-dark-mode"
+                title="Växla ljust/mörkt läge">🌙</button>
             <button id="hamburger-btn">☰</button>
         </div>
     </div>
@@ -933,6 +934,7 @@
                 this.btnExportTxt = document.getElementById('btn-export-txt');
                 this.btnExportZip = document.getElementById('btn-export-zip');
                 this.btnToggleDarkMode = document.getElementById('btn-toggle-dark-mode');
+                this.btnShowHelp = document.getElementById('btn-show-help');
                 this.btnExportJson = document.getElementById('btn-export-json');
                 this.btnExportAllJson = document.getElementById('btn-export-all-json');
                 this.btnImportJson = document.getElementById('btn-import-json');
@@ -1126,6 +1128,10 @@
                 this.btnExportTxt.addEventListener('click', () => this.exportTxt());
                 this.btnExportZip.addEventListener('click', () => this.exportAllAsZip());
                 this.btnToggleDarkMode.addEventListener('click', () => this.toggleDarkMode());
+                this.btnShowHelp.addEventListener('click', () => {
+                    // Byt ut URL:en nedan mot den exakta länken till din hjälpsida på GitHub
+                    window.open('https://gobonkers65.github.io/ProChorder/help', '_blank');
+                });
                 this.btnExportJson.addEventListener('click', () => this.exportJson());
                 this.btnExportAllJson.addEventListener('click', () => this.exportAllJson());
                 this.btnImportJson.addEventListener('click', () => this.fileImport.click());
@@ -1380,7 +1386,7 @@
             showCustomAlert(message) { const dialog = document.getElementById('custom-alert'); document.getElementById('custom-alert-message').textContent = message; dialog.classList.add('visible'); const okBtn = document.getElementById('custom-alert-ok'); const close = () => dialog.classList.remove('visible'); okBtn.onclick = close; }
             showCustomConfirm(message) { return new Promise(resolve => { const dialog = document.getElementById('custom-confirm'); document.getElementById('custom-confirm-message').textContent = message; dialog.classList.add('visible'); const okBtn = document.getElementById('custom-confirm-ok'); const cancelBtn = document.getElementById('custom-confirm-cancel'); const close = (value) => { dialog.classList.remove('visible'); resolve(value); }; okBtn.onclick = () => close(true); cancelBtn.onclick = () => close(false); }); }
             toggleDarkMode() { document.body.classList.toggle('dark-mode'); const isDarkMode = document.body.classList.contains('dark-mode'); localStorage.setItem(StableChordEditor.STORAGE_KEYS.DARK_MODE, isDarkMode ? 'enabled' : 'disabled'); this.btnToggleDarkMode.textContent = isDarkMode ? '☀️' : '🌙'; }
-            createNewProject() { this.titleInput.value = ''; this.authorInput.value = ''; this.loadContent('<div><br></div>', true); this.projectList.selectedIndex = 0; localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (this.fontSizeSlider) { this.fontSizeSlider.value = 16; } this.editor.style.fontSize = '16px'; this.titleInput.focus(); }
+            createNewProject() { this.titleInput.value = ''; this.authorInput.value = ''; this.loadContent('Öppna sidopanelen och döp ditt projekt. Gå sedan till "Projekt" och spara..', true); this.projectList.selectedIndex = 0; localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT); if (this.fontSizeSlider) { this.fontSizeSlider.value = 16; } this.editor.style.fontSize = '16px'; this.titleInput.focus(); }
             saveProject(name) { this.syncChordData(); const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; projects[name] = { title: this.titleInput.value, author: this.authorInput.value, fontSize: this.editor.style.fontSize || '16px', content: this.getContentAsText(), scrollSpeed: this.scrollSpeed, duration: this.getTotalDurationSeconds() }; localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name); this.updateProjectList(name); const originalText = this.btnSaveProject.textContent; this.btnSaveProject.textContent = 'Saved'; this.btnSaveProject.disabled = true; setTimeout(() => { this.btnSaveProject.textContent = 'Save'; this.btnSaveProject.disabled = false; }, 1200); }
             // ERSÄTT HELA loadProject-FUNKTIONEN MED DENNA
             loadProject(name) {

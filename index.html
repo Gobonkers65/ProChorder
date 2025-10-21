@@ -8,7 +8,7 @@
     <style>
         :root {
             --chord-btn-width: 65px;
-            --chord-btn-height: 28px;
+            --chord-btn-height: 32px;
             --bg: #f4f5f7;
             --surface: #ffffff;
             --text-color: #172b4d;
@@ -1254,7 +1254,7 @@
                     // HÄR ÄR DEN VIKTIGA LOGIKEN:
                     if (type === '') {
                         // Om det är ett rent grundackord (t.ex. "A")
-                        button.textContent = `Använd ${mainChord}`;
+                        button.textContent = `Use ${mainChord}`;
                         button.classList.add('active');
                         // Denna knapp anropar applyChord DIREKT och avslutar.
                         button.addEventListener('click', () => this.applyChord(mainChord));
@@ -1271,7 +1271,7 @@
                 this.modalChordTypes.style.display = 'grid';
                 this.modalBassNotes.style.display = 'none';
             }
-            renderBassNotes(mainChord, rootNote) { this.modalChordTarget.textContent = `Select Bass Key (Chord: ${mainChord})`; this.modalBassNotes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderChordTypes(rootNote)); this.modalBassNotes.appendChild(backButton); const doneButton = document.createElement('button'); doneButton.textContent = `Använd ${mainChord}`; doneButton.classList.add('active'); doneButton.addEventListener('click', () => this.applyChord(mainChord)); this.modalBassNotes.appendChild(doneButton); this.bassNotes.forEach(note => { const finalChord = `${mainChord}/${note}`; const button = document.createElement('button'); button.textContent = `/${note}`; button.addEventListener('click', () => this.applyChord(finalChord)); this.modalBassNotes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'grid'; }
+            renderBassNotes(mainChord, rootNote) { this.modalChordTarget.textContent = `Select Bass Key (Chord: ${mainChord})`; this.modalBassNotes.innerHTML = ''; const backButton = document.createElement('button'); backButton.textContent = '‹ Tillbaka'; backButton.addEventListener('click', () => this.renderChordTypes(rootNote)); this.modalBassNotes.appendChild(backButton); const doneButton = document.createElement('button'); doneButton.textContent = `Use ${mainChord}`; doneButton.classList.add('active'); doneButton.addEventListener('click', () => this.applyChord(mainChord)); this.modalBassNotes.appendChild(doneButton); this.bassNotes.forEach(note => { const finalChord = `${mainChord}/${note}`; const button = document.createElement('button'); button.textContent = `/${note}`; button.addEventListener('click', () => this.applyChord(finalChord)); this.modalBassNotes.appendChild(button); }); this.modalRootNotes.style.display = 'none'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'grid'; }
             applyChord(chordName) { if (!this.currentlyEditing) return; if (this.currentlyEditing.element) { const chordTextEl = this.currentlyEditing.element.querySelector('.chord-text'); this.currentlyEditing.element.dataset.chord = chordName; if (chordTextEl) chordTextEl.textContent = chordName; } else if (this.currentlyEditing.range) { const range = this.currentlyEditing.range; const wordText = range.toString(); range.deleteContents(); const chordSpan = this.createChordSpan(chordName); range.insertNode(chordSpan); const textNode = document.createTextNode(" " + wordText); range.setStartAfter(chordSpan); range.insertNode(textNode); } this.centerChordHandles(); this.recordHistoryDebounced(); this.closeChordModal(); }
             closeChordModal() { this.chordEditorModal.classList.remove('visible'); this.currentlyEditing = null; }
             removeChord() { if (this.currentlyEditing?.element) { this.currentlyEditing.element.remove(); this.recordHistoryDebounced(); } this.closeChordModal(); }

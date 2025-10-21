@@ -1,81 +1,93 @@
 <!DOCTYPE html>
 <html lang="sv">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ProChorder Bruksanvisning</title>
+    <title>ProChorder Instructions</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.7;
-            background-color: #f8f9fa;
+            background-color: #353536;
             /* Ljusgrå bakgrund */
             color: #212529;
             /* Mörk textfärg */
             margin: 0;
             padding: 20px;
         }
+
         /* Centrerar innehållet och ger det en maxbredd */
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: #a9a9a9;
+            background-color: #c9c9c9;
             /* Vit bakgrund för innehållet */
             border-radius: 8px;
             padding: 2em 3em;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #dee2e6;
+            border: 1px solid #ffffff;
         }
+
         h1,
         h3 {
-            color: #232323;
+            color: #2e2e2e;
             /* En blå färg som matchar appen */
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 8px;
+            border-bottom: 2px solid #fafafa;
+            padding-bottom: 2px;
         }
+
         h1 {
-            font-size: 2.5em;
-            margin-top: 0;
+            font-size: 1.5em;
+            margin-top: 0.5;
         }
+
         h3 {
-            font-size: 1.8em;
-            margin-top: 2.5em;
+            font-size: 1.0em;
+            margin-top: 1.5em;
             /* Mer luft ovanför rubriker */
         }
+
         /* Gör bilder responsiva */
         img {
             max-width: 100%;
             height: auto;
             border-radius: 4px;
-            border: 1px solid #dee2e6;
+            border: 1px solid #050505;
+            margin-top: 5px;
         }
+
         /* Stajlar kod-blocken */
         code {
-            background-color: #e9ecef;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
+            background-color: #202020;
+            border: 1px solid #585858;
+            border-radius: 5px;
             padding: 0.2em 0.5em;
             font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 0.9em;
-            color: #c7254e;
+            color: #c8c8c8;
             /* Rödaktig färg för kod */
         }
+
         /* Korrekt indrag för listor */
         ul,
         ol {
-            padding-left: 25px;
+            padding-left: 20px;
         }
+
         /* Ger lite extra luft i listor */
         li {
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
+
         /* Nästlade listor får marginal */
         ul ul,
         ol ul {
             margin-top: 10px;
         }
+
         p {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -85,36 +97,40 @@
         <h1>ProChorder 9.8</h1>
         <h2><span style="color: #b40101;">Note!&nbsp;</span></h2>
         <p><strong>The songs you create are tied to the mobile or computer you start your project on. For backup and
-                migration, see the section on Export JSON. This aplication works on computers, tablets and mobile phones. How ever some features is not avalable or can be more difficult to use on a tuch screen.</strong></p>
+                migration, see the section on Export JSON. This aplication works on computers, tablets and mobile
+                phones. How ever some features is not avalable or can be more difficult to use on a tuch
+                screen.</strong></p>
         <h2>Welcome to ProChorder!</h2>
         <p><strong>Here is a guide to help you get started and use all the features of the app.</strong></p>
         <h2>A brief look att the interface</h2>
         <ul>
-            <li>
-                <p><strong>Top menu:</strong>&nbsp;Here you switch projects, create new ones, switch editing mode C /
-                    L, &nbsp;<code>C</code>&nbsp;/&nbsp;<code>L</code>, turn on dark mode &nbsp;<code>🌙</code>&nbsp;and open the side menu&nbsp;<code>☰</code>.</p>
+
+            <p><strong>Top menu:</strong>&nbsp;Here you switch projects, create new ones, switch editing mode C /
+                L, &nbsp;<code>C</code>&nbsp;/&nbsp;<code>L</code>, turn on dark mode &nbsp;<code>🌙</code>&nbsp;and
+                open the side menu&nbsp;<code>☰</code>.
                 <img src="https://gobonkers65.github.io/ProChorder/upper_tool_bar.png" alt="Toppmenyn" width="455"
                     height="41" />
-            </li>
-        </ul>
-        <p>&nbsp;</p>
-        <ul>
-            <li>
-                <p><strong>Text window:</strong>&nbsp;Your main work area where you write lyrics and chords..</p>
+            </p>
+
+
+            <p><strong>Text window:</strong>&nbsp;Your main work area where you write lyrics and chords..
                 <img src="https://gobonkers65.github.io/ProChorder/textwin.png" alt="Ackord editor" width="270"
                     height="250" />
-            </li>
-            <li>
-                <p><strong>Side menu ☰:</strong>&nbsp;Contains all tools such as "LIVE" mode, transposition, text size,
-                    section markers, import/export and project settings.</p>
-            </li>
+            </p>
+
+
+            <p><strong>Side menu ☰:</strong>&nbsp;Contains all tools such as "LIVE" mode, transposition, text size,
+                section markers, import/export and project settings.</p>
+
         </ul>
         <p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;<img src="https://gobonkers65.github.io/ProChorder/side_tools.png"
                 alt="Verktyg i sidomenyn" width="226" height="301" /></p>
         <hr />
         <h2>&nbsp;</h2>
         <h2>1. Manage your projects</h2>
-        <p>Rememper to click "Save" before you before you go to another project/song. Open the side menu&nbsp;<code>☰</code>&nbsp; choose "Project" and "save" If you change name of the song or artist you do'nt need to save. Just press "Ok" in the popup dialog box</p>
+        <p>Rememper to click "Save" before you before you go to another project/song. Open the side
+            menu&nbsp;<code>☰</code>&nbsp; choose "Project" and "save" If you change name of the song or artist you
+            do'nt need to save. Just press "Ok" in the popup dialog box</p>
         <ul>
             <li>
                 <p><strong>New song:</strong>&nbsp;Click on;&nbsp;<code>+</code>&nbsp;in the top menu.<span
@@ -149,23 +165,26 @@
             &nbsp;<code>C</code>&nbsp;/&nbsp;<code>L</code>-button in the top menu.</p>
         <ul>
             <p><strong><code>C</code>&nbsp;- Chord Mode:</strong></p>
-            <p>This is the default mode. Here the editor is "smart" and helps you with chords. Chords sticks to text. If there's no text, wright ...... ..... and place your chord. 
+            <p>This is the default mode. Here the editor is "smart" and helps you with chords. Chords sticks to text. If
+                there's no text, wright ...... ..... and place your chord.
             </p>
         </ul>
         <p style="padding-left: 30px;"><strong>Create chords:</strong>&nbsp;By clicking on a word in the text, the chord
             selector opens.</p>
         <p style="padding-left: 30px;"><img src="https://gobonkers65.github.io/ProChorder/chordbuilder.png"
                 alt="Bygg ackord" width="320" height="222" /></p>
-        <p style="padding-left: 30px;"><br></br><strong>Create Chords Manually in<code>L</code>Mode</strong>
-        </p>Type&nbsp;<code>[G7]</code> any where in your lyrics. Save your song when you're done. The next time you open the project the chord is in the right formate </p>
+        <p style="padding-left: 30px;"><br></br><strong>Create Chords Manually in <code>L</code> Mode</strong>
+        </p>Type&nbsp;<strong>[G7]</strong> any where in your lyrics. Save your song when you're done. The next time you
+        open the project the chord is in the right formate </p>
         <p style="padding-left: 30px;"><strong><img src="https://gobonkers65.github.io/ProChorder/ackord.png"
                     alt="Toppmenyn" width="200" height="100" /></strong></p>
         <ul>
             <li><strong>Edit Chord:</strong>&nbsp;Click on the blue handle on an existing chord to change it. (Hover
                 over the chord to make the handle appear)<br></br></li>
-            <li><strong>Move Chord (Computer):</strong>&nbsp;Click and drag the small blue handle on a chord to move
+            <li><strong>Move Chord:</strong>&nbsp;Click and drag the small blue handle on a chord to move
                 it.<br /><br /></li>
-            <li><strong>Drag-Copy Chord:</strong>&nbsp;Hold down [alt], click and drag the small handle to the desired
+            <li><strong>Drag-Copy Chord (Computer):</strong>&nbsp;Hold down [alt], click and drag the small handle to
+                the desired
                 position.<br /><br /></li>
         </ul>
         <ul>
@@ -180,45 +199,52 @@
         <hr />
         <h2>&nbsp;</h2>
         <h2>3. Section formatting (Verse, Chorus, etc.)</h2>
-        <p>To structure your song:</p>
+        <p>Add structure your song:</p>
         <ol>
             <li>
-                <p>Place the text cursor on the line you want the verse, chorus, stick cursor to end up above "Solen
-                    skiner idag" (In english: "The sun is shining today"<code>:)</code>)..</p>
+                <p>Place the text cursor on the line you want verse, chorus, to end up above </p>
             </li>
             <li>
                 <p>Open the sida bar menu <code>☰</code> &gt;&nbsp;<strong>Sections</strong>.</p>
             </li>
             <li>
-                <p>Select your section marker from the drop-down menu and click&nbsp;<strong>Insert</strong>.<br /><br /><img
+                <p>Select your section marker from the drop-down menu and
+                    click&nbsp;<strong>Insert</strong>.<br /><br /><img
                         src="https://gobonkers65.github.io/ProChorder/section_selector.png" alt="Sektionsval"
                         width="226" height="301" /></p>
             </li>
             <li>
-                <p>The line will now show "<strong>Verse</strong>" in larger text size and the lyric section will move to the
+                <p>The line will now show "<strong>Verse</strong>" in larger text size and the lyric section will move
+                    to the
                     line below.</p>
                 <img src="https://gobonkers65.github.io/ProChorder/verse.png" alt="Toppmenyn" width="240"
                     height="150" />
             </li>
+
+            <p><strong>Change marker</strong> Place the text cursor on the text line under the section marker you wnt to
+                change. Go to "Sections" and choose a new marker. Click on "Insert" and you're done.</p>
+
+
         </ol>
-    <hr />
+        <hr />
         <h2>4. Links</h2>
         <p>You can create clickable links in two different ways.</p>
 
-        <li>
-            <p><strong>Automatic link:</strong></p>
-            <ul>
-                <li>
-                    <p><strong>Type</strong>: www.ultimate-guitar.com and press space bar </p>
-                </li>
-                <li>
-                    <p><strong>Result</strong>:<a href="https://www.ultimate-guitar.com/" target="_blank"
-                            rel="noopener">www.ultimate-guitar.com</a></p>
-                </li>
-            </ul>
+
+        <p><strong>Automatic link:</strong></p>
+        <ul>
+
+            <p><strong>Type</strong>: www.ultimate-guitar.com and press space bar </p>
+
+
+            <p><strong>Result</strong>:<a href="https://www.ultimate-guitar.com/" target="_blank"
+                    rel="noopener">www.ultimate-guitar.com</a></p>
+            <p>&nbsp;</p>
+        </ul>
         </li>
         <p><strong>Short text link:</strong></p>
-        <p><strong>Type</strong>:&nbsp;<code>[[www.spotify.com/abba|Listen]]</code>And press space bar
+        <p><strong>Type</strong>:&nbsp;<strong>[[</strong>www.spotify.com<strong>/</strong>abba<strong>|</strong>Listen<strong>]]</strong>
+            and press space bar. "|" "[[" and "]]" are important elements for this task.
         </p>
         <p><strong>Result</strong>:&nbsp;<a href="http://spotify.com/abba" target="_blank" rel="noopener">Listen </a>
         </p>
@@ -240,13 +266,17 @@
         <hr />
         <p>&nbsp;</p>
         <h2>6. LIVE mode (Autoscroll)</h2>
-        <p><img src="https://gobonkers65.github.io/ProChorder/direct_scroll.png" alt="Live-l&auml;ge ikon"
-                width="43" height="44" /><br />Perfect for playing live without having to touch the screen.<strong>
+        <p>Perfect for playing live without having to touch the screen.<strong>
                 NOTE! It is recommended that you exit live mode when you are going to change projects, work with lyrics
                 or chords. Live mode is only for scrolling in a Live context!!</strong></p>
+        <p><strong>Start LIVE-mode</strong> by using the <img
+                src="https://gobonkers65.github.io/ProChorder/direct_scroll.png" alt="Live-l&auml;ge ikon" width="23"
+                height="24"> button</p>
+         <p>You will get to the scrol function will start automatically. It can come in handy in a live situation.</p>
+         <p>&nbsp;</p>        
         <ol>
             <li>
-                <p>Start LIVE-mode by using the side menue&nbsp;<code>☰</code>&nbsp;</p>
+                <p><strong>Start LIVE-mode</strong> by using the side menue&nbsp;<code>☰</code>&nbsp;</p>
             </li>
             <li>
                 <p>Controls appears at the bottom.</p>
@@ -258,19 +288,19 @@
                 <p><strong>Speed Slider:</strong>Drag the slider to set the speed.</p>
             </li>
             <li>
-                <p><strong>Time m / s:</strong>You can also set an exact time e.g. 3 minutes 30 seconds that the song should take. The speed will then be calculated automatically.</p>
+                <p><strong>Time m / s:</strong>You can also set an exact time e.g. 3 minutes 30 seconds that the song
+                    should take. The speed will then be calculated automatically.</p>
             </li>
             <li>
                 <p><strong>Exit:</strong>Exits LIVE mode. The Escape key also works..</p>
             </li>
         </ol>
-        <p>&nbsp;</p>
         <hr />
         <p>&nbsp;</p>
-        <h2>7. Import &amp; Export</h2>
+        <h2>7. Import / Export</h2>
         <p>You can easily backup and share your songs.</p>
         <ul>
-            <li>
+            
                 <h3>Export:</h3>
                 <ul>
                     <li>
@@ -280,25 +310,30 @@
                         <p><strong><code>TXT</code></strong>: Saves the song as a plain text file.</p>
                     </li>
                     <li>
-                         <p><strong><code>Song->JSON</code></strong>: Saves the current song in a special format that the app can read again. <strong>Use this for backup!</strong>
+                        <p><strong><code>Song->JSON</code></strong>: Saves the current song in a special format that the
+                            app can read again. <strong>Use this for backup!</strong>
                         </p>
                     </li>
                     <li>
-                         <p><strong><code>All->JSON</code></strong>: Saves all your songs in a single file. Perfect for total backup.</p>
+                        <p><strong><code>All->JSON</code></strong>: Saves all your songs in a single file. Perfect for
+                            total backup.</p>
                     </li>
                     <li>
-                         <p><strong><code>ZIP</code></strong>: Saves all your l&tars as separate PDF files in a ZIP file.</p>
+                        <p><strong><code>ZIP</code></strong>: Saves all your l&tars as separate PDF files in a ZIP file.
+                        </p>
                     </li>
                 </ul>
             </li>
-            <li>
+            
                 <h3>Import:</h3>
                 <ul>
                     <li>
-                         <p><strong><code>Imp.->JSON</code></strong>&nbsp;Select a .json file (that you previously exported) to load one or more songs.</p>
+                        <p><strong><code>Imp.->JSON</code></strong>&nbsp;Select a .json file (that you previously
+                            exported) to load one or more songs.</p>
                     </li>
                     <li>
-                         <p><strong><code>Import URL</code></strong>&nbsp;Downloads a collection of songs directly from GitHub (used to load a collection of songs)..</p>
+                        <p><strong><code>Import URL</code></strong>&nbsp;Downloads a collection of songs directly from
+                            GitHub (used to load a collection of songs)..</p>
                     </li>
                 </ul>
             </li>

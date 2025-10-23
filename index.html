@@ -901,6 +901,7 @@
                 this.MIN_MOVE_SPEED = 0.02;
                 this.MAX_MOVE_SPEED = 0.5;
                 this.selectElements();
+                this.wakeLock = null;
                 this.observer = new MutationObserver(this.handleMutations.bind(this));
                 this.init();
             }
@@ -1096,6 +1097,7 @@
                     });
                 });
 
+
                 this.editor.addEventListener('dragover', this.handleDragOver.bind(this));
                 this.editor.addEventListener('dragleave', () => this.dropIndicator.style.display = 'none');
                 this.editor.addEventListener('drop', this.handleDrop.bind(this));
@@ -1160,6 +1162,7 @@
                     if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); this.undo(); }
                     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) { e.preventDefault(); this.redo(); }
                 });
+                document.addEventListener('visibilitychange', this.handleVisibilityChange.bind(this));
                 this.btnInsertSection.addEventListener('click', () => {
                     if (this.editMode === 'scroll') return;
                     const sectionType = this.sectionTypeSelect.value;
@@ -1203,12 +1206,17 @@
             // ... resten av koden är oförändrad ...
 
             // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA
+            // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA
             toggleScrollMode(enter, startImmediately = false) {
                 if (enter) {
                     if (!this.editor.textContent.trim()) {
                         this.showCustomAlert("Lägg till text innan du startar Live Mode.");
                         return;
                     }
+                    
+                    // *** NY KOD: Försök skaffa skärmlåset ***
+                    this.acquireWakeLock();
+
                     this.editMode = 'scroll';
                     this.editor.contentEditable = false;
                     document.body.classList.add('scroll-mode-active');
@@ -1216,18 +1224,18 @@
                         const scrollHeight = this.editor.scrollHeight - this.editor.clientHeight;
                         if (scrollHeight <= 0) {
                             this.showCustomAlert("Texten är för kort för att scrolla.");
-                            this.toggleScrollMode(false);
+                            this.toggleScrollMode(false); // Gå ur läget direkt
                             return;
                         }
-
-                        // Vi behöver inte längre beräkna hastigheten här.
-                        // Det sköter startScrolling() själv.
 
                         if (startImmediately) {
                             this.startScrolling();
                         }
                     }, 100);
                 } else {
+                    // *** NY KOD: Släpp skärmlåset ***
+                    this.releaseWakeLock();
+
                     this.stopScrolling();
                     this.editMode = 'chord';
                     this.editor.contentEditable = true;
@@ -1533,6 +1541,56 @@
             importSingleProject(data) { this.titleInput.value = data.title || ''; this.authorInput.value = data.author || ''; this.editor.style.fontSize = data.fontSize || '16px'; this.loadContent(data.content || '', true); if (data.scrollSpeed) this.scrollSpeed = data.scrollSpeed; if (data.duration) this.updateDurationInputs(data.duration); this.saveProject(data.title); }
             importMultipleProjects(projectsArray) { const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {}; let importedCount = 0, overwrittenCount = 0; for (const project of projectsArray) { if (project && project.title) { if (projects[project.title]) overwrittenCount++; else importedCount++; projects[project.title] = project; } } localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects)); this.updateProjectList(); this.showCustomAlert(`${importedCount} nya låtar importerades. ${overwrittenCount} låtar uppdaterades.`); if (projectsArray.length > 0) this.loadProject(projectsArray[0].title); }
             sanitizeFilename(name) { return name.replace(/[\/\\?%*:|"<>]/g, '-') || 'låt'; }
+            // *** NYA FUNKTIONER FÖR SKÄRMLÅS ***
+
+            // Försöker skaffa ett skärmlås
+            async acquireWakeLock() {
+                // Kolla först om webbläsaren stöder Wake Lock API
+                if ('wakeLock' in navigator) {
+                    try {
+                        // Begär ett lås och spara det i klass-variabeln
+                        this.wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('Skärmlås aktiverat!');
+
+                        // Lägg till en lyssnare för om låset släpps automatiskt
+                        // (t.ex. om användaren byter flik)
+                        this.wakeLock.addEventListener('release', () => {
+                            console.log('Skärmlås släppt (t.ex. flik dold)');
+                            this.wakeLock = null;
+                        });
+
+                    } catch (err) {
+                        // Detta kan hända om användaren nekar eller om sidan inte är HTTPS
+                        console.error(`Kunde inte skaffa skärmlås: ${err.name}, ${err.message}`);
+                    }
+                } else {
+                    console.warn('Wake Lock API stöds inte i denna webbläsare.');
+                }
+            }
+
+            // Släpper skärmlåset
+            async releaseWakeLock() {
+                // Kolla om vi har ett aktivt lås att släppa
+                if (this.wakeLock !== null) {
+                    try {
+                        await this.wakeLock.release();
+                        this.wakeLock = null;
+                        console.log('Skärmlås släppt.');
+                    } catch (err) {
+                        console.error(`Kunde inte släppa skärmlås: ${err.name}, ${err.message}`);
+                    }
+                }
+            }
+
+            // Hanterar om användaren byter flik
+            handleVisibilityChange() {
+                // Om vi är i scroll-läge OCH fliken blir synlig IGEN OCH vi inte har ett lås...
+                if (this.editMode === 'scroll' && document.visibilityState === 'visible' && !this.wakeLock) {
+                    // ...försök att skaffa låset på nytt.
+                    console.log('Fliken synlig, försöker återta skärmlås...');
+                    this.acquireWakeLock();
+                }
+            }
             toggleScrolling() { if (this.scrollInterval) this.stopScrolling(); else this.startScrolling(); }
             // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA
             startScrolling() {

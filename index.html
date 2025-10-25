@@ -1247,6 +1247,7 @@
             openChordModal(element, range) { this.currentlyEditing = { element, range }; if (element) { this.modalChordTarget.textContent = `Redigerar: ${element.dataset.chord}`; this.modalBtnRemove.style.display = 'inline-block'; } else if (range) { this.modalChordTarget.textContent = `Lägg till vid: "${range.toString()}"`; this.modalBtnRemove.style.display = 'none'; } this.renderRootNotes(); this.chordEditorModal.classList.add('visible'); }
             renderRootNotes() { this.modalChordTarget.textContent = 'Select keynote'; this.modalRootNotes.innerHTML = ''; this.musicalNotes.forEach(note => { const button = document.createElement('button'); button.textContent = note; button.addEventListener('click', () => this.renderChordTypes(note)); this.modalRootNotes.appendChild(button); }); this.modalRootNotes.style.display = 'grid'; this.modalChordTypes.style.display = 'none'; this.modalBassNotes.style.display = 'none'; }
             // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA NYA VERSION
+            // ERSÄTT DEN GAMLA FUNKTIONEN MED DENNA NYA VERSION
             renderChordTypes(rootNote) {
                 this.modalChordTarget.textContent = `Select type (Keynote: ${rootNote})`;
                 this.modalChordTypes.innerHTML = '';
@@ -1254,6 +1255,14 @@
                 backButton.textContent = '‹ Tillbaka';
                 backButton.addEventListener('click', () => this.renderRootNotes());
                 this.modalChordTypes.appendChild(backButton);
+
+                // *** NY KNAPP FÖR BASTON ( SLASH-ACKORD ) ***
+                const bassButton = document.createElement('button');
+                bassButton.textContent = 'Add Bass /'; // Tydlig text
+                // Denna knapp går direkt till bas-val, med grundtonen (t.ex. "A") som huvudackord
+                bassButton.addEventListener('click', () => this.renderBassNotes(rootNote, rootNote));
+                this.modalChordTypes.appendChild(bassButton);
+                // *** SLUT PÅ NY KOD ***
 
                 this.chordTypes.forEach(type => {
                     const mainChord = rootNote + type;
@@ -1265,6 +1274,7 @@
                         button.textContent = `Use ${mainChord}`;
                         button.classList.add('active');
                         // Denna knapp anropar applyChord DIREKT och avslutar.
+                        // (Detta är den snabba vägen för vanliga dur-ackord)
                         button.addEventListener('click', () => this.applyChord(mainChord));
                     } else {
                         // För alla andra ackord (Am, A7 etc.)

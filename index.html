@@ -1661,24 +1661,26 @@
         }
 
         updateModeUI() {
-          if (this.editMode === "chord") {
-            this.editModeLabel.textContent = "Edit (Chords)";
-            this.btnToggleEditMode.textContent = "Switch to Lyrics Mode";
-            if (this.mainToggleEditModeBtn) {
-              this.mainToggleEditModeBtn.textContent = "C";
-              this.mainToggleEditModeBtn.title = "Switch to Lyrics Mode";
+                if (this.editMode === 'chord') {
+                    this.editModeLabel.textContent = 'Edit (Chords)';
+                    this.btnToggleEditMode.textContent = 'Switch to Lyrics Mode';
+                    if (this.mainToggleEditModeBtn) {
+                        this.mainToggleEditModeBtn.textContent = 'C';
+                        this.mainToggleEditModeBtn.title = 'Switch to Lyrics Mode';
+                    }
+                    this.editor.classList.remove('text-mode');
+                    this.editor.setAttribute('inputmode', 'none'); // <-- NY RAD
+                } else if (this.editMode === 'text') {
+                    this.editModeLabel.textContent = 'Edit (Lyrics)';
+                    this.btnToggleEditMode.textContent = 'Switch to Chord Mode';
+                    if (this.mainToggleEditModeBtn) {
+                        this.mainToggleEditModeBtn.textContent = 'L';
+                        this.mainToggleEditModeBtn.title = 'Switch to Chord Mode';
+                    }
+                    this.editor.classList.add('text-mode');
+                    this.editor.setAttribute('inputmode', 'text'); // <-- NY RAD
+                }
             }
-            this.editor.classList.remove("text-mode");
-          } else if (this.editMode === "text") {
-            this.editModeLabel.textContent = "Edit (Lyrics)";
-            this.btnToggleEditMode.textContent = "Switch to Chord Mode";
-            if (this.mainToggleEditModeBtn) {
-              this.mainToggleEditModeBtn.textContent = "L";
-              this.mainToggleEditModeBtn.title = "Switch to Chord Mode";
-            }
-            this.editor.classList.add("text-mode");
-          }
-        }
 
         // *** ÄNDRAD: toggleScrollMode hanterar nu skärmlåset ***
         toggleScrollMode(enter, startImmediately = false) {

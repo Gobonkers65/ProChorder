@@ -437,13 +437,13 @@
         justify-content: center;
         align-items: center;
         opacity: 0;
-        visibility: hidden;
-        transition: opacity 0.2s, visibility 0.2s;
+        pointer-events: none; /* <--- NY RAD */
+        transition: opacity 0.2s; /* <--- FÖRENKLAD RAD */
       }
 
       .custom-dialog-overlay.visible {
         opacity: 1;
-        visibility: visible;
+        pointer-events: auto; /* <--- NY RAD */
       }
 
       .custom-dialog-box {
@@ -798,13 +798,17 @@
 
     <div id="menu-overlay" class="is-closed"></div>
 
-    <nav id="side-menu" class="is-closed">
-      <input type="text" id="song-title" placeholder="Title" />
-      <input type="text" id="song-author" placeholder="Artist / Song writer" />
-      <button id="btn-toggle-scroll-mode" class="btn-primary">LIVE!</button>
-
+<nav id="side-menu" class="is-closed">
+            <input type="text" id="song-title" placeholder="Title">
+            <input type="text" id="song-author" placeholder="Artist / Song writer">
+            
+            <div class="sidebar-controls horizontal" style="gap: 0.4em;">
+                <button id="btn-toggle-scroll-mode" class="btn-primary">LIVE!</button>
+                
+                <button id="btn-open-tuner" class="btn-primary">Tuner soon!</button>
+            </div>
       <div class="sidebar-group">
-        <span class="sidebar-group-label" id="edit-mode-label">Redigera</span>
+        <span class="sidebar-group-label" id="edit-mode-label">Edit</span>
         <div class="sidebar-group-content is-collapsed">
           <div class="sidebar-controls vertical">
             <button
@@ -965,6 +969,31 @@
         </div>
       </div>
     </div>
+    <div id="tuner-modal" class="custom-dialog-overlay">
+      <div
+        class="custom-dialog-box"
+        style="background: #111; color: white; border: 1px solid var(--border)"
+      >
+        <h3 style="margin-top: 0">Gitarrstämmare</h3>
+
+        <div
+          id="tuner-display"
+          style="
+            min-height: 150px;
+            font-size: 3em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          --
+        </div>
+
+        <div class="dialog-buttons">
+          <button id="tuner-btn-close">Stäng</button>
+        </div>
+      </div>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -1050,6 +1079,49 @@
           selection.addRange(range);
 
           this.recordHistoryDebounced();
+        }
+        openTunerModal() {
+          this.tunerModal.classList.add("visible");
+          // Försök starta ljudanalysen
+          this.startTuner();
+        }
+
+        closeTunerModal() {
+          this.tunerModal.classList.remove("visible");
+          // Stäng av ljudanalysen
+          this.stopTuner();
+        }
+
+        // Grundläggande funktion för att be om mikrofon
+        async startTuner() {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+              video: false,
+            });
+            console.log("Mikrofonåtkomst beviljad!");
+            this.tunerDisplay.textContent = "Lyssnar...";
+
+            // *** HÄR KOMMER DEN KOMPLEXA LJUDANALYSEN ***
+            // (AudioContext, AnalyserNode, FFT, etc.)
+            // Vi behöver spara 'stream' så vi kan stänga den sen
+            this.micStream = stream;
+          } catch (err) {
+            console.error("Fel vid hämtning av mikrofon:", err);
+            this.tunerDisplay.textContent = "Fel";
+            this.showCustomAlert("Kunde inte komma åt mikrofonen.");
+            this.closeTunerModal();
+          }
+        }
+
+        stopTuner() {
+          console.log("Stänger av tuner...");
+          this.tunerDisplay.textContent = "--";
+          // Stoppa alla spår i mikrofon-strömmen
+          if (this.micStream) {
+            this.micStream.getTracks().forEach((track) => track.stop());
+            this.micStream = null;
+          }
         }
 
         constructor(editorId) {
@@ -1188,7 +1260,10 @@
           // Dessa knappar finns kvar, men i en ny position
           this.modalBtnRemove = document.getElementById("modal-btn-remove");
           this.modalBtnClose = document.getElementById("modal-btn-close");
-
+          this.btnOpenTuner = document.getElementById("btn-open-tuner");
+          this.tunerModal = document.getElementById("tuner-modal");
+          this.tunerBtnClose = document.getElementById("tuner-btn-close");
+          this.tunerDisplay = document.getElementById("tuner-display");
           this.scrollControls = document.getElementById("scroll-controls");
           this.scrollBtnPlayPause = document.getElementById(
             "scroll-btn-play-pause"
@@ -1364,7 +1439,12 @@
           this.modalBtnRemove.addEventListener("click", () =>
             this.removeChord()
           );
-
+          this.btnOpenTuner.addEventListener("click", () =>
+            this.openTunerModal()
+          );
+          this.tunerBtnClose.addEventListener("click", () =>
+            this.closeTunerModal()
+          );
           // *** NYTT: Lyssnare för den radiala mittknappen ***
           document
             .getElementById("center-button")
@@ -1597,26 +1677,26 @@
         }
 
         updateModeUI() {
-                if (this.editMode === 'chord') {
-                    this.editModeLabel.textContent = 'Edit (Chords)';
-                    this.btnToggleEditMode.textContent = 'Switch to Lyrics Mode';
-                    if (this.mainToggleEditModeBtn) {
-                        this.mainToggleEditModeBtn.textContent = 'C';
-                        this.mainToggleEditModeBtn.title = 'Switch to Lyrics Mode';
-                    }
-                    this.editor.classList.remove('text-mode');
-                    this.editor.setAttribute('inputmode', 'none'); // <-- NY RAD
-                } else if (this.editMode === 'text') {
-                    this.editModeLabel.textContent = 'Edit (Lyrics)';
-                    this.btnToggleEditMode.textContent = 'Switch to Chord Mode';
-                    if (this.mainToggleEditModeBtn) {
-                        this.mainToggleEditModeBtn.textContent = 'L';
-                        this.mainToggleEditModeBtn.title = 'Switch to Chord Mode';
-                    }
-                    this.editor.classList.add('text-mode');
-                    this.editor.setAttribute('inputmode', 'text'); // <-- NY RAD
-                }
+          if (this.editMode === "chord") {
+            this.editModeLabel.textContent = "Edit (Chords)";
+            this.btnToggleEditMode.textContent = "Switch to Lyrics Mode";
+            if (this.mainToggleEditModeBtn) {
+              this.mainToggleEditModeBtn.textContent = "C";
+              this.mainToggleEditModeBtn.title = "Switch to Lyrics Mode";
             }
+            this.editor.classList.remove("text-mode");
+            this.editor.setAttribute("inputmode", "none"); // <-- NY RAD
+          } else if (this.editMode === "text") {
+            this.editModeLabel.textContent = "Edit (Lyrics)";
+            this.btnToggleEditMode.textContent = "Switch to Chord Mode";
+            if (this.mainToggleEditModeBtn) {
+              this.mainToggleEditModeBtn.textContent = "L";
+              this.mainToggleEditModeBtn.title = "Switch to Chord Mode";
+            }
+            this.editor.classList.add("text-mode");
+            this.editor.setAttribute("inputmode", "text"); // <-- NY RAD
+          }
+        }
 
         // *** ÄNDRAD: toggleScrollMode hanterar nu skärmlåset ***
         toggleScrollMode(enter, startImmediately = false) {
@@ -1812,33 +1892,29 @@
           };
         }
 
-        // *** SLUT PÅ NYA FUNKTIONER FÖR RADIAL BYGGARE ***
+        // *** ERSÄTT HELA DIN openChordModal MED DENNA ROBUSTA VERSION ***
+        openChordModal(element, range) {
+          this.currentlyEditing = { element, range };
 
-        // *** ÄNDRAD: openChordModal använder nu den nya radiala byggaren ***
-        // *** ERSÄTT MED DENNA ***
-            openChordModal(element, range) {
-                this.currentlyEditing = { element, range };
-                
-                // *** 1. GÖR MODALEN SYNLIG FÖRST! ***
-                // Detta tvingar webbläsaren att beräkna ringarnas storlek.
-                this.chordEditorModal.classList.add("visible");
+          // 1. Gör modalen synlig (startar fade-in)
+          this.chordEditorModal.classList.add("visible");
 
-                if (element) {
-                    // Vi klickade på ett befintligt ackord.
-                    const existingChord = element.dataset.chord;
-                    // Tolka ackordet och sätt det radiala state-objektet
-                    this.parseChordToRadialState(existingChord);
-                    this.modalBtnRemove.style.display = "inline-block";
-                } else if (range) {
-                    // Vi skapar ett nytt ackord. Återställ till C.
-                    this.parseChordToRadialState("C");
-                    this.modalBtnRemove.style.display = "none";
-                }
+          if (element) {
+            // Vi klickade på ett befintligt ackord.
+            const existingChord = element.dataset.chord;
+            this.parseChordToRadialState(existingChord);
+            this.modalBtnRemove.style.display = "inline-block";
+          } else if (range) {
+            // Vi skapar ett nytt ackord. Återställ till C.
+            this.parseChordToRadialState("C");
+            this.modalBtnRemove.style.display = "none";
+          }
 
-                // *** 2. RITA KNAPPARNA NU ***
-                // Nu när ringarna är synliga kan layer.offsetWidth mätas korrekt.
-                this.renderRadialBuilder();
-            }
+          // 2. Rita knapparna direkt.
+          // Detta är nu säkert, eftersom modalen ALLTID har en
+          // mätbar bredd (offsetWidth), även när den är transparent.
+          this.renderRadialBuilder();
+        }
 
         // *** renderRootNotes, renderChordTypes, renderBassNotes är nu borttagna ***
 
@@ -1881,25 +1957,60 @@
         }
 
         getWordAtCursor(event) {
-          try {
-            const range = document.caretRangeFromPoint(
+          let range = null;
+
+          // Standard-sättet (Firefox)
+          if (document.caretPositionFromPoint) {
+            const pos = document.caretPositionFromPoint(
               event.clientX,
               event.clientY
             );
-            if (!range || !range.startContainer.textContent) return null;
+            if (pos) {
+              range = document.createRange();
+              range.setStart(pos.offsetNode, pos.offset);
+              range.collapse(true);
+            }
+          }
+          // Icke-standard-sättet (Chrome, Safari, Edge)
+          else if (document.caretRangeFromPoint) {
+            range = document.caretRangeFromPoint(event.clientX, event.clientY);
+          }
+
+          // Om vi inte kunde hitta en range (t.ex. klick utanför text), avbryt.
+          if (
+            !range ||
+            !range.startContainer.textContent ||
+            range.startContainer.nodeType !== Node.TEXT_NODE
+          ) {
+            return null;
+          }
+
+          // Nu när vi har en 'range', kör resten av logiken för att hitta ordet
+          try {
             const text = range.startContainer.textContent;
             let startIndex = range.startOffset;
             let endIndex = range.startOffset;
-            while (startIndex > 0 && text[startIndex - 1].trim() !== "")
+
+            // Gå bakåt för att hitta början av ordet
+            while (startIndex > 0 && text[startIndex - 1].trim() !== "") {
               startIndex--;
-            while (endIndex < text.length && text[endIndex].trim() !== "")
+            }
+            // Gå framåt för att hitta slutet av ordet
+            while (endIndex < text.length && text[endIndex].trim() !== "") {
               endIndex++;
-            if (startIndex === endIndex) return null;
+            }
+
+            // Om vi inte hittade ett ord (t.ex. klick på ett mellanslag), avbryt.
+            if (startIndex === endIndex) {
+              return null;
+            }
+
             const wordRange = document.createRange();
             wordRange.setStart(range.startContainer, startIndex);
             wordRange.setEnd(range.startContainer, endIndex);
             return wordRange;
           } catch (e) {
+            console.error("getWordAtCursor error:", e);
             return null;
           }
         }

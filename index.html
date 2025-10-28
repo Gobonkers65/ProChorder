@@ -592,44 +592,6 @@
         box-shadow: none;
       }
 
-      .chord-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, var(--chord-btn-width));
-        gap: 6px;
-        justify-content: center;
-        margin-top: 1em;
-      }
-
-      .chord-grid button {
-        all: unset;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: var(--chord-btn-width);
-        height: var(--chord-btn-height);
-        box-sizing: border-box;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        font-family: var(--font-sans);
-        font-size: 0.85em;
-        font-weight: 600;
-        background-color: var(--bg);
-        color: var(--text-color);
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-      }
-
-      .chord-grid button:hover {
-        background-color: var(--primary-bg-hover);
-        border-color: var(--primary);
-      }
-
-      .chord-grid button.active {
-        background-color: var(--primary);
-        color: var(--button-text-light);
-        border-color: var(--primary);
-      }
-
       .hidden-file {
         display: none;
       }
@@ -728,7 +690,7 @@
         height: 50%; /* <-- Ändrad från 40% */
         margin: 25%; /* <-- Ändrad från 30% (100-50)/2 */
         background-color: rgba(255, 255, 255, 0.2);
-        font-size: 0.7;
+        font-size: 0.9em;
       }
 
       /* Objekt på lagren (valalternativ) */
@@ -823,11 +785,11 @@
         </button>
       </div>
       <div class="top-bar-right">
-        <button id="main-toggle-edit-mode-btn" title="Toggle edit mode">
+        <button id="main-toggle-edit-mode-btn" title="Växla Redigeringsläge">
           A
         </button>
-        <button id="btn-show-help" title="Help & HOW TO">?</button>
-        <button id="btn-toggle-dark-mode" title="Toggle light/dark mode">
+        <button id="btn-show-help" title="Hjälp & HOW TO">?</button>
+        <button id="btn-toggle-dark-mode" title="Växla ljust/mörkt läge">
           🌙
         </button>
         <button id="hamburger-btn">☰</button>
@@ -1011,7 +973,7 @@
       // Relevanta ändringar är markerade.
 
       const SHARED_SONG_LIST_URL =
-        "https://raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json";
+        "https.raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json";
 
       class StableChordEditor {
         static STORAGE_KEYS = {
@@ -1114,21 +1076,7 @@
             "G",
             "G#",
           ];
-          // *** ÄNDRAD: Bytt namn på bassNotes för att undvika konflikt. ***
-          this.chordBasisNotes = [
-            "A",
-            "A#",
-            "B",
-            "C",
-            "C#",
-            "D",
-            "D#",
-            "E",
-            "F",
-            "F#",
-            "G",
-            "G#",
-          ];
+
           this.historyMax = 100;
           this.MIN_MOVE_SPEED = 0.02;
           this.MAX_MOVE_SPEED = 0.5;
@@ -1867,27 +1815,30 @@
         // *** SLUT PÅ NYA FUNKTIONER FÖR RADIAL BYGGARE ***
 
         // *** ÄNDRAD: openChordModal använder nu den nya radiala byggaren ***
-        openChordModal(element, range) {
-          this.currentlyEditing = { element, range };
+        // *** ERSÄTT MED DENNA ***
+            openChordModal(element, range) {
+                this.currentlyEditing = { element, range };
+                
+                // *** 1. GÖR MODALEN SYNLIG FÖRST! ***
+                // Detta tvingar webbläsaren att beräkna ringarnas storlek.
+                this.chordEditorModal.classList.add("visible");
 
-          if (element) {
-            // Vi klickade på ett befintligt ackord.
-            const existingChord = element.dataset.chord;
-            // Tolka ackordet och sätt det radiala state-objektet
-            this.parseChordToRadialState(existingChord);
-            this.modalBtnRemove.style.display = "inline-block";
-          } else if (range) {
-            // Vi skapar ett nytt ackord. Återställ till C.
-            this.parseChordToRadialState("C");
-            this.modalBtnRemove.style.display = "none";
-          }
+                if (element) {
+                    // Vi klickade på ett befintligt ackord.
+                    const existingChord = element.dataset.chord;
+                    // Tolka ackordet och sätt det radiala state-objektet
+                    this.parseChordToRadialState(existingChord);
+                    this.modalBtnRemove.style.display = "inline-block";
+                } else if (range) {
+                    // Vi skapar ett nytt ackord. Återställ till C.
+                    this.parseChordToRadialState("C");
+                    this.modalBtnRemove.style.display = "none";
+                }
 
-          // Rita upp den radiala byggaren med det nya state-objektet
-          this.renderRadialBuilder();
-
-          // Visa modalen
-          this.chordEditorModal.classList.add("visible");
-        }
+                // *** 2. RITA KNAPPARNA NU ***
+                // Nu när ringarna är synliga kan layer.offsetWidth mätas korrekt.
+                this.renderRadialBuilder();
+            }
 
         // *** renderRootNotes, renderChordTypes, renderBassNotes är nu borttagna ***
 

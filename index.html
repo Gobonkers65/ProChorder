@@ -823,11 +823,11 @@
         </button>
       </div>
       <div class="top-bar-right">
-        <button id="main-toggle-edit-mode-btn" title="Växla Redigeringsläge">
+        <button id="main-toggle-edit-mode-btn" title="Toggle edit mode">
           A
         </button>
-        <button id="btn-show-help" title="Hjälp & HOW TO">?</button>
-        <button id="btn-toggle-dark-mode" title="Växla ljust/mörkt läge">
+        <button id="btn-show-help" title="Help & HOW TO">?</button>
+        <button id="btn-toggle-dark-mode" title="Toggle light/dark mode">
           🌙
         </button>
         <button id="hamburger-btn">☰</button>
@@ -1011,7 +1011,7 @@
       // Relevanta ändringar är markerade.
 
       const SHARED_SONG_LIST_URL =
-        "https.raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json";
+        "https://raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json";
 
       class StableChordEditor {
         static STORAGE_KEYS = {
@@ -1567,7 +1567,7 @@
           );
           this.btnShowHelp.addEventListener("click", () => {
             window.open(
-              "https.gobonkers65.github.io/ProChorder/help",
+              "https://gobonkers65.github.io/ProChorder/help",
               "_blank"
             );
           });

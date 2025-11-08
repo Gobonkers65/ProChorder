@@ -1006,11 +1006,11 @@ body.scroll-mode-active #floating-live-btn {
 
   /* Minskar mellanrummet mellan ikonerna */
   .top-bar-right {
-    gap: 0.2em; /* Minskade från 0.5em */
+    gap: 0.1em; /* Minskade från 0.5em */
   }
 
   /* Minskar mellanrummet på vänstra sidan också */
   .top-bar-left {
-    gap: 0.2em; /* Minskade från 0.5em */
+    gap: 0.1em; /* Minskade från 0.5em */
   }
 }

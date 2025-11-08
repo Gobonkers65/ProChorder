@@ -1,0 +1,997 @@
+/* * =========================================
+ * CSS-FIL FÖR PROCHORDER
+ * =========================================
+ */
+:root {
+  --text-color: #172b4d;
+  --primary: #1951a5;
+  --success-bg: #3e5844;
+  --danger-bg: #52383b;
+  --success-bg-light: hsl(149, 82%, 85%); /* Ljus grön bakgrund */
+  --danger-bg-light: #ffbbbb;  /* Ljus röd bakgrund */
+  --button-text-light: #ffffff;
+  --primary-bg-hover: rgba(0, 82, 204, 0.1);
+  --section-marker-color: var(--danger-bg);
+  --menu-width: 300px;
+  --chord-color: var(--primary);
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* DESIGN-VARIABLER */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --border-soft: #e5e7eb;
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+
+  --bg: #f9fafb;
+  --surface: #ffffff;
+  --border: var(--border-soft);
+  --shadow: var(--shadow-soft);
+
+  /* RGB-VÄRDEN */
+  --bg-rgb: 249, 250, 251;
+  --surface-rgb: 255, 255, 255;
+  --primary-rgb: 25, 81, 165;
+}
+
+body.dark-mode {
+  --text-color: #c1c9d3;
+  --primary: #417cca;
+  --chord-color: #ffcb47;
+  --primary-bg-hover: rgba(76, 154, 255, 0.15);
+  --section-marker-color: #ffffff;
+  --success-bg-dark: var(--success-bg); /* Mörk grön bakgrund */
+  --danger-bg-dark: var(--danger-bg);   /* Mörk röd bakgrund */
+  --bg: #1d2125;
+  --surface: #282d33;
+  --border-soft: #454c54;
+  --border: var(--border-soft);
+  --shadow: none;
+
+  --bg-rgb: 29, 33, 37;
+  --surface-rgb: 40, 45, 51;
+  --primary-rgb: 76, 154, 255;
+}
+
+body.dark-mode #editor a {
+  color: var(--text-color);
+  text-decoration: underline;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  color: var(--text-color);
+  margin: 0;
+  padding: 1em;
+  padding-top: 80px;
+  transition: background-color 0.3s, color 0.3s;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+  padding: 12px 1em;
+  background-color: rgba(var(--bg-rgb), 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-soft);
+  z-index: 100;
+}
+
+.top-bar-left,
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.top-bar-left {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.project-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.9em;
+  padding: 0 12px 0 16px;
+  height: 40px;
+  border: 1px solid var(--border-soft);
+  background-color: var(--surface);
+  color: var(--text-color);
+  border-radius: 0px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-grow: 1;
+  max-width: 450px;
+  min-width: 140px;
+}
+.project-selector:hover {
+  background-color: var(--bg);
+  border-color: var(--border);
+}
+.project-selector .icon-small {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+  margin-left: auto;
+}
+#current-project-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: var(--text-color);
+  border-radius: 0px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+.icon-btn:hover {
+  background-color: var(--primary-bg-hover);
+  color: var(--primary);
+}
+.icon-btn .icon-medium {
+  width: 20px;
+  height: 20px;
+}
+.icon-btn .icon-small {
+  width: 16px;
+  height: 16px;
+}
+#btn-new-project {
+  background-color: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+}
+#btn-new-project:hover {
+  background-color: rgba(var(--primary-rgb), 0.2);
+}
+
+/* * =========================================
+ * SIDOMENY
+ * =========================================
+ */
+#side-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: var(--menu-width);
+  max-width: 90%;
+  background-color: rgba(var(--surface-rgb), 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-soft);
+  border-left: 1px solid var(--border-soft);
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1001;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* 3 kolumner för hela menyn */
+  gap: 0.5em;
+  align-content: start;
+  padding: 0.5em;
+}
+
+#side-menu:not(.is-closed) {
+  transform: translateX(0);
+}
+
+#menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /*background: rgba(9, 30, 66, 0.5);*/
+  z-index: 1000;
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+#menu-overlay.is-closed {
+  opacity: 0;
+  pointer-events: none;
+}
+#menu-overlay:not(.is-closed) ~ #scroll-controls {
+  display: none;
+}
+/* FONT-SIZE BEHÅLLARE */
+.font-size-slider-container {
+  display: flex;
+  /*flex-direction: column;*/
+  gap: 0.8em;
+  padding: 0.8em; /* Kompakt padding */
+  background-color: transparent;
+  border-radius: 0px;
+  box-shadow: none;
+  /*border: 1px solid transparent;*/
+}
+.font-size-slider-container .menu-grid-title {
+  text-align: left;
+  flex-shrink: 0; /* <-- TILLAGD */
+  white-space: nowrap; /* <-- TILLAGD (Extra säkerhet) */
+}
+.font-size-slider-container input[type="range"] {
+  flex-grow: 1;
+  width: 100%;
+}
+body.dark-mode .font-size-slider-container {
+  background-color: transparent;
+  border: none;
+}
+
+/* IKON-GRID LAYOUT */
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* 3 kolumner */
+  gap: 0.1em;
+  grid-column: span 3;
+}
+
+.menu-grid-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75em 0.5em;
+  gap: 0.75em;
+  background-color: var(--surface);
+  border: 1px solid transparent;
+  border-radius: 0px;
+  box-shadow: var(--shadow-soft);
+  aspect-ratio: 1 / 1;
+  font-family: var(--font-sans);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-grid-btn:hover {
+  /*transform: translateY(-2px);*/
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+body.dark-mode .menu-grid-btn {
+  background-color: var(--bg);
+  border: 1px solid var(--border-soft);
+}
+
+.menu-grid-title {
+  font-size: 0.8em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.menu-grid-icon {
+  width: 32px;
+  height: 32px;
+  opacity: 0.9;
+}
+
+/* TEXT-IKON (för 'Chord Mode') */
+.menu-grid-icon-text {
+  font-family: var(--font-sans);
+  font-size: 1.4em; /* Stor text */
+  font-weight: 300;
+  line-height: 1;
+  color: var(--primary);
+}
+body.dark-mode .menu-grid-icon-text {
+  color: var(--chord-color);
+}
+
+/* FÄRG-UNDANTAG (NYA MJUKA FÄRGER) */
+.menu-grid-btn.menu-btn-save {
+  background-color: var(--success-bg-light);
+  /* color: var(--success-text-light); */ /* <-- Borta! */
+  border-color: transparent;
+}
+.menu-grid-btn.menu-btn-danger {
+  background-color: var(--danger-bg-light);
+  /* color: var(--danger-text-light); */ /* <-- Borta! */
+  border-color: transparent;
+}
+
+body.dark-mode .menu-grid-btn.menu-btn-save {
+  background-color: var(--success-bg-dark);
+  /* color: var(--success-text-dark); */ /* <-- Borta! */
+  border-color: var(--border-soft);
+}
+body.dark-mode .menu-grid-btn.menu-btn-danger {
+  background-color: var(--danger-bg-dark);
+  /* color: var(--danger-text-dark); */ /* <-- Borta! */
+  border-color: var(--border-soft);
+}
+
+/* DÖLJ GAMLA LAYOUTEN */
+.sidebar-group { display: none; }
+.sidebar-group-label { display: none; }
+.sidebar-group-content {display: none;
+}
+
+/* REGLER FÖR KONTROLLER (i modals och sidomeny) */
+.sidebar-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  padding-top: 0;
+}
+
+.sidebar-controls.horizontal {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.8em;
+}
+
+.sidebar-controls span {
+  font-size: 0.8em;
+  margin-right: 0.2em;
+  white-space: nowrap;
+}
+
+/* KNAPPAR & INPUTS (Globalt för meny/modals) */
+#side-menu button:not(.menu-grid-btn):not(#btn-toggle-scroll-mode),
+#side-menu select,
+#side-menu input,
+.custom-dialog-box select,
+.custom-dialog-box input,
+.custom-dialog-box button {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.8em;
+  height: 38px;
+  background-color: var(--bg);
+  color: var(--text-color);
+  border: 1px solid var(--border);
+  border-radius: 0px;
+  cursor: pointer;
+  padding: 0 0.7em;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Knappar i menyn som INTE är grid-knappar */
+#side-menu button:not(.menu-grid-btn) {
+  height: 38px;
+  border-radius: 0px;
+  width: 100%;
+  border: none;
+}
+
+#side-menu input[type="text"]:focus,
+#side-menu select:focus,
+.custom-dialog-box select:focus,
+.custom-dialog-box input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--primary-bg-hover);
+}
+
+#side-menu #song-title {
+  font-weight: 600;
+  font-size: 1em; /* Behåller storleken för titeln */
+  height: 35px;
+}
+
+#side-menu #song-author {
+  font-weight: 500; /* Gjorde denna lite tunnare också */
+  font-size: 0.75em; /* <-- HÄR ÄR DEN MINDRE TEXTSTORLEKEN */
+  height: 32px; /* Sänkte höjden lite för att matcha texten */
+}
+
+.sidebar-controls.horizontal > * {
+  flex: 1;
+}
+
+#side-menu button:not(.menu-grid-btn):hover,
+.custom-dialog-box button:not(.btn-primary):not(.btn-danger):hover {
+  border-color: var(--primary);
+  transform: none;
+}
+
+#side-menu button.btn-primary,
+.custom-dialog-box button.btn-primary {
+  background-color: var(--primary);
+  color: var(--button-text-light);
+}
+#side-menu button.btn-success,
+.custom-dialog-box button.btn-success {
+  background-color: var(--success-bg);
+  color: var(--button-text-light);
+}
+#side-menu button.btn-danger,
+.custom-dialog-box button.btn-danger {
+  background-color: var(--danger-bg);
+  color: var(--button-text-light);
+}
+
+#side-menu input[type="range"] {
+  height: auto;
+  padding: 0;
+}
+
+/* * =========================================
+ * EDITOR OCH RESTERANDE UI
+ * =========================================
+ */
+.main-content {
+  flex-basis: 0;
+  flex-grow: 999;
+  min-width: 60%;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+/*.container {
+  max-width: 1280px;
+  margin: 0 auto;
+}*/
+
+#editor {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.5em;
+  border-radius: 0px;
+  box-shadow: var(--shadow);
+  height: calc(100vh - 100px);
+  font-family: var(--font-sans);
+  line-height: 1.9;
+  outline: none;
+  font-size: 16px;
+  overflow-y: scroll;
+  clear: both;
+  width: 100%;
+  position: relative;
+}
+
+#editor a {
+  cursor: pointer;
+}
+#editor > div:not(:has(.section-marker)) {
+  line-height: 2.5;
+}
+#editor:focus-within {
+  border-color: var(--primary);
+}
+#editor > div {
+  position: relative;
+}
+#editor .chord {
+  display: inline-block;
+  position: relative;
+  user-select: none;
+  cursor: default;
+  vertical-align: middle;
+  top: -1.7em;
+  height: 0;
+  width: 0;
+  padding: 0;
+  margin: 0;
+  z-index: 5;
+}
+#editor .chord:hover {
+  background-color: var(--primary-bg-hover);
+  z-index: 10;
+}
+#editor .chord-text {
+  position: absolute;
+  left: 0;
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85em;
+  color: var(--chord-color);
+  line-height: 1.2;
+  min-width: 1ch;
+  outline: none;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+#editor .chord-handle {
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 10px;
+  background-color: var(--primary);
+  border-radius: 3px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+#editor .chord:hover .chord-handle {
+  opacity: 1;
+  pointer-events: auto;
+}
+#editor .section-marker {
+  display: block;
+  margin-bottom: 0.25em;
+  line-height: 2.5;
+  font-weight: 700;
+  font-size: 1.1em;
+  color: var(--text-color);
+  background-color: transparent;
+  padding: 0;
+  user-select: none;
+}
+#editor.text-mode .chord-handle {
+  display: none !important;
+}
+#editor.text-mode .chord {
+  opacity: 0.6;
+}
+body.scroll-mode-active #editor {
+  caret-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.custom-dialog-overlay,
+#scroll-controls {
+  z-index: 2000;
+}
+.custom-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.custom-dialog-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.custom-dialog-box {
+  background-color: var(--surface);
+  color: var(--text-color);
+  padding: 2em;
+  border-radius: 0px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  min-width: 300px;
+  max-width: 90%;
+}
+.custom-dialog-box .dialog-buttons {
+  display: flex;
+  gap: 1em;
+  justify-content: center;
+  margin-top: 1.5em;
+}
+.custom-dialog-box button {
+  min-width: 100px;
+  height: 38px;
+  border: none;
+  border-radius: 0px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#scroll-controls input[type="number"] {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--button-text-light);
+  border-radius: 0px;
+  height: 38px;
+  width: 60px;
+  font-size: 1.2em;
+  font-weight: 700;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+#scroll-controls input[type="number"]::-webkit-outer-spin-button,
+#scroll-controls input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#drop-indicator {
+  position: absolute;
+  width: 2px;
+  height: 1.8em;
+  background-color: var(--primary);
+  display: none;
+  pointer-events: none;
+  z-index: 9999;
+}
+body.is-dragging * {
+  cursor: none !important;
+}
+#scroll-controls {
+  display: none;
+  position: absolute; /* Ändrad från fixed */
+  top: 5.5em; /* Avstånd från toppen */
+  right: 0.7em; /* Avstånd från höger */
+  padding: 0; /* Ta bort padding */
+  z-index: 2000;
+  background: transparent; /* Ta bort bakgrund */
+  backdrop-filter: none; /* Ta bort blur */
+  border-top: none; /* Ta bort linje */
+  /* grid-template-columns: auto 1fr auto auto auto; */ /* Behövs inte längre */
+  /* grid-template-rows: auto auto; */ /* Behövs inte längre */
+  align-items: center;
+  gap: 0.5em; /* Mindre mellanrum mellan knapparna */
+  width: auto; /* Ta inte upp hela bredden */
+}
+
+/* KORREKT CSS-VÄLJARE (med kommatecken) */
+#scroll-btn-play-pause,
+#scroll-btn-exit,
+.scroll-nav-btn {
+  background-color: var(--primary); /* Blå bakgrund */
+  border: none; /* Ta bort kantlinje */
+  color: var(--button-text-light);
+  border-radius: 50%; /* Gör den rund */
+  height: 45px; /* Samma höjd som LIVE-knapp */
+  width: 45px; /* Samma bredd som LIVE-knapp */
+  font-size: 1em; /* Justerad textstorlek */
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  box-shadow: var(--shadow-soft); /* Lägg till skugga */
+  display: flex; /* För att centrera text/ikon */
+  align-items: center; /* Centrera vertikalt */
+  justify-content: center; /* Centrera horisontellt */
+  opacity: 0.5; /*Blue button transperency*/
+}
+/* KORREKT CSS-VÄLJARE (med kommatecken) */
+#scroll-btn-play-pause:hover,
+#scroll-btn-exit:hover,
+.scroll-nav-btn:hover {
+  /* background-color: rgba(255, 255, 255, 0.3); */
+  filter: brightness(1.1); /* Gör den lite ljusare */
+  transform: scale(1.05); /* Zooma in lite */
+}
+
+body.scroll-mode-active #scroll-controls {
+  display: flex;
+  flex-direction: column;
+}
+#scroll-controls .speed-control {
+  /*grid-column: 1 / -1;
+  grid-row: 1;*/
+  display: flex; /* <-- ÄNDRAD TILLBAKA TILL FLEX */
+  flex-direction: column; /* <-- TILLAGD: Staplar "Slow", slider, "Fast" */
+  align-items: center;
+  gap: 0.5em;
+  /*background-color: rgba(0, 0, 0, 0.4);*//* Valfri bakgrund för tydlighet */
+  /*padding: 0.8em 0.5em;  Lite luft inuti */
+  /*border-radius: 10px;  Gör den snyggt rundad */
+  /*margin-top: 0.5em;  Liten marginal från knappen ovanför */
+}
+/* --- NY REGEL FÖR VERTIKAL SLIDER --- */
+#scroll-controls .speed-control input[type="range"] {
+  transform: rotate(-90deg); /* Vänder den 90 grader */
+  width: 90px;  /* Detta blir LÄNGDEN på slidern */
+  height: 20px;  /* Detta blir TJOCKLEKEN på slidern */
+  margin: 50px 0; /* Ger utrymme för den att rotera i mitten */
+}
+/* --- NY REGEL FÖR TEXTEN VID SLIDERN --- */
+#scroll-controls .speed-control span {
+  color: white;
+  font-size: 0.7em;
+  font-weight: 600;
+  display: none;
+}
+#scroll-btn-play-pause {
+  grid-column: 1;/* Eller radera raderna helt */
+  grid-row: 2;
+}
+#scroll-controls .duration-control {
+  /* grid-column: 2; */
+  /* grid-row: 2; */
+  justify-self: center;
+  display: flex; /* <-- NU SYNLIG */
+  align-items: center;
+  gap: 0.3em; /* Mindre mellanrum */
+  /*background-color: rgba(0, 0, 0, 0.4);  Samma bakgrund som slidern */
+  /*padding: 0.5em 0.8em;  Lite luft */
+  /*border-radius: 10px;  Rundade hörn */
+  /*margin-top: 0.5em;  Avstånd från slider-boxen */
+  justify-content: center; /* Centrera innehållet */
+  margin-top: -0.8em;
+}
+#scroll-duration-text {
+  font-size: 12px; 
+  font-weight: 600;
+  line-height: 1;
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+  display: block; /* <-- NY: Säkerställer att den är under ikonen */
+}
+#scroll-duration-display {
+  display: flex;
+  flex-direction: column; /* <-- NY: Staplar ikon och text */
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em; /* Avstånd mellan ikon och text */
+  color: white;
+  /* Ingen bakgrund, ingen padding, inga hörn */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* <-- NY: Gör texten läsbar */
+}
+#scroll-controls .duration-control input[type="number"] {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: transparent;
+  border-radius: 0px;
+  height: 30px; /* Mindre höjd */
+  width: 45px; /* Mindre bredd */
+  font-size: 1em; 
+  font-weight: 600;
+  text-align: center;
+  padding: 0.2em;
+  display: none;/*Döljer tidsinmatning*/
+}
+#scroll-controls .duration-control > span {
+  color: white;
+  font-weight: 600;
+  font-size: 0.9em;
+  margin: 0 2px;
+  display: none;  /*Döljer tidsrutorna*/
+}
+#scroll-btn-prev {
+  grid-column: 3;
+  grid-row: 2;
+  font-size: 1em;
+}
+#scroll-btn-next {
+  grid-column: 4;
+  grid-row: 2;
+  font-size: 1em;
+}
+#scroll-btn-exit {
+  grid-column: 5;
+  grid-row: 2;
+}
+body.scroll-mode-active #editor {
+  caret-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.hidden-file {
+  display: none;
+}
+#floating-live-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  color: var(--button-text-light);
+  border: none;
+  font-size: 0.8em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  transition: transform 0.2s ease-out, opacity 0.3s ease;
+}
+#floating-live-btn:hover {
+  transform: scale(1.05);
+}
+body.scroll-mode-active #floating-live-btn {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
+/* RADIAL BYGGARE CSS (Rundade hörn behålls) */
+#chord-editor-modal .custom-dialog-box {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  color: white;
+  min-width: 320px;
+  width: 320px;
+}
+.chord-selector-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  /*box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);*/
+  margin: 0 auto;
+}
+.layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+.layer-outer {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.05);
+  font-size: 1.1em;
+}
+.layer-middle {
+  width: 75%;
+  height: 75%;
+  margin: 12.5%;
+  background-color: rgba(255, 255, 255, 0.1);
+  font-size: 0.9em;
+}
+.layer-inner {
+  width: 50%;
+  height: 50%;
+  margin: 25%;
+  background-color: rgba(255, 255, 255, 0.2);
+  font-size: 0.9em;
+}
+.layer-item {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+.layer-item:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.layer-item.active {
+  color: #2ecc71;
+  text-shadow: 0 0 5px rgba(46, 204, 113, 0.8);
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.center-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #e74c3c;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.1s;
+  z-index: 10;
+}
+.center-button.confirmed {
+  background-color: #2ecc71;
+}
+.center-button:active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+.current-chord-display {
+  font-size: 1.2em;
+  margin-bottom: 3px;
+}
+.action-text {
+  font-size: 0.7em;
+  opacity: 0.8;
+}
+#chord-editor-modal .dialog-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+  margin-top: 1.5em;
+  background: var(--surface);
+  padding: 1em;
+  border-radius: 0px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* FIX FÖR FONT-SIZE REGEL (i modal) */
+.sidebar-controls.horizontal:has(#font-size-slider) {
+  flex-wrap: wrap;
+}
+.sidebar-controls.horizontal:has(#font-size-slider) > span {
+  flex: 1 1 100%;
+  margin-bottom: 0.5em;
+}
+.sidebar-controls.horizontal:has(#font-size-slider) > #font-size-slider {
+  flex: 1 1 100%;
+}
+
+/* CUSTOM DROPDOWN CSS */
+.project-dropdown {
+  display: none;
+  position: absolute;
+  top: 62px;
+  left: 1em;
+  width: 320px;
+  max-width: 90%;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0px;
+  box-shadow: var(--shadow-soft);
+  z-index: 2000;
+  padding: 0.5em;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.project-dropdown.is-open {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.project-dropdown-item {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.9em;
+  color: var(--text-color);
+  padding: 0.75em 1em;
+  border-radius: 0px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-dropdown-item:hover {
+  background-color: var(--primary-bg-hover);
+  color: var(--primary);
+}
+
+.project-selector.is-active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-bg-hover);
+}

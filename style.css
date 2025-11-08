@@ -995,34 +995,22 @@ body.scroll-mode-active #floating-live-btn {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-bg-hover);
 }
-/* Justeringar för mobilläge (max 600px) */
+/* Justeringar för mobilläge */
 @media (max-width: 600px) {
 
-  /* 1. Minskar luft på sidorna av hela topp-baren */
-  .top-bar {
-    padding-left: 0.5em;  /* Minskade från 1em */
-    padding-right: 0.5em; /* Minskade från 1em */
-  }
-
-  /* 2. Minskar mellanrummet mellan ikonerna */
-  .top-bar-left,
-  .top-bar-right {
-    gap: 0.2em; /* Minskade från 0.5em */
-  }
-
-  /* 3. Gör "Välj projekt"-knappen mycket smalare */
-  .project-selector {
-    min-width: 100px; /* Minskade från 140px */
-    padding-left: 0.8em; /* Minskade från 16px */
-    padding-right: 0.5em; /* Minskade från 12px */
-  }
-
-  /* 4. Minskar ikon-knapparnas storlek (hjälper också) */
+  /* Minskar storleken på ikonknapparna i toppmenyn */
   .top-bar .icon-btn {
-    width: 36px;  /* Minskade från 40px */
-    height: 36px; /* Minskade från 40px */
+    width: 35px;  /* Minskade från 40px */
+    height: 35px; /* Minskade från 40px */
   }
-}
-    gap: 0.1em; /* Minskade från 0.5em */
+
+  /* Minskar mellanrummet mellan ikonerna */
+  .top-bar-right {
+    gap: 0em; /* Minskade från 0.5em */
+  }
+
+  /* Minskar mellanrummet på vänstra sidan också */
+  .top-bar-left {
+    gap: 0em; /* Minskade från 0.5em */
   }
 }

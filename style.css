@@ -995,3 +995,22 @@ body.scroll-mode-active #floating-live-btn {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-bg-hover);
 }
+/* Justeringar för mobilläge */
+@media (max-width: 600px) {
+
+  /* Minskar storleken på ikonknapparna i toppmenyn */
+  .top-bar .icon-btn {
+    width: 36px;  /* Minskade från 40px */
+    height: 36px; /* Minskade från 40px */
+  }
+
+  /* Minskar mellanrummet mellan ikonerna */
+  .top-bar-right {
+    gap: 0.2em; /* Minskade från 0.5em */
+  }
+
+  /* Minskar mellanrummet på vänstra sidan också */
+  .top-bar-left {
+    gap: 0.2em; /* Minskade från 0.5em */
+  }
+}

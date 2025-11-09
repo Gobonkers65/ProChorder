@@ -73,31 +73,21 @@ class StableChordEditor {
     this.stopTuner();
   }
 
-  async startTuner() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: false,
-      });
-      console.log("Mikrofonåtkomst beviljad!");
-      this.tunerDisplay.textContent = "Lyssnar...";
-      this.micStream = stream;
-    } catch (err) {
-      console.error("Fel vid hämtning av mikrofon:", err);
-      this.tunerDisplay.textContent = "Fel";
-      this.showCustomAlert("Kunde inte komma åt mikrofonen.");
-      this.closeTunerModal();
-    }
+async startTuner() {
+  // Laddar tuner-appen i vår iframe
+  if (this.tunerIframe) {
+    this.tunerIframe.src = "tuner/index.html";
   }
+}
 
-  stopTuner() {
-    console.log("Stänger av tuner...");
-    this.tunerDisplay.textContent = "--";
-    if (this.micStream) {
-      this.micStream.getTracks().forEach((track) => track.stop());
-      this.micStream = null;
-    }
+stopTuner() {
+  // Återställer iframen - detta stoppar mikrofonen och all körning!
+  if (this.tunerIframe) {
+    this.tunerIframe.src = "about:blank";
   }
+  // Du kan ta bort/behålla denna rad, den behövs inte längre
+  // this.tunerDisplay.textContent = "--"; 
+}
 
   constructor(editorId) {
     this.editor = document.getElementById(editorId);
@@ -174,6 +164,7 @@ class StableChordEditor {
     this.fontSizeSlider = document.getElementById("font-size-slider");
 
     // Knappar i sidomenyns rutnät
+    this.tunerIframe = document.getElementById("tuner-iframe");
     this.btnOpenTunerModal = document.getElementById("btn-open-tuner-modal");
     this.btnOpenTransposeModal = document.getElementById(
       "btn-open-transpose-modal"
@@ -1540,40 +1531,7 @@ class StableChordEditor {
       this.loadProject(newProjectName);
     }
   }
-  loadProjectByIndexDelta(delta) {
-    if (!this.projectList) return;
-
-    const options = this.projectList.options;
-    if (options.length <= 1) return; // Finns bara "Välj projekt..."
-
-    const currentIndex = this.projectList.selectedIndex;
-    let newIndex;
-
-    if (currentIndex <= 0) {
-      // Om ingen låt är vald (är på "Välj projekt..."),
-      // gå till första (delta > 0) eller sista (delta < 0)
-      newIndex = delta > 0 ? 1 : options.length - 1;
-    } else {
-      newIndex = currentIndex + delta;
-    }
-
-    // Hantera "wrap-around"
-    // Ignorera index 0 ("Välj projekt...")
-    if (newIndex >= options.length) {
-      newIndex = 1; // Gå till första låten
-    } else if (newIndex < 1) {
-      newIndex = options.length - 1; // Gå till sista låten
-    }
-
-    const newProjectName = options[newIndex].value;
-    if (newProjectName) {
-      // Stoppa scrollningen om den är igång
-      this.stopScrolling();
-      
-      // Ladda projektet direkt, utan varning
-      this.loadProject(newProjectName);
-    }
-  }
+  
   loadLastProject() {
     this.updateProjectList();
     const last = localStorage.getItem(

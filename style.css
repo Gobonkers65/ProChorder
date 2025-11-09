@@ -180,10 +180,6 @@ body {
   background-color: rgba(var(--primary-rgb), 0.2);
 }
 
-/* * =========================================
- * SIDOMENY
- * =========================================
- */
 #side-menu {
   position: fixed;
   top: 0;

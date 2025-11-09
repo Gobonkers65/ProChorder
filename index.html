@@ -1,307 +1,162 @@
 <!DOCTYPE html>
 <html lang="sv">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProChorder 9.8 (Modern UI)</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProChorder 9.8 (Modern UI)</title>
 
-    <link rel="stylesheet" href="style.css" />
-  </head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <body>
-    <div class="top-bar">
-      <div class="top-bar-left">
-        <button id="project-selector-btn" class="project-selector">
-          <span id="current-project-name">Välj projekt...</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="icon-small"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-        <select id="project-list" style="display: none"></select>
-        <div id="project-dropdown-menu" class="project-dropdown"></div>
-        <button id="btn-new-project" class="icon-btn" title="Nytt Projekt">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="icon-medium"
-          >
-            <path
-              d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"
-            />
-          </svg>
-        </button>
-      </div>
-      <div class="top-bar-right">
-        <button
-          id="main-toggle-edit-mode-btn"
-          class="icon-btn"
-          title="Växla Redigeringsläge"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="icon-medium"
-          >
-            <path
-              d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
-            />
-          </svg>
-        </button>
-        <button id="btn-show-help" class="icon-btn" title="Hjälp & HOW TO">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="icon-medium"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.738.596-1.336 1.336-1.336.74 0 1.336.598 1.336 1.336 0 .738-.596 1.336-1.336 1.336a.75.75 0 01-.75-.75v-.106a1.5 1.5 0 10-1.802-1.802.75.75 0 011.06-1.061zM10 15a.75.75 0 100-1.5.75.75 0 000 1.5z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-        <button
-          id="btn-toggle-dark-mode"
-          class="icon-btn"
-          title="Växla ljust/mörkt läge"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="icon-medium"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M7.455 2.104a.75.75 0 00-.98 1.126 8.5 8.5 0 008.62 8.62.75.75 0 001.127-.98 10 10 0 01-9.767-8.766z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-        <button id="hamburger-btn" class="icon-btn" title="Meny">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            class="icon-medium"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M3 5.75A.75.75 0 013.75 5h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 5.75zM3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10zm0 4.25a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <button id="project-selector-btn" class="project-selector">
+        <span id="current-project-name">Välj projekt...</span>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-small">
+          <path fill-rule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+      <select id="project-list" style="display: none"></select>
+      <div id="project-dropdown-menu" class="project-dropdown"></div>
+      <button id="btn-new-project" class="icon-btn" title="Nytt Projekt">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
+          <path
+            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+        </svg>
+      </button>
+    </div>
+    <div class="top-bar-right">
+      <button id="main-toggle-edit-mode-btn" class="icon-btn" title="Växla Redigeringsläge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
+          <path
+            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+        </svg>
+      </button>
+      <button id="btn-show-help" class="icon-btn" title="Hjälp & HOW TO">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.738.596-1.336 1.336-1.336.74 0 1.336.598 1.336 1.336 0 .738-.596 1.336-1.336 1.336a.75.75 0 01-.75-.75v-.106a1.5 1.5 0 10-1.802-1.802.75.75 0 011.06-1.061zM10 15a.75.75 0 100-1.5.75.75 0 000 1.5z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+      <button id="btn-toggle-dark-mode" class="icon-btn" title="Växla ljust/mörkt läge">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
+          <path fill-rule="evenodd"
+            d="M7.455 2.104a.75.75 0 00-.98 1.126 8.5 8.5 0 008.62 8.62.75.75 0 001.127-.98 10 10 0 01-9.767-8.766z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+      <button id="hamburger-btn" class="icon-btn" title="Meny">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
+          <path fill-rule="evenodd"
+            d="M3 5.75A.75.75 0 013.75 5h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 5.75zM3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10zm0 4.25a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z"
+            clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="menu-overlay" class="is-closed"></div>
+
+  <nav id="side-menu" class="is-closed">
+    <input type="text" id="song-title" placeholder="Titel" style="grid-column: span 3" />
+    <input type="text" id="song-author" placeholder="Artist / Låtskrivare" style="grid-column: span 3" />
+
+    <div class="sidebar-controls horizontal" style="grid-column: span 3">
+      <button id="btn-toggle-scroll-mode" class="btn-primary" style="width: 100%">
+        LIVE!
+      </button>
+    </div>
+    <div class="font-size-slider-container" style="grid-column: span 3">
+      <span class="menu-grid-title">Font size</span>
+      <input type="range" id="font-size-slider" min="12" max="32" value="16" />
     </div>
 
-    <div id="menu-overlay" class="is-closed"></div>
+    <div class="menu-grid" style="grid-column: span 3">
+      <button id="btn-open-tuner-modal" class="menu-grid-btn">
+        <span class="menu-grid-title">Tuner</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+        </svg>
+      </button>
 
-    <nav id="side-menu" class="is-closed">
-      <input
-        type="text"
-        id="song-title"
-        placeholder="Titel"
-        style="grid-column: span 3"
-      />
-      <input
-        type="text"
-        id="song-author"
-        placeholder="Artist / Låtskrivare"
-        style="grid-column: span 3"
-      />
+      <button id="btn-open-transpose-modal" class="menu-grid-btn">
+        <span class="menu-grid-title">Transpose</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
+        </svg>
+      </button>
 
-      <div class="sidebar-controls horizontal" style="grid-column: span 3">
-        <button
-          id="btn-toggle-scroll-mode"
-          class="btn-primary"
-          style="width: 100%"
-        >
-          LIVE!
-        </button>
-      </div>
-      <div class="font-size-slider-container" style="grid-column: span 3">
-        <span class="menu-grid-title">Font size</span>
-        <input
-          type="range"
-          id="font-size-slider"
-          min="12"
-          max="32"
-          value="16"
-        />
-      </div>
+      <button id="btn-toggle-chord-mode" class="menu-grid-btn">
+        <span class="menu-grid-title">Chord Mode</span>
+        <span id="chord-mode-icon-text" class="menu-grid-icon-text">C</span>
+      </button>
 
-      <div class="menu-grid" style="grid-column: span 3">
-        <button id="btn-open-tuner-modal" class="menu-grid-btn">
-          <span class="menu-grid-title">Tuner</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z"
-            />
-          </svg>
-        </button>
+      <button id="btn-open-sections-modal" class="menu-grid-btn">
+        <span class="menu-grid-title">Sections</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+        </svg>
+      </button>
 
-        <button id="btn-open-transpose-modal" class="menu-grid-btn">
-          <span class="menu-grid-title">Transpose</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5"
-            />
-          </svg>
-        </button>
+      <button id="btn-open-export-modal" class="menu-grid-btn">
+        <span class="menu-grid-title">Export/BackUp</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+        </svg>
+      </button>
 
-        <button id="btn-toggle-chord-mode" class="menu-grid-btn">
-          <span class="menu-grid-title">Chord Mode</span>
-          <span id="chord-mode-icon-text" class="menu-grid-icon-text">C</span>
-        </button>
+      <button id="btn-open-import-modal" class="menu-grid-btn">
+        <span class="menu-grid-title">Import</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+      </button>
 
-        <button id="btn-open-sections-modal" class="menu-grid-btn">
-          <span class="menu-grid-title">Sections</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"
-            />
-          </svg>
-        </button>
+      <button id="btn-save-project" class="menu-grid-btn menu-btn-save">
+        <span class="menu-grid-title">Save song</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      </button>
 
-        <button id="btn-open-export-modal" class="menu-grid-btn">
-          <span class="menu-grid-title">Export/BackUp</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-            />
-          </svg>
-        </button>
+      <button id="btn-delete-project" class="menu-grid-btn menu-btn-danger">
+        <span class="menu-grid-title">Remove song</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
 
-        <button id="btn-open-import-modal" class="menu-grid-btn">
-          <span class="menu-grid-title">Import</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-            />
-          </svg>
-        </button>
+      <button id="btn-delete-all-projects" class="menu-grid-btn menu-btn-danger">
+        <span class="menu-grid-title">Erase all</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+        </svg>
+      </button>
+    </div>
 
-        <button id="btn-save-project" class="menu-grid-btn menu-btn-save">
-          <span class="menu-grid-title">Save song</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M4.5 12.75l6 6 9-13.5"
-            />
-          </svg>
-        </button>
-
-        <button id="btn-delete-project" class="menu-grid-btn menu-btn-danger">
-          <span class="menu-grid-title">Remove song</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
-
-        <button id="btn-delete-all-projects" class="menu-grid-btn menu-btn-danger">
-          <span class="menu-grid-title">Erase all</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="menu-grid-icon"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <!--<div class="font-size-slider-container" style="grid-column: span 3">
+    <!--<div class="font-size-slider-container" style="grid-column: span 3">
         <span class="menu-grid-title">Font size</span>
         <input
           type="range"
@@ -312,208 +167,174 @@
           style="width: 100%"
         />
       </div> -->
-    </nav>
+  </nav>
 
-    <div class="container">
-      <div class="app-layout">
-        <main class="main-content">
-          <div id="editor" contenteditable="true" spellcheck="false"></div>
-        </main>
+  <div class="container">
+    <div class="app-layout">
+      <main class="main-content">
+        <div id="editor" contenteditable="true" spellcheck="false"></div>
+      </main>
+    </div>
+  </div>
+
+  <div id="scroll-controls">
+    <button id="scroll-btn-play-pause">▶</button>
+    <div class="speed-control">
+      <span>Fast</span>
+      <input type="range" id="scroll-speed-slider" min="0" max="100" value="20" />
+      <span>Slow</span>
+    </div>
+    <div class="duration-control">
+      <label></label>
+      <input type="number" id="scroll-duration-minutes" min="0" max="60" value="4" />
+      <span>m</span>
+      <input type="number" id="scroll-duration-seconds" min="0" max="59" step="5" value="0" />
+      <span>s</span>
+      <div id="scroll-duration-display">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zM10 4.5a.75.75 0 00-.75.75v4.5a.75.75 0 00.75.75h3.75a.75.75 0 000-1.5H10.5V5.25A.75.75 0 0010 4.5z"
+            clip-rule="evenodd" />
+        </svg>
+        <span id="scroll-duration-text">4:00</span>
       </div>
     </div>
 
-    <div id="scroll-controls">
-      <button id="scroll-btn-play-pause">▶</button>
-      <div class="speed-control">
-        <span>Fast</span>
-        <input
-          type="range"
-          id="scroll-speed-slider"
-          min="0"
-          max="100"
-          value="20"
-        />
-        <span>Slow</span>
-      </div>
-      <div class="duration-control">
-        <label></label>
-        <input
-          type="number"
-          id="scroll-duration-minutes"
-          min="0"
-          max="60"
-          value="4"
-        />
-        <span>m</span>
-        <input
-          type="number"
-          id="scroll-duration-seconds"
-          min="0"
-          max="59"
-          step="5"
-          value="0"
-        />
-        <span>s</span>
-        <div id="scroll-duration-display">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM10 4.5a.75.75 0 00-.75.75v4.5a.75.75 0 00.75.75h3.75a.75.75 0 000-1.5H10.5V5.25A.75.75 0 0010 4.5z" clip-rule="evenodd" />
-          </svg>
-          <span id="scroll-duration-text">4:00</span>
-        </div>
-      </div>
+    <button id="scroll-btn-prev" class="scroll-nav-btn">&lt;&lt;</button>
+    <button id="scroll-btn-next" class="scroll-nav-btn">&gt;&gt;</button>
 
-      <button id="scroll-btn-prev" class="scroll-nav-btn">&lt;&lt;</button>
-      <button id="scroll-btn-next" class="scroll-nav-btn">&gt;&gt;</button>
+    <button id="scroll-btn-exit">Exit</button>
+  </div>
 
-      <button id="scroll-btn-exit">Exit</button>
-    </div>
-
-    <div id="custom-alert" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <p id="custom-alert-message"></p>
-        <div class="dialog-buttons">
-          <button id="custom-alert-ok" class="btn-primary">OK</button>
-        </div>
+  <div id="custom-alert" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <p id="custom-alert-message"></p>
+      <div class="dialog-buttons">
+        <button id="custom-alert-ok" class="btn-primary">OK</button>
       </div>
     </div>
-    <div id="custom-confirm" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <p id="custom-confirm-message"></p>
-        <div class="dialog-buttons">
-          <button id="custom-confirm-cancel">Cancel</button>
-          <button id="custom-confirm-ok" class="btn-danger">OK</button>
-        </div>
+  </div>
+  <div id="custom-confirm" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <p id="custom-confirm-message"></p>
+      <div class="dialog-buttons">
+        <button id="custom-confirm-cancel">Cancel</button>
+        <button id="custom-confirm-ok" class="btn-danger">OK</button>
       </div>
     </div>
+  </div>
 
-    <div id="chord-editor-modal" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <div class="chord-selector-container">
-          <div id="outer-layer" class="layer layer-outer"></div>
-          <div id="middle-layer" class="layer layer-middle"></div>
-          <div id="inner-layer" class="layer layer-inner"></div>
-          <div id="center-button" class="center-button">
-            <div id="current-chord-display" class="current-chord-display">
-              C
-            </div>
-            <div id="action-text" class="action-text">USE</div>
+  <div id="chord-editor-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <div class="chord-selector-container">
+        <div id="outer-layer" class="layer layer-outer"></div>
+        <div id="middle-layer" class="layer layer-middle"></div>
+        <div id="inner-layer" class="layer layer-inner"></div>
+        <div id="center-button" class="center-button">
+          <div id="current-chord-display" class="current-chord-display">
+            C
           </div>
-        </div>
-        <div class="dialog-buttons">
-          <button id="modal-btn-remove" class="btn-danger">
-            Ta bort ackord
-          </button>
-          <button id="modal-btn-close">Stäng</button>
+          <div id="action-text" class="action-text">USE</div>
         </div>
       </div>
+      <div class="dialog-buttons">
+        <button id="modal-btn-remove" class="btn-danger">
+          Ta bort ackord
+        </button>
+        <button id="modal-btn-close">Stäng</button>
+      </div>
     </div>
+  </div>
 
-    <div id="tuner-modal" class="custom-dialog-overlay">
-      <div
-        class="custom-dialog-box"
-        style="background: #111; color: white; border: 1px solid var(--border)"
-      >
-        <h3 style="margin-top: 0">Gitarrstämmare</h3>
-        <div
-          id="tuner-display"
-          style="
+  <div id="tuner-modal" class="custom-dialog-overlay">
+  <div class="custom-dialog-box" style="background: #111; color: white; border: 1px solid var(--border)">
+    <!--<h3 style="margin-top: 0">Tuner</h3>
+    <div id="tuner-display" style="
             min-height: 150px;
             font-size: 3em;
             display: flex;
             align-items: center;
             justify-content: center;
-          "
-        >
-          --
-        </div>
-        <div class="dialog-buttons">
-          <button id="tuner-btn-close">Stäng</button>
-        </div>
+          ">
+      --
+    </div>-->
+    <div class="dialog-buttons">
+      <iframe id="tuner-iframe" allow="microphone" style="width: 100%; height: 500px; border: none; background: #fff;">
+      </iframe>
+      <button id="tuner-btn-close">Close</button>
+    </div>
+  </div>
+  </div>
+
+  <div id="transpose-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <h3 style="margin-top: 0">Transpose</h3>
+      <div class="sidebar-controls horizontal" style="gap: 1.5em; min-width: 220px">
+        <button id="btn-transpose-up">+1</button>
+        <button id="btn-transpose-down">-1</button>
+      </div>
+      <div class="dialog-buttons">
+        <button id="transpose-modal-close" class="btn-primary">Stäng</button>
       </div>
     </div>
+  </div>
 
-    <div id="transpose-modal" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <h3 style="margin-top: 0">Transpose</h3>
-        <div
-          class="sidebar-controls horizontal"
-          style="gap: 1.5em; min-width: 220px"
-        >
-          <button id="btn-transpose-up">+1</button>
-          <button id="btn-transpose-down">-1</button>
-        </div>
-        <div class="dialog-buttons">
-          <button id="transpose-modal-close" class="btn-primary">Stäng</button>
-        </div>
+  <div id="sections-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <h3 style="margin-top: 0">Infoga Sektion</h3>
+      <div class="sidebar-controls horizontal" style="min-width: 220px">
+        <select id="section-type-select-menu"></select>
+        <button id="btn-insert-section">Insert</button>
+      </div>
+      <div class="dialog-buttons">
+        <button id="sections-modal-close" class="btn-primary">Stäng</button>
       </div>
     </div>
+  </div>
 
-    <div id="sections-modal" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <h3 style="margin-top: 0">Infoga Sektion</h3>
-        <div class="sidebar-controls horizontal" style="min-width: 220px">
-          <select id="section-type-select-menu"></select>
-          <button id="btn-insert-section">Insert</button>
+  <div id="export-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <h3 style="margin-top: 0">Exportera / BackUp</h3>
+      <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
+        <div class="sidebar-controls horizontal">
+          <button id="btn-export-pdf">PDF</button>
+          <button id="btn-export-txt">TXT</button>
+          <button id="btn-export-zip">ZIP</button>
         </div>
-        <div class="dialog-buttons">
-          <button id="sections-modal-close" class="btn-primary">Stäng</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="export-modal" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <h3 style="margin-top: 0">Exportera / BackUp</h3>
-        <div
-          class="sidebar-controls vertical"
-          style="gap: 0.8em; min-width: 250px"
-        >
-          <div class="sidebar-controls horizontal">
-            <button id="btn-export-pdf">PDF</button>
-            <button id="btn-export-txt">TXT</button>
-            <button id="btn-export-zip">ZIP</button>
-          </div>
-          <div class="sidebar-controls horizontal">
-            <button id="btn-export-json">Song->JSON</button>
-            <button id="btn-export-all-json">All->JSON</button>
-          </div>
-        </div>
-        <div class="dialog-buttons">
-          <button id="export-modal-close" class="btn-primary">Stäng</button>
+        <div class="sidebar-controls horizontal">
+          <button id="btn-export-json">Song->JSON</button>
+          <button id="btn-export-all-json">All->JSON</button>
         </div>
       </div>
-    </div>
-
-    <div id="import-modal" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <h3 style="margin-top: 0">Importera</h3>
-        <div
-          class="sidebar-controls vertical"
-          style="gap: 0.8em; min-width: 250px"
-        >
-          <div class="sidebar-controls horizontal">
-            <button id="btn-import-json">Imp.->JSON</button>
-            <button id="btn-import-url" class="btn-primary">Import URL</button>
-          </div>
-          <input
-            type="file"
-            id="file-import"
-            accept="application/json"
-            class="hidden-file"
-          />
-        </div>
-        <div class="dialog-buttons">
-          <button id="import-modal-close" class="btn-primary">Stäng</button>
-        </div>
+      <div class="dialog-buttons">
+        <button id="export-modal-close" class="btn-primary">Stäng</button>
       </div>
     </div>
+  </div>
 
-    <button id="floating-live-btn" title="Starta Live-läge">▶</button>
+  <div id="import-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <h3 style="margin-top: 0">Importera</h3>
+      <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
+        <div class="sidebar-controls horizontal">
+          <button id="btn-import-json">Imp.->JSON</button>
+          <button id="btn-import-url" class="btn-primary">Import URL</button>
+        </div>
+        <input type="file" id="file-import" accept="application/json" class="hidden-file" />
+      </div>
+      <div class="dialog-buttons">
+        <button id="import-modal-close" class="btn-primary">Stäng</button>
+      </div>
+    </div>
+  </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <button id="floating-live-btn" title="Starta Live-läge">▶</button>
 
-    <script src="script.js"></script>
-  </body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+  <script src="script.js"></script>
+</body>
+
 </html>

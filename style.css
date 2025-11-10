@@ -589,6 +589,7 @@ body.scroll-mode-active #editor {
 .custom-dialog-overlay.visible {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
 }
 .custom-dialog-box {
   background-color: var(--surface);

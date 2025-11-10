@@ -474,6 +474,7 @@ body.dark-mode .menu-grid-btn.menu-btn-danger {
   width: 100%;
   position: relative;
   user-select: auto;
+  -webkit-overflow-scrolling: touch;
   /*user-select: text;*/
 }
 

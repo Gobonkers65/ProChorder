@@ -247,7 +247,17 @@
   </div>
 
   <div id="tuner-modal" class="custom-dialog-overlay">
-  <div class="custom-dialog-box" style="background: #111; color: white; border: 1px solid var(--border)">
+      <div class="custom-dialog-box">
+        <h3 style="margin-top: 0">Tuner</h3>
+        
+        <iframe id="tuner-iframe" allow="microphone" style="width: 100%; height: 500px; border: none; background: #fff;">
+        </iframe>
+        
+        <div class="dialog-buttons">
+          <button id="tuner-btn-close" class="btn btn-secondary">Close</button>
+        </div>
+      </div>
+    </div>
     <!--<h3 style="margin-top: 0">Tuner</h3>
     <div id="tuner-display" style="
             min-height: 150px;

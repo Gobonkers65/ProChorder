@@ -23,14 +23,11 @@ Application.prototype.start = function () {
   const self = this;
 
   this.tuner.onNoteDetected = function (note) {
-    if (self.notes.isAutoMode) {
-      if (self.lastNote === note.name) {
-        self.update(note);
-      } else {
-        self.lastNote = note.name;
-      }
-    }
-  };
+  if (self.notes.isAutoMode) {
+    // Uppdatera displayen VARJE gång en ny not upptäcks
+    self.update(note);
+  }
+};
 
   /*swal.fire("Welcome to online tuner!").then(function () {
     self.tuner.init();

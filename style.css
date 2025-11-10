@@ -473,7 +473,8 @@ body.dark-mode .menu-grid-btn.menu-btn-danger {
   clear: both;
   width: 100%;
   position: relative;
-  user-select: text;
+  user-select: auto;
+  /*user-select: text;*/
 }
 
 #editor a {
@@ -570,13 +571,18 @@ body.scroll-mode-active #editor {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  /* --- DESSA RADER ÄR VIKTIGA --- */
+  /* Gör den osynlig som standard */
   opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  /* --------------------------------- */
 }
 .custom-dialog-overlay.visible {
   opacity: 1;
@@ -651,6 +657,10 @@ body.is-dragging * {
   align-items: center;
   gap: 0.5em; /* Mindre mellanrum mellan knapparna */
   width: auto; /* Ta inte upp hela bredden */
+  pointer-events: none;
+}
+#scroll-controls > * {
+  pointer-events: auto;
 }
 
 /* KORREKT CSS-VÄLJARE (med kommatecken) */

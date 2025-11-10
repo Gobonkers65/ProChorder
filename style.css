@@ -473,6 +473,7 @@ body.dark-mode .menu-grid-btn.menu-btn-danger {
   clear: both;
   width: 100%;
   position: relative;
+  user-select: text;
 }
 
 #editor a {

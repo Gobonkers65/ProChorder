@@ -416,9 +416,10 @@ stopTuner() {
     const openModal = (modal) => modal.classList.add("visible");
     const closeModal = (modal) => modal.classList.remove("visible");
 
-    this.btnOpenTunerModal.addEventListener("click", () =>
-      this.openTunerModal()
-    );
+this.btnOpenTunerModal.addEventListener("click", () => {
+      this.openTunerModal();
+      toggleMenu();
+    });
     this.tunerBtnClose.addEventListener("click", () =>
       this.closeTunerModal()
     );

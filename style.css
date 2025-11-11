@@ -451,6 +451,8 @@ body.dark-mode .menu-grid-btn.menu-btn-danger {
   display: flex;
   flex-direction: column;
   gap: 1em;
+  overflow: hidden; /* <-- LÄGG TILL DENNA (låser X och Y för FÖRÄLDERN) */
+  height: calc(100vh - 100px); /* <-- FLYTTA HIT HÖJDEN */
 }
 
 /*.container {
@@ -464,7 +466,8 @@ body.dark-mode .menu-grid-btn.menu-btn-danger {
   padding: 0.5em;
   border-radius: 0px;
   box-shadow: var(--shadow);
-  height: calc(100vh - 100px);
+  /*height: calc(100vh - 100px);*/
+  height: 100%;
   font-family: var(--font-sans);
   line-height: 1.9;
   outline: none;
@@ -964,6 +967,7 @@ body.scroll-mode-active #floating-live-btn {
   width: 320px;
   max-width: 90%;
   max-height: 400px;
+  max-height: calc(100vh - 62px - 1em);
   overflow-y: auto;
   background-color: var(--surface);
   border: 1px solid var(--border);

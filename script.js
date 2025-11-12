@@ -424,30 +424,34 @@ this.btnOpenTunerModal.addEventListener("click", () => {
       this.closeTunerModal()
     );
 
-    this.btnOpenTransposeModal.addEventListener("click", () =>
-      openModal(this.transposeModal)
-    );
+    this.btnOpenTransposeModal.addEventListener("click", () => {
+      openModal(this.transposeModal);
+      toggleMenu();
+    });
     this.transposeModalClose.addEventListener("click", () =>
       closeModal(this.transposeModal)
     );
 
-    this.btnOpenSectionsModal.addEventListener("click", () =>
-      openModal(this.sectionsModal)
-    );
+    this.btnOpenSectionsModal.addEventListener("click", () => {
+      openModal(this.sectionsModal);
+      toggleMenu();
+    });
     this.sectionsModalClose.addEventListener("click", () =>
       closeModal(this.sectionsModal)
     );
 
-    this.btnOpenExportModal.addEventListener("click", () =>
-      openModal(this.exportModal)
-    );
+    this.btnOpenExportModal.addEventListener("click", () => {
+      openModal(this.exportModal);
+      toggleMenu();
+    });
     this.exportModalClose.addEventListener("click", () =>
       closeModal(this.exportModal)
     );
 
-    this.btnOpenImportModal.addEventListener("click", () =>
-      openModal(this.importModal)
-    );
+    this.btnOpenImportModal.addEventListener("click", () => {
+      openModal(this.importModal);
+      toggleMenu();
+    });
     this.importModalClose.addEventListener("click", () =>
       closeModal(this.importModal)
     );
@@ -1580,7 +1584,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
       this.currentProjectName.textContent = last;
     } else {
       list.value = "";
-      this.currentProjectName.textContent = "Välj projekt...";
+      this.currentProjectName.textContent = "Choose project...";
     }
   }
   deleteProject(name) {
@@ -1753,7 +1757,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
     saveAs(blob, `${this.sanitizeFilename(title)}.txt`);
   }
   async exportAllAsZip() {
-    this.btnExportZip.textContent = "Genererar...";
+    this.btnExportZip.textContent = "Generating...";
     this.btnExportZip.disabled = true;
     try {
       const projects =
@@ -1769,7 +1773,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
         zip.file(`${this.sanitizeFilename(project.title)}.pdf`, pdfBlob);
       }
       const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, "alla-låtar.zip");
+      saveAs(content, "all songs.zip");
     } catch (e) {
       this.showCustomAlert("Fel vid ZIP-export.");
     } finally {
@@ -1812,7 +1816,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
         if (Array.isArray(data)) {
           if (
             await this.showCustomConfirm(
-              `${data.length} låtar hittades. Vill du importera? Existerande låtar med samma titel skrivs över.`
+              `${data.length} Songs found. Would you like to import? Existing song with the same name will be over written.`
             )
           )
             this.importMultipleProjects(data);
@@ -1820,7 +1824,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
           this.importSingleProject(data);
         }
       } catch (e) {
-        this.showCustomAlert("Fel vid import av JSON.");
+        this.showCustomAlert("Import error.");
       }
     };
     reader.readAsText(file);
@@ -1833,7 +1837,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
       if (Array.isArray(data)) this.importMultipleProjects(data);
       else if (data.title) this.importSingleProject(data);
     } catch (e) {
-      this.showCustomAlert("Fel vid import från URL.");
+      this.showCustomAlert("Import error.");
     }
   }
   importSingleProject(data) {
@@ -1865,7 +1869,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
     );
     this.updateProjectList();
     this.showCustomAlert(
-      `${importedCount} nya låtar importerades. ${overwrittenCount} låtar uppdaterades.`
+      `${importedCount} New songs imported. ${overwrittenCount} songs updated.`
     );
     if (projectsArray.length > 0)
       this.loadProject(projectsArray[0].title);

@@ -408,15 +408,16 @@ stopTuner() {
     this.modalBtnClose.addEventListener("click", () =>
       this.closeChordModal()
     );
-    this.modalBtnRemove.addEventListener("click", () =>
+    this.modalBtnRemove.addEventListener("click", () => 
       this.removeChord()
+  
     );
 
     // --- NYA MODAL-LYSSNARE ---
     const openModal = (modal) => modal.classList.add("visible");
     const closeModal = (modal) => modal.classList.remove("visible");
 
-this.btnOpenTunerModal.addEventListener("click", () => {
+    this.btnOpenTunerModal.addEventListener("click", () => {
       this.openTunerModal();
       toggleMenu();
     });
@@ -552,6 +553,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
       this.saveProject(name);
     });
     this.btnDeleteProject.addEventListener("click", async () => {
+      toggleMenu();
       const name = this.projectList.value;
       if (!name)
         return this.showCustomAlert("Select a project to remove.");
@@ -562,9 +564,10 @@ this.btnOpenTunerModal.addEventListener("click", () => {
       )
         this.deleteProject(name);
     });
-    this.btnDeleteAllProjects.addEventListener("click", () =>
-      this.deleteAllProjects()
-    );
+    this.btnDeleteAllProjects.addEventListener("click", () => {
+      toggleMenu(); // <-- LÄGG TILL DENNA RAD
+      this.deleteAllProjects();
+    });
     this.btnTransposeUp.addEventListener("click", () =>
       this.transpose(1)
     );

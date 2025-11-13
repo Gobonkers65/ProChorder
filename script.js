@@ -1030,28 +1030,34 @@ this.btnOpenTunerModal.addEventListener("click", () => {
     span.className = "chord";
     span.dataset.chord = chord;
     span.setAttribute("contenteditable", "false");
+
     const chordText = document.createElement("span");
     chordText.className = "chord-text";
     chordText.textContent = chord;
     chordText.spellcheck = false;
+    chordText.draggable = true; // <-- GÖR TEXTEN DRAGGBAR
     span.appendChild(chordText);
-    const handle = document.createElement("span");
-    handle.className = "chord-handle";
-    handle.draggable = true;
-    span.appendChild(handle);
+
+    // Klicka på ackordet (antingen span eller text)
+    // Detta öppnar redigeraren (som tidigare)
     span.addEventListener("click", (e) => {
-      if (this.editMode !== "chord" || e.target === handle) return;
+      if (this.editMode !== "chord") return;
       e.stopPropagation();
       this.clearChordSelection();
       span.classList.add("selected");
+      // Notera: 'click' körs INTE efter en lyckad drag-operation.
     });
+
+    // Dubbelklicka för att ta bort (som tidigare)
     span.addEventListener("dblclick", (e) => {
       if (this.editMode !== "chord") return;
       e.stopPropagation();
       span.remove();
       this.recordHistoryDebounced();
     });
-    handle.addEventListener("dragstart", (e) => {
+
+    // FLYTTAD FRÅN 'handle' TILL 'chordText'
+    chordText.addEventListener("dragstart", (e) => {
       if (this.editMode !== "chord") {
         e.preventDefault();
         return;
@@ -1086,7 +1092,9 @@ this.btnOpenTunerModal.addEventListener("click", () => {
         }, 0);
       }
     });
-    handle.addEventListener("dragend", (e) => {
+
+    // FLYTTAD FRÅN 'handle' TILL 'chordText'
+    chordText.addEventListener("dragend", (e) => {
       e.stopPropagation();
       document.body.classList.remove("is-dragging");
       if (this.draggedChord && this.draggedChord.parentNode) {
@@ -1094,6 +1102,7 @@ this.btnOpenTunerModal.addEventListener("click", () => {
       }
       this.draggedChord = null;
     });
+
     return span;
   }
   insertSectionMarker(type) {

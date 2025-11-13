@@ -1045,7 +1045,7 @@ stopTuner() {
     // Detta öppnar redigeraren (som tidigare)
     span.addEventListener("click", (e) => {
       if (this.editMode !== "chord") return;
-      e.stopPropagation();
+     // e.stopPropagation(); // <-- TA BORT DENNA RAD
       this.clearChordSelection();
       span.classList.add("selected");
       // Notera: 'click' körs INTE efter en lyckad drag-operation.

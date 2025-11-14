@@ -1684,8 +1684,7 @@ stopTuner() {
     const CHORD_COLOR = "#0052cc";
     const TEXT_COLOR = "#172b4d";
     const CHORD_OFFSET = baseFontSizePt * 0.3;
-    // --- NY Titel/Artist-layout ---
-      const pageWidth = doc.internal.pageSize.getWidth();
+    const pageWidth = doc.internal.pageSize.getWidth();
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text(projectData.title || "Song Title", sectionMargin, y);
@@ -1696,7 +1695,8 @@ stopTuner() {
         align: "right",
       });
       y += 12; // Mindre mellanrum efter rubriken
-      // --- Slut på ny layout ---    const lines = (projectData.content || "").split("\n");
+    const lines = (projectData.content || "").split("\n");
+    // --- NY Loop-logik för att hantera "spalt" ---
     lines.forEach((lineText) => {
       let sectionType = null;
       let remainingText = lineText.replace(
@@ -1706,27 +1706,39 @@ stopTuner() {
           return "";
         }
       );
-      if (sectionType) {
-        if (y > 280) {
-          doc.addPage();
-          y = 20;
-        }
-        if (y > 25) y += SECTION_HEADER_LINE_HEIGHT * 0.5;
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(baseFontSizePt * 1.1);
-        doc.setTextColor(TEXT_COLOR);
-        doc.text(sectionType, margin, y);
-        y += SECTION_HEADER_LINE_HEIGHT;
+
+      const lineHasContent = remainingText.trim().length > 0;
+      const pageBreakThreshold = 280;
+
+      // Kolla om vi behöver byta sida FÖRST
+      // (lite mer komplicerad kontroll för att se om sektion + text får plats)
+      let estimatedLineHeight = LYRIC_LINE_HEIGHT;
+      if (sectionType && !lineHasContent) {
+        estimatedLineHeight = SECTION_HEADER_LINE_HEIGHT;
       }
-      if (remainingText.trim()) {
-        if (y > 280) {
-          doc.addPage();
-          y = 20;
-        }
+      if (y + estimatedLineHeight > pageBreakThreshold) {
+        doc.addPage();
+        y = 20;
+      }
+
+      // 1. Rita sektions-markör (om den finns)
+      if (sectionType) {
+        // Lägg till lite luft ovanför en ny sektion
+        if (y > 25) y += LYRIC_LINE_HEIGHT * 0.5;
+
+        doc.setFont("helvetica", "bold"); // <-- Din önskan (Fet stil)
+        doc.setFontSize(baseFontSizePt); // <-- Din önskan (Samma storlek)
+        doc.setTextColor(TEXT_COLOR);
+        doc.text(sectionType, sectionMargin, y); // <-- Rita i vänster "spalt"
+      }
+
+      // 2. Rita text & ackord (om det finns)
+      if (lineHasContent) {
         const parts = remainingText
           .split(/(\[[^\]]+\])/g)
           .filter((p) => p);
-        let currentX = margin;
+        let currentX = lyricMargin; // <-- Börja vid den indragna marginalen
+
         parts.forEach((part) => {
           if (part.startsWith("[") && part.endsWith("]")) {
             const chord = part.substring(1, part.length - 1);
@@ -1742,11 +1754,20 @@ stopTuner() {
             currentX += doc.getTextWidth(part);
           }
         });
+        
+        // Flytta ner 'y' FÖRST efter att texten har ritats
         y += LYRIC_LINE_HEIGHT;
-      } else if (!sectionType) {
+
+      } else if (sectionType) {
+        // Om det BARA var en sektionsrad (t.ex. "::Intro::")
+        // måste vi ändå flytta ner 'y'
+        y += LYRIC_LINE_HEIGHT;
+      } else {
+        // Om det var en helt tom rad (enbart '\n')
         y += LYRIC_LINE_HEIGHT * 0.7;
       }
     });
+    // --- Slut på ny loop-logik ---
     return doc.output("blob");
   }
   exportPdf() {
@@ -1996,4 +2017,3 @@ stopTuner() {
 }
 
 window.addEventListener("load", () => new StableChordEditor("editor"));
-

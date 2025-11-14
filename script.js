@@ -1670,8 +1670,9 @@ stopTuner() {
   generatePdfForProject(projectData) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    let y = 20;
-    const margin = 15;
+    let y = 15; // Börja lite högre upp
+      const sectionMargin = 15; // Vänster-kant för sektions-markörer
+      const lyricMargin = 35; // Ny, indragen kant för text & ackord
     const baseFontSizePx = parseInt(
       (projectData.fontSize || "16px").replace("px", ""),
       10
@@ -1683,17 +1684,19 @@ stopTuner() {
     const CHORD_COLOR = "#0052cc";
     const TEXT_COLOR = "#172b4d";
     const CHORD_OFFSET = baseFontSizePt * 0.3;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text(projectData.title || "Song Title", 105, y, {
-      align: "center",
-    });
-    y += 8;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(projectData.author || "Artist", 105, y, { align: "center" });
-    y += 15;
-    const lines = (projectData.content || "").split("\n");
+    // --- NY Titel/Artist-layout ---
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text(projectData.title || "Song Title", sectionMargin, y);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      doc.text(projectData.author || "Artist", pageWidth - sectionMargin, y, {
+        align: "right",
+      });
+      y += 12; // Mindre mellanrum efter rubriken
+      // --- Slut på ny layout ---    const lines = (projectData.content || "").split("\n");
     lines.forEach((lineText) => {
       let sectionType = null;
       let remainingText = lineText.replace(
@@ -1993,3 +1996,4 @@ stopTuner() {
 }
 
 window.addEventListener("load", () => new StableChordEditor("editor"));
+

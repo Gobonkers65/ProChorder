@@ -1683,7 +1683,7 @@ stopTuner() {
     const SECTION_HEADER_LINE_HEIGHT = baseFontSizePt * 0.9;
     const CHORD_COLOR = "#0052cc";
     const TEXT_COLOR = "#172b4d";
-    const CHORD_OFFSET = baseFontSizePt * 0.3;
+    const CHORD_OFFSET = baseFontSizePt * 0.35;
     const pageWidth = doc.internal.pageSize.getWidth();
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
@@ -1725,11 +1725,12 @@ stopTuner() {
       if (sectionType) {
         // Lägg till lite luft ovanför en ny sektion
         if (y > 25) y += LYRIC_LINE_HEIGHT * 0.5;
-
-        doc.setFont("helvetica", "bold"); // <-- Din önskan (Fet stil)
-        doc.setFontSize(baseFontSizePt); // <-- Din önskan (Samma storlek)
+const cleanedSectionType = sectionType.replace(/\u200B/g, ''); // <-- NY RAD
+        
+        doc.setFont("helvetica", "bold"); 
+        doc.setFontSize(baseFontSizePt); 
         doc.setTextColor(TEXT_COLOR);
-        doc.text(sectionType, sectionMargin, y); // <-- Rita i vänster "spalt"
+        doc.text(cleanedSectionType, sectionMargin, y); // <-- ÄNDRAD RAD
       }
 
       // 2. Rita text & ackord (om det finns)
@@ -1747,11 +1748,12 @@ stopTuner() {
             doc.setTextColor(CHORD_COLOR);
             doc.text(chord, currentX, y - CHORD_OFFSET);
           } else {
+            const cleanedPart = part.replace(/\u200B/g, ''); // <-- NY RAD
             doc.setFont("helvetica", "normal");
             doc.setFontSize(baseFontSizePt);
             doc.setTextColor(TEXT_COLOR);
-            doc.text(part, currentX, y);
-            currentX += doc.getTextWidth(part);
+            doc.text(cleanedPart, currentX, y); // <-- ÄNDRAD RAD
+            currentX += doc.getTextWidth(cleanedPart); // <-- ÄNDRAD RAD
           }
         });
         

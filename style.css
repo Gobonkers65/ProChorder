@@ -479,6 +479,8 @@ body.dark-mode .menu-grid-btn.menu-btn-danger {
   user-select: auto;
   -webkit-overflow-scrolling: touch;
   /*user-select: text;*/
+    -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 #editor a {
@@ -497,7 +499,7 @@ body.dark-mode .menu-grid-btn.menu-btn-danger {
 #editor .chord {
   display: inline-block;
   position: relative;
-  user-select: none;
+  /* user-select: none; */ /* <-- TA BORT DENNA RAD */
   cursor: default;
   vertical-align: middle;
   top: -1.7em;

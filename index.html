@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ProChorder 9.8 (Modern UI)</title>
+  <title>ProChorder 9.9 (Updated UI)</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,27 +26,13 @@
       </button>
       <select id="project-list" style="display: none"></select>
       <div id="project-dropdown-menu" class="project-dropdown"></div>
-      <button id="btn-new-project" class="icon-btn" title="Nytt Projekt">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
-          <path
-            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-        </svg>
-      </button>
+
     </div>
     <div class="top-bar-right">
-      <button id="main-toggle-edit-mode-btn" class="icon-btn" title="Växla Redigeringsläge">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
-          <path
-            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-        </svg>
+      <button id="main-toggle-edit-mode-btn" class="icon-btn text-btn-chord" title="Växla Redigeringsläge">
+        CHORD
       </button>
-      <button id="btn-show-help" class="icon-btn" title="Hjälp & HOW TO">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
-          <path fill-rule="evenodd"
-            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.94a.75.75 0 11-1.061-1.061 3 3 0 112.871 5.026v.345a.75.75 0 01-1.5 0v-.5c0-.738.596-1.336 1.336-1.336.74 0 1.336.598 1.336 1.336 0 .738-.596 1.336-1.336 1.336a.75.75 0 01-.75-.75v-.106a1.5 1.5 0 10-1.802-1.802.75.75 0 011.06-1.061zM10 15a.75.75 0 100-1.5.75.75 0 000 1.5z"
-            clip-rule="evenodd" />
-        </svg>
-      </button>
+
       <button id="btn-toggle-dark-mode" class="icon-btn" title="Växla ljust/mörkt läge">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
           <path fill-rule="evenodd"
@@ -67,18 +53,37 @@
   <div id="menu-overlay" class="is-closed"></div>
 
   <nav id="side-menu" class="is-closed">
+
     <input type="text" id="song-title" placeholder="Titel" style="grid-column: span 3" />
     <input type="text" id="song-author" placeholder="Artist / Låtskrivare" style="grid-column: span 3" />
 
-    <div class="sidebar-controls horizontal" style="grid-column: span 3">
-      <button id="btn-toggle-scroll-mode" class="btn-primary" style="width: 100%">
-        LIVE!
-      </button>
+    <div class="sidebar-controls vertical" style="grid-column: span 3; gap: 0.5em;">
+
+      <div class="sidebar-controls horizontal" style="gap: 8px;">
+  <button id="btn-toggle-scroll-mode" class="btn-primary" style="flex: 1 1 0;">
+    LIVE!
+  </button>
+  <button id="btn-toggle-metronome" class="btn-secondary-style" style="flex: 1 1 0;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="icon-medium"><path stroke-linecap="round" stroke-linejoin="round" d="M10.75 3.75l-4.5 14.5c-0.25 0.8 0.5 1.5 1.25 1.25L12 18.5l4.5 0.9c0.75 0.1 1.5-0.6 1.25-1.25L13.25 3.75a0.75 0.75 0 00-1.5 0zM12 4.5v15M11.25 7.5a0.75 0.75 0 011.5 0v5.25a0.75 0.75 0 01-1.5 0V7.5z" /></svg>
+  </button>
+</div>
+
+      <div id="combined-controls-row" class="sidebar-controls horizontal" style="gap: 8px;">
+  <div class="control-group-half">
+    <span class="menu-grid-title" style="white-space: nowrap; margin-right: 5px;">Size:</span>
+    <select id="font-size-selector" style="width: 100%;"></select>
+  </div>
+
+  <div class="control-group-half bpm-control-wrapper">
+    <button id="btn-bpm-down" class="btn-bpm-control minimal-control">-</button>
+    <div id="bpm-control-container" class="bpm-input-container">
+      <input type="number" id="metronome-bpm-input" value="120" min="40" max="300" placeholder="120">
     </div>
-    <div class="font-size-slider-container" style="grid-column: span 3">
-      <span class="menu-grid-title">Font size</span>
-      <input type="range" id="font-size-slider" min="12" max="32" value="16" />
+    <button id="btn-bpm-up" class="btn-bpm-control minimal-control">+</button>
+  </div>
+</div>
     </div>
+
 
     <div class="menu-grid" style="grid-column: span 3">
       <button id="btn-open-tuner-modal" class="menu-grid-btn">
@@ -130,6 +135,32 @@
         </svg>
       </button>
 
+      <button id="btn-new-project" class="menu-grid-btn">
+        <span class="menu-grid-title">New Song</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+      </button>
+
+      <button id="btn-save-copy" class="menu-grid-btn">
+        <span class="menu-grid-title">Save Copy</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" />
+        </svg>
+      </button>
+
+      <button id="btn-show-help" class="menu-grid-btn">
+        <span class="menu-grid-title">Help</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+          class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+        </svg>
+      </button>
+
       <button id="btn-save-project" class="menu-grid-btn menu-btn-save">
         <span class="menu-grid-title">Save song</span>
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
@@ -155,18 +186,6 @@
         </svg>
       </button>
     </div>
-
-    <!--<div class="font-size-slider-container" style="grid-column: span 3">
-        <span class="menu-grid-title">Font size</span>
-        <input
-          type="range"
-          id="font-size-slider"
-          min="12"
-          max="32"
-          value="16"
-          style="width: 100%"
-        />
-      </div> -->
   </nav>
 
   <div class="container">
@@ -180,12 +199,9 @@
   <div id="scroll-controls">
     <button id="scroll-btn-play-pause">▶</button>
     <div class="speed-control">
-      <span>Fast</span>
       <input type="range" id="scroll-speed-slider" min="0" max="100" value="20" />
-      <span>Slow</span>
     </div>
     <div class="duration-control">
-      <label></label>
       <input type="number" id="scroll-duration-minutes" min="0" max="60" value="4" />
       <span>m</span>
       <input type="number" id="scroll-duration-seconds" min="0" max="59" step="5" value="0" />
@@ -246,31 +262,16 @@
     </div>
   </div>
 
-    <!--<h3 style="margin-top: 0">Tuner</h3>
-    <div id="tuner-display" style="
-            min-height: 150px;
-            font-size: 3em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-      --
-    </div>-->
-    <div class="dialog-buttons">
-<div id="tuner-modal" class="custom-dialog-overlay">
-  <div class="custom-dialog-box">
-    <h3 style="margin-top: 0">Tuner</h3>
-
-    <iframe id="tuner-iframe" 
-            allow="microphone" 
-            style="width: 100%; height: 500px; border: none; background: #fff;">
-    </iframe>
-
-    <div class="dialog-buttons">
-      <button id="tuner-btn-close" class="btn btn-secondary">Close</button>
+  <div id="tuner-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <h3 style="margin-top: 0">Tuner</h3>
+      <iframe id="tuner-iframe" allow="microphone" style="width: 100%; height: 500px; border: none; background: #fff;">
+      </iframe>
+      <div class="dialog-buttons">
+        <button id="tuner-btn-close" class="btn btn-secondary">Close</button>
+      </div>
     </div>
   </div>
-</div>
 
   <div id="transpose-modal" class="custom-dialog-overlay">
     <div class="custom-dialog-box">

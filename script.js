@@ -398,16 +398,26 @@ class StableChordEditor {
     // --- METRONOM ---
     this.btnToggleMetronome.addEventListener("click", () => this.toggleMetronome());
     
-    this.metronomeBpmInput.addEventListener("input", (e) => {
-      let newTempo = parseInt(e.target.value);
-      const min = parseInt(e.target.min) || 40;
-      const max = parseInt(e.target.max) || 300;
-      if (newTempo >= min && newTempo <= max) {
-        this.tempo = newTempo;
-      } else {
-        e.target.value = this.tempo;
-      }
-    });
+this.metronomeBpmInput.addEventListener("input", (e) => {
+  let newTempo = parseInt(e.target.value);
+  const min = parseInt(e.target.min) || 40;
+  const max = parseInt(e.target.max) || 300;
+
+  if (newTempo >= min && newTempo <= max) {
+    this.tempo = newTempo;
+    // Om metronomen redan körs, ser vi till att AudioContext är vaket
+    if (this.metronomeRunning && this.audioContext?.state === 'suspended') {
+      this.audioContext.resume();
+    }
+  }
+});
+
+// Lägg även till 'blur' så att rutan återställs om användaren lämnar den tom
+this.metronomeBpmInput.addEventListener("blur", (e) => {
+  if (!e.target.value || e.target.value < 40) {
+    e.target.value = this.tempo;
+  }
+});
 
     const updateBpm = (delta) => {
       const min = parseInt(this.metronomeBpmInput.min) || 40;
@@ -630,23 +640,24 @@ class StableChordEditor {
     }
   }
 
-  startMetronome() {
-    if (this.metronomeRunning) return;
+async startMetronome() { // Lägg till async här
+  if (this.metronomeRunning) return;
 
-    if (!this.audioContext) {
-      window.AudioContext = window.AudioContext || window.webkitAudioContext;
-      this.audioContext = new AudioContext();
-    }
-
-    this.metronomeRunning = true;
-    this.nextNoteTime = this.audioContext.currentTime;
-
-    // Starta schemaläggaren
-    this.metronomeInterval = setInterval(() => this.scheduler(), this.lookahead);
-
-    // ÄNDRAT: Använd CSS-klass istället för inline styles
-    this.btnToggleMetronome.classList.add("is-active");
+  if (!this.audioContext) {
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+    this.audioContext = new AudioContext();
   }
+
+  // Tvinga iOS att tillåta ljudet vid knapptrycket
+  if (this.audioContext.state === 'suspended') {
+    await this.audioContext.resume();
+  }
+
+  this.metronomeRunning = true;
+  this.nextNoteTime = this.audioContext.currentTime;
+  this.metronomeInterval = setInterval(() => this.scheduler(), this.lookahead);
+  this.btnToggleMetronome.classList.add("is-active");
+}
 
   stopMetronome() {
     if (!this.metronomeRunning) return;
@@ -1968,5 +1979,6 @@ class StableChordEditor {
     this.updateDurationInputs(Math.round(durationSeconds));
   }
 }
+
 
 window.addEventListener("load", () => new StableChordEditor("editor"));

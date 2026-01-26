@@ -229,6 +229,14 @@ body {
   background-color: var(--primary-bg-hover);
   color: var(--primary);
 }
+.project-dropdown-item.dragging {
+  opacity: 0.5;
+  background: var(--bg);
+}
+.project-dropdown-item.drag-over {
+  border-top: 2px solid var(--primary);
+  background: var(--primary-bg-hover);
+}
 
 /* --- KNAPPAR (Generellt) --- */
 .icon-btn {

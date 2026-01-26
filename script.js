@@ -11,6 +11,7 @@ class StableChordEditor {
     PROJECTS: "stableProjects",
     LAST_PROJECT: "lastProject",
     DARK_MODE: "darkMode",
+    PROJECT_ORDER: "projectOrder", // NY: För att spara sorteringsordning
   };
 
   /**
@@ -398,26 +399,26 @@ class StableChordEditor {
     // --- METRONOM ---
     this.btnToggleMetronome.addEventListener("click", () => this.toggleMetronome());
     
-this.metronomeBpmInput.addEventListener("input", (e) => {
-  let newTempo = parseInt(e.target.value);
-  const min = parseInt(e.target.min) || 40;
-  const max = parseInt(e.target.max) || 300;
+    this.metronomeBpmInput.addEventListener("input", (e) => {
+      let newTempo = parseInt(e.target.value);
+      const min = parseInt(e.target.min) || 40;
+      const max = parseInt(e.target.max) || 300;
 
-  if (newTempo >= min && newTempo <= max) {
-    this.tempo = newTempo;
-    // Om metronomen redan körs, ser vi till att AudioContext är vaket
-    if (this.metronomeRunning && this.audioContext?.state === 'suspended') {
-      this.audioContext.resume();
-    }
-  }
-});
+      if (newTempo >= min && newTempo <= max) {
+        this.tempo = newTempo;
+        // Om metronomen redan körs, ser vi till att AudioContext är vaket
+        if (this.metronomeRunning && this.audioContext?.state === 'suspended') {
+          this.audioContext.resume();
+        }
+      }
+    });
 
-// Lägg även till 'blur' så att rutan återställs om användaren lämnar den tom
-this.metronomeBpmInput.addEventListener("blur", (e) => {
-  if (!e.target.value || e.target.value < 40) {
-    e.target.value = this.tempo;
-  }
-});
+    // Lägg även till 'blur' så att rutan återställs om användaren lämnar den tom
+    this.metronomeBpmInput.addEventListener("blur", (e) => {
+      if (!e.target.value || e.target.value < 40) {
+        e.target.value = this.tempo;
+      }
+    });
 
     const updateBpm = (delta) => {
       const min = parseInt(this.metronomeBpmInput.min) || 40;
@@ -640,24 +641,24 @@ this.metronomeBpmInput.addEventListener("blur", (e) => {
     }
   }
 
-async startMetronome() { // Lägg till async här
-  if (this.metronomeRunning) return;
+  async startMetronome() { // Lägg till async här
+    if (this.metronomeRunning) return;
 
-  if (!this.audioContext) {
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    this.audioContext = new AudioContext();
+    if (!this.audioContext) {
+      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+      this.audioContext = new AudioContext();
+    }
+
+    // Tvinga iOS att tillåta ljudet vid knapptrycket
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    this.metronomeRunning = true;
+    this.nextNoteTime = this.audioContext.currentTime;
+    this.metronomeInterval = setInterval(() => this.scheduler(), this.lookahead);
+    this.btnToggleMetronome.classList.add("is-active");
   }
-
-  // Tvinga iOS att tillåta ljudet vid knapptrycket
-  if (this.audioContext.state === 'suspended') {
-    await this.audioContext.resume();
-  }
-
-  this.metronomeRunning = true;
-  this.nextNoteTime = this.audioContext.currentTime;
-  this.metronomeInterval = setInterval(() => this.scheduler(), this.lookahead);
-  this.btnToggleMetronome.classList.add("is-active");
-}
 
   stopMetronome() {
     if (!this.metronomeRunning) return;
@@ -1174,27 +1175,39 @@ async startMetronome() { // Lägg till async här
 
   handleKeyDown(e) {
     if (this.editMode !== "chord") return;
+
+    // --- SKYDD MOT ATT RADERA ACKORD/SEKTIONER MED BACKSPACE ---
     if (e.key === "Backspace") {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
-      if (range.collapsed && range.startOffset === 0) {
-        const container = range.startContainer;
-        const prev = (
-          container.nodeType === Node.TEXT_NODE
-            ? container
-            : container.childNodes[range.startOffset] || null
-        )?.previousSibling;
-        if (
-          prev &&
-          prev.nodeType === Node.ELEMENT_NODE &&
-          prev.classList.contains("chord")
-        ) {
-          e.preventDefault();
-          prev.remove();
-          this.recordHistoryDebounced();
+        const sel = window.getSelection();
+        if (!sel.rangeCount) return;
+        const range = sel.getRangeAt(0);
+
+        // Om markören är precis i början av ett textblock
+        if (range.collapsed && range.startOffset === 0) {
+            const container = range.startContainer;
+            
+            // Hitta vad som ligger precis innan markören
+            // Ibland är container en TextNode, ibland ett Element
+            let prevNode = null;
+            if (container.nodeType === Node.TEXT_NODE) {
+                prevNode = container.previousSibling;
+            } else if (container.nodeType === Node.ELEMENT_NODE) {
+                prevNode = container.childNodes[range.startOffset - 1];
+            }
+
+            // Kontrollera om föregående nod är ett Ackord eller en Sektion
+            if (prevNode && prevNode.nodeType === Node.ELEMENT_NODE) {
+                if (prevNode.classList.contains("chord") || prevNode.classList.contains("section-marker")) {
+                    // STOPP! Radera inte elementet.
+                    e.preventDefault();
+                    
+                    // Valfritt: Markera elementet istället så användaren ser att de "kört in i det"
+                    // Men enklast är att bara blockera raderingen så inget oavsiktligt händer.
+                    this.showCustomAlert("Använd dubbelklick eller menyn för att ta bort ackord/sektioner.");
+                    return;
+                }
+            }
         }
-      }
     }
   }
 
@@ -1477,6 +1490,13 @@ async startMetronome() { // Lägg till async här
       tempo: this.tempo,
     };
 
+    // --- UPPDATERA ORDNINGSLISTAN ---
+    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    if (!order.includes(name)) {
+        order.push(name);
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+    }
+
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
     this.updateProjectList(name);
@@ -1576,33 +1596,90 @@ async startMetronome() { // Lägg till async här
     const list = this.projectList;
     const dropdown = this.projectDropdownMenu;
     const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-    const currentProjects = Object.keys(projects).sort();
     
+    // Hämta sparad ordning, eller skapa en standardordning om den saknas
+    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    const projectKeys = Object.keys(projects);
+    
+    // Städa upp ordningen (ta bort raderade, lägg till saknade)
+    order = order.filter(name => projectKeys.includes(name));
+    projectKeys.forEach(name => {
+        if (!order.includes(name)) order.push(name);
+    });
+    // Spara den städade listan
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+
     list.innerHTML = '<option value="">Ladda projekt...</option>';
     dropdown.innerHTML = "";
-    
-    if (currentProjects.length === 0) {
-      dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
+
+    if (order.length === 0) {
+        dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
     }
-    
-    currentProjects.forEach((name) => {
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      list.appendChild(option);
-      
-      const item = document.createElement("div");
-      item.className = "project-dropdown-item";
-      item.textContent = name;
-      item.dataset.name = name;
-      item.addEventListener("click", () => {
-        this.selectProject(name);
-      });
-      dropdown.appendChild(item);
+
+    order.forEach((name, index) => {
+        // Uppdatera <select> listan (för legacy support)
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        list.appendChild(option);
+
+        // Skapa dropdown-item med Drag & Drop
+        const item = document.createElement("div");
+        item.className = "project-dropdown-item";
+        item.textContent = name;
+        item.dataset.name = name;
+        item.draggable = true; // Gör den dragbar!
+
+        // Klick för att ladda
+        item.addEventListener("click", () => {
+            this.selectProject(name);
+        });
+
+        // --- DRAG AND DROP EVENTS ---
+        item.addEventListener("dragstart", (e) => {
+            e.dataTransfer.setData("text/plain", index);
+            e.dataTransfer.effectAllowed = "move";
+            item.classList.add("dragging");
+        });
+
+        item.addEventListener("dragend", () => {
+            item.classList.remove("dragging");
+            document.querySelectorAll(".project-dropdown-item").forEach(el => el.classList.remove("drag-over"));
+        });
+
+        item.addEventListener("dragover", (e) => {
+            e.preventDefault(); // Krävs för att tillåta drop
+            item.classList.add("drag-over");
+        });
+
+        item.addEventListener("dragleave", () => {
+            item.classList.remove("drag-over");
+        });
+
+        item.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
+            const toIndex = index;
+
+            if (fromIndex !== toIndex) {
+                // Flytta i arrayen
+                const itemToMove = order[fromIndex];
+                order.splice(fromIndex, 1);
+                order.splice(toIndex, 0, itemToMove);
+                
+                // Spara ny ordning
+                localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+                
+                // Rendera om listan
+                this.updateProjectList(selectedValue);
+            }
+        });
+
+        dropdown.appendChild(item);
     });
     
     const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-    if (last && currentProjects.includes(last)) {
+    if (last && projects[last]) {
       list.value = last;
       this.currentProjectName.textContent = last;
     } else {
@@ -1616,6 +1693,11 @@ async startMetronome() { // Lägg till async här
     delete projects[name];
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
     
+    // Ta bort från ordningslistan
+    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    order = order.filter(item => item !== name);
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+
     const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
     if (last === name) {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
@@ -1630,6 +1712,7 @@ async startMetronome() { // Lägg till async här
     if (await this.showCustomConfirm("Är du säker? Detta raderar ALLA sånger permanent.")) {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER); // Töm ordningen också
       this.updateProjectList();
       this.createNewProject();
       this.showCustomAlert("Alla projekt är borttagna.");
@@ -1645,6 +1728,14 @@ async startMetronome() { // Lägg till async här
       
       localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
       
+      // Uppdatera ordningslistan
+      let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+      const index = order.indexOf(oldName);
+      if (index !== -1) {
+          order[index] = newName;
+          localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+      }
+
       const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
       if (lastProject === oldName)
         localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);

@@ -11,7 +11,7 @@ class StableChordEditor {
     PROJECTS: "stableProjects",
     LAST_PROJECT: "lastProject",
     DARK_MODE: "darkMode",
-    PROJECT_ORDER: "projectOrder", // NY: För att spara sorteringsordning
+    PROJECT_ORDER: "projectOrder", // Håller ordningen på låtlistan
   };
 
   /**
@@ -578,11 +578,18 @@ class StableChordEditor {
     });
 
     this.editor.addEventListener("keydown", this.handleKeyDown.bind(this));
+    
+    // --- SMART PASTE HANTERING (NYTT) ---
+    // Fångar in-klistring och försöker slå ihop ackordrader med textrader
     this.editor.addEventListener("paste", (e) => {
       e.preventDefault();
       const text = (e.clipboardData || window.clipboardData).getData("text/plain");
-      document.execCommand("insertText", false, text);
+      
+      const processedText = this.processSmartPaste(text);
+      
+      document.execCommand("insertText", false, processedText);
     });
+    
     this.editor.addEventListener("input", () => this.recordHistoryDebounced());
     this.editor.addEventListener("keyup", this.handleAutoLinking.bind(this));
     
@@ -641,7 +648,7 @@ class StableChordEditor {
     }
   }
 
-  async startMetronome() { // Lägg till async här
+  async startMetronome() {
     if (this.metronomeRunning) return;
 
     if (!this.audioContext) {
@@ -665,13 +672,10 @@ class StableChordEditor {
 
     clearInterval(this.metronomeInterval);
     this.metronomeRunning = false;
-
-    // ÄNDRAT: Ta bort CSS-klassen
     this.btnToggleMetronome.classList.remove("is-active");
   }
 
   scheduler() {
-    // Schemalägg noter tills nästa schemalagda tid är längre bort än vår lookahead-tid
     while (this.nextNoteTime < this.audioContext.currentTime + this.scheduleAheadTime) {
       this.playMetronomeClick(this.nextNoteTime);
       let secondsPerBeat = 60.0 / this.tempo;
@@ -729,21 +733,18 @@ class StableChordEditor {
   }
 
   updateModeUI() {
-    // Uppdatera status-text
     if (this.editMode === "chord") {
       if (this.chordModeIconText) this.chordModeIconText.textContent = "ON";
     } else {
       if (this.chordModeIconText) this.chordModeIconText.textContent = "OFF";
     }
 
-    // Uppdatera knappens utseende
     if (this.mainToggleEditModeBtn) {
       this.mainToggleEditModeBtn.classList.toggle("is-active", this.editMode === "chord");
       this.mainToggleEditModeBtn.title =
         this.editMode === "chord" ? "Ackordläge PÅ (Klicka för Textläge)" : "Ackordläge AV (Klicka för Ackordläge)";
     }
 
-    // Uppdatera editor-beteende
     if (this.editMode === "chord") {
       this.editor.classList.remove("text-mode");
       this.editor.setAttribute("inputmode", "none");
@@ -755,7 +756,6 @@ class StableChordEditor {
 
   toggleScrollMode(enter, startImmediately = false) {
     if (enter) {
-      // 1. SPARA LÄGET HÄR:
       this.previousEditMode = this.editMode;
 
       if (!this.editor.textContent.trim()) {
@@ -782,7 +782,6 @@ class StableChordEditor {
       this.releaseWakeLock();
       this.stopScrolling();
       
-      // 2. ÅTERSTÄLL LÄGET HÄR (istället för att tvinga "chord"):
       this.editMode = this.previousEditMode || "chord";
       
       this.editor.contentEditable = true;
@@ -1069,7 +1068,7 @@ class StableChordEditor {
     chordText.className = "chord-text";
     chordText.textContent = chord;
     chordText.spellcheck = false;
-    chordText.draggable = true; // Gör texten dragbar
+    chordText.draggable = true; 
     span.appendChild(chordText);
 
     span.addEventListener("click", (e) => {
@@ -1173,10 +1172,10 @@ class StableChordEditor {
     this.editor.querySelectorAll(".chord.selected").forEach((s) => s.classList.remove("selected"));
   }
 
+  // --- SÄKER BACKSPACE (Uppdaterad) ---
   handleKeyDown(e) {
     if (this.editMode !== "chord") return;
 
-    // --- SKYDD MOT ATT RADERA ACKORD/SEKTIONER MED BACKSPACE ---
     if (e.key === "Backspace") {
         const sel = window.getSelection();
         if (!sel.rangeCount) return;
@@ -1185,9 +1184,6 @@ class StableChordEditor {
         // Om markören är precis i början av ett textblock
         if (range.collapsed && range.startOffset === 0) {
             const container = range.startContainer;
-            
-            // Hitta vad som ligger precis innan markören
-            // Ibland är container en TextNode, ibland ett Element
             let prevNode = null;
             if (container.nodeType === Node.TEXT_NODE) {
                 prevNode = container.previousSibling;
@@ -1195,14 +1191,10 @@ class StableChordEditor {
                 prevNode = container.childNodes[range.startOffset - 1];
             }
 
-            // Kontrollera om föregående nod är ett Ackord eller en Sektion
+            // Skyddar ackord och sektioner från att raderas av misstag
             if (prevNode && prevNode.nodeType === Node.ELEMENT_NODE) {
                 if (prevNode.classList.contains("chord") || prevNode.classList.contains("section-marker")) {
-                    // STOPP! Radera inte elementet.
-                    e.preventDefault();
-                    
-                    // Valfritt: Markera elementet istället så användaren ser att de "kört in i det"
-                    // Men enklast är att bara blockera raderingen så inget oavsiktligt händer.
+                    e.preventDefault(); // Stoppa raderingen!
                     this.showCustomAlert("Använd dubbelklick eller menyn för att ta bort ackord/sektioner.");
                     return;
                 }
@@ -1490,7 +1482,8 @@ class StableChordEditor {
       tempo: this.tempo,
     };
 
-    // --- UPPDATERA ORDNINGSLISTAN ---
+    // --- UPPDATERA ORDNINGSLISTAN (NYTT) ---
+    // Lägger till nya projekt sist i listan över ordning
     let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
     if (!order.includes(name)) {
         order.push(name);
@@ -1592,6 +1585,7 @@ class StableChordEditor {
       );
   }
 
+  // --- UPPDATERAD PROJEKTLISTA MED DRAG & DROP ---
   updateProjectList(selectedValue) {
     const list = this.projectList;
     const dropdown = this.projectDropdownMenu;
@@ -1616,6 +1610,7 @@ class StableChordEditor {
         dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
     }
 
+    // Här byggs dropdown-menyn och Drag & Drop eventen
     order.forEach((name, index) => {
         // Uppdatera <select> listan (för legacy support)
         const option = document.createElement("option");
@@ -1693,7 +1688,7 @@ class StableChordEditor {
     delete projects[name];
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
     
-    // Ta bort från ordningslistan
+    // Ta bort från ordningslistan (NYTT)
     let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
     order = order.filter(item => item !== name);
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
@@ -1712,7 +1707,7 @@ class StableChordEditor {
     if (await this.showCustomConfirm("Är du säker? Detta raderar ALLA sånger permanent.")) {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER); // Töm ordningen också
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER); // Töm ordningen
       this.updateProjectList();
       this.createNewProject();
       this.showCustomAlert("Alla projekt är borttagna.");
@@ -1728,7 +1723,7 @@ class StableChordEditor {
       
       localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
       
-      // Uppdatera ordningslistan
+      // Uppdatera ordningslistan (NYTT)
       let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
       const index = order.indexOf(oldName);
       if (index !== -1) {
@@ -2069,7 +2064,101 @@ class StableChordEditor {
     const durationSeconds = scrollHeight / (this.scrollSpeed * 60);
     this.updateDurationInputs(Math.round(durationSeconds));
   }
-}
 
+  // --- SMART PASTE LOGIK (NYTT) ---
+  // Denna del analyserar inklippt text och bakar ihop ackordrader med textrader
+  
+  processSmartPaste(text) {
+    const lines = text.split("\n");
+    const result = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const currentLine = lines[i].trimEnd();
+      const nextLine = (i + 1 < lines.length) ? lines[i + 1].trimEnd() : "";
+
+      // Kolla om nuvarande rad verkar vara en ren ackordrad
+      if (this.isChordLine(currentLine)) {
+        // Kolla om nästa rad är en textrad (inte en ackordrad och inte tom)
+        if (nextLine && !this.isChordLine(nextLine)) {
+          // BINGO! Slå ihop raderna
+          const merged = this.mergeChordAndLyricLines(lines[i], lines[i+1]); 
+          result.push(merged);
+          i++; // Hoppa över nästa rad eftersom vi precis bakade in den
+        } else {
+          // Det är en ackordrad, men ingen text under. 
+          // Sätt bara klamrar runt ackorden.
+          result.push(currentLine.replace(/([A-G][#b]?[a-zA-Z0-9\/]*)/g, "[$1]"));
+        }
+      } else {
+        // Vanlig textrad, låt vara
+        result.push(currentLine);
+      }
+    }
+    return result.join("\n");
+  }
+
+  isChordLine(line) {
+    if (!line.trim()) return false;
+    
+    const tokens = line.trim().split(/\s+/);
+    let chordCount = 0;
+    
+    // Regex för ackord (lite generös för att fånga det mesta)
+    const chordRegex = /^[A-G][#b]?(m|min|maj|dim|aug|sus|add|[0-9])*(\/[A-G][#b]?)?$/;
+    
+    tokens.forEach(token => {
+      const cleanToken = token.replace(/[()]/g, ""); 
+      if (chordRegex.test(cleanToken)) chordCount++;
+    });
+
+    // Om >80% av orden är ackord, räknas det som en ackordrad
+    return (chordCount / tokens.length) > 0.8; 
+  }
+
+  mergeChordAndLyricLines(chordLine, lyricLine) {
+    let result = "";
+    let lyricIndex = 0;
+    
+    // Hitta alla ackord och deras positioner i ackordraden
+    const regex = /([A-G][#b]?[^\s]*)/g; 
+    let match;
+    const chords = [];
+    
+    while ((match = regex.exec(chordLine)) !== null) {
+      chords.push({
+        text: match[1],
+        index: match.index
+      });
+    }
+
+    if (chords.length === 0) return lyricLine;
+
+    for (let i = 0; i < chords.length; i++) {
+      const chord = chords[i];
+      
+      // Lägg till text fram till ackordet
+      if (chord.index > lyricIndex) {
+        if (chord.index > lyricLine.length) {
+           result += lyricLine.substring(lyricIndex);
+           // Fyll ut med mellanslag om ackordet ligger långt ut till höger
+           result += " ".repeat(chord.index - lyricLine.length); 
+           lyricIndex = lyricLine.length + (chord.index - lyricLine.length);
+        } else {
+           result += lyricLine.substring(lyricIndex, chord.index);
+           lyricIndex = chord.index;
+        }
+      }
+      
+      result += `[${chord.text}]`;
+    }
+    
+    // Lägg till eventuell återstående text
+    if (lyricIndex < lyricLine.length) {
+      result += lyricLine.substring(lyricIndex);
+    }
+
+    return result;
+  }
+}
 
 window.addEventListener("load", () => new StableChordEditor("editor"));

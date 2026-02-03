@@ -1905,7 +1905,26 @@ class StableChordEditor {
 
   exportAllJson() {
     const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-    const projectsArray = Object.values(projects);
+    const order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    
+    // SKAPA LISTAN BASERAT PÅ DIN SORTERING
+    const projectsArray = [];
+    
+    // 1. Lägg först till alla låtar som finns i din sorterade lista
+    order.forEach(title => {
+        if (projects[title]) {
+            projectsArray.push(projects[title]);
+        }
+    });
+
+    // 2. (Säkerhetsåtgärd) Lägg till eventuella "föräldralösa" låtar som finns i databasen 
+    // men av någon anledning saknas i ordningslistan.
+    Object.keys(projects).forEach(title => {
+        if (!order.includes(title)) {
+            projectsArray.push(projects[title]);
+        }
+    });
+
     const blob = new Blob([JSON.stringify(projectsArray, null, 2)], { type: "application/json" });
     saveAs(blob, `songs-backup.json`);
   }

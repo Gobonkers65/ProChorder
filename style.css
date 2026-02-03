@@ -204,6 +204,7 @@ body {
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 0.2s ease, transform 0.2s ease;
+  padding-bottom: 50px;
 }
 
 .project-dropdown.is-open {

@@ -21,18 +21,18 @@ class StableChordEditor {
     if (e.key !== " " && e.key !== "Enter") return;
     const selection = window.getSelection();
     if (!selection.rangeCount || !selection.isCollapsed) return;
-    
+
     const range = selection.getRangeAt(0);
     const container = range.startContainer;
     if (container.nodeType !== Node.TEXT_NODE) return;
-    
+
     const textContent = container.textContent.substring(0, range.startOffset);
     const customLinkRegex = /\[\[(.+?)(?:\|(.*?))?\]\]\s*$/;
     const autoLinkRegex = /(?:^|\s)((?:https?:\/\/\S+|(?:www|ftp)\.\S+))\s*$/;
-    
+
     const customMatch = textContent.match(customLinkRegex);
     const autoMatch = !customMatch && textContent.match(autoLinkRegex);
-    
+
     let url, linkText, startIndex, fullMatchLength;
 
     if (customMatch) {
@@ -59,17 +59,18 @@ class StableChordEditor {
     replaceRange.deleteContents();
 
     const link = document.createElement("a");
-    link.href = url.startsWith("http") || url.startsWith("//") ? url : `http://${url}`;
+    link.href =
+      url.startsWith("http") || url.startsWith("//") ? url : `http://${url}`;
     link.textContent = linkText;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    
+
     replaceRange.insertNode(link);
     range.setStartAfter(link);
     range.collapse(true);
     selection.removeAllRanges();
     selection.addRange(range);
-    
+
     this.recordHistoryDebounced();
   }
 
@@ -106,9 +107,20 @@ class StableChordEditor {
     this.historyIndex = -1;
     this.debounceTimer = null;
     this.currentlyEditing = null;
-    
+
     this.musicalNotes = [
-      "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#",
+      "A",
+      "A#",
+      "B",
+      "C",
+      "C#",
+      "D",
+      "D#",
+      "E",
+      "F",
+      "F#",
+      "G",
+      "G#",
     ];
     this.historyMax = 100;
 
@@ -127,14 +139,43 @@ class StableChordEditor {
 
     // --- RADIAL BUILDER DATA ---
     this.radialTypes = [
-      "", "m", "6", "m6", "7", "m7", "9", "m9", "11", "m11", "maj7",
-      "sus4", "dim", "aug",
+      "",
+      "m",
+      "6",
+      "m6",
+      "7",
+      "m7",
+      "9",
+      "m9",
+      "11",
+      "m11",
+      "maj7",
+      "sus4",
+      "dim",
+      "aug",
     ];
     this.radialBassNotes = [
-      "(root)", "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#",
+      "(root)",
+      "A",
+      "A#",
+      "B",
+      "C",
+      "C#",
+      "D",
+      "D#",
+      "E",
+      "F",
+      "F#",
+      "G",
+      "G#",
     ];
     this.radialState = {
-      root: "C", type: "", base: "(root)", rootIndex: 3, typeIndex: 0, baseIndex: 0,
+      root: "C",
+      type: "",
+      base: "(root)",
+      rootIndex: 3,
+      typeIndex: 0,
+      baseIndex: 0,
     };
 
     this.selectElements();
@@ -148,7 +189,9 @@ class StableChordEditor {
     this.hamburgerBtn = document.getElementById("hamburger-btn");
     this.sideMenu = document.getElementById("side-menu");
     this.menuOverlay = document.getElementById("menu-overlay");
-    this.mainToggleEditModeBtn = document.getElementById("main-toggle-edit-mode-btn");
+    this.mainToggleEditModeBtn = document.getElementById(
+      "main-toggle-edit-mode-btn"
+    );
     this.btnShowHelp = document.getElementById("btn-show-help");
     this.btnToggleDarkMode = document.getElementById("btn-toggle-dark-mode");
 
@@ -165,7 +208,9 @@ class StableChordEditor {
     this.authorInput = document.getElementById("song-author");
 
     // Live-läge & Metronom
-    this.btnToggleScrollMode = document.getElementById("btn-toggle-scroll-mode");
+    this.btnToggleScrollMode = document.getElementById(
+      "btn-toggle-scroll-mode"
+    );
     this.btnToggleMetronome = document.getElementById("btn-toggle-metronome");
     this.metronomeBpmInput = document.getElementById("metronome-bpm-input");
     this.btnBpmUp = document.getElementById("btn-bpm-up");
@@ -177,17 +222,23 @@ class StableChordEditor {
     // Sidomeny Grid-knappar
     this.tunerIframe = document.getElementById("tuner-iframe");
     this.btnOpenTunerModal = document.getElementById("btn-open-tuner-modal");
-    this.btnOpenTransposeModal = document.getElementById("btn-open-transpose-modal");
+    this.btnOpenTransposeModal = document.getElementById(
+      "btn-open-transpose-modal"
+    );
     this.btnToggleChordMode = document.getElementById("btn-toggle-chord-mode");
     this.chordModeIconText = document.getElementById("chord-mode-icon-text");
-    this.btnOpenSectionsModal = document.getElementById("btn-open-sections-modal");
+    this.btnOpenSectionsModal = document.getElementById(
+      "btn-open-sections-modal"
+    );
     this.btnOpenExportModal = document.getElementById("btn-open-export-modal");
     this.btnOpenImportModal = document.getElementById("btn-open-import-modal");
 
     // Spara/Radera
     this.btnSaveProject = document.getElementById("btn-save-project");
     this.btnDeleteProject = document.getElementById("btn-delete-project");
-    this.btnDeleteAllProjects = document.getElementById("btn-delete-all-projects");
+    this.btnDeleteAllProjects = document.getElementById(
+      "btn-delete-all-projects"
+    );
 
     // Modaler
     this.tunerModal = document.getElementById("tuner-modal");
@@ -201,7 +252,9 @@ class StableChordEditor {
 
     this.sectionsModal = document.getElementById("sections-modal");
     this.sectionsModalClose = document.getElementById("sections-modal-close");
-    this.sectionTypeSelect = document.getElementById("section-type-select-menu");
+    this.sectionTypeSelect = document.getElementById(
+      "section-type-select-menu"
+    );
     this.btnInsertSection = document.getElementById("btn-insert-section");
 
     this.exportModal = document.getElementById("export-modal");
@@ -229,8 +282,12 @@ class StableChordEditor {
     this.scrollDurationText = document.getElementById("scroll-duration-text");
     this.scrollBtnExit = document.getElementById("scroll-btn-exit");
     this.scrollSpeedSlider = document.getElementById("scroll-speed-slider");
-    this.scrollDurationMinutesInput = document.getElementById("scroll-duration-minutes");
-    this.scrollDurationSecondsInput = document.getElementById("scroll-duration-seconds");
+    this.scrollDurationMinutesInput = document.getElementById(
+      "scroll-duration-minutes"
+    );
+    this.scrollDurationSecondsInput = document.getElementById(
+      "scroll-duration-seconds"
+    );
     this.scrollBtnPrev = document.getElementById("scroll-btn-prev");
     this.scrollBtnNext = document.getElementById("scroll-btn-next");
 
@@ -254,7 +311,14 @@ class StableChordEditor {
 
   populateSelects() {
     const sectionData = [
-      "Intro", "Verse", "Chorus", "Stick", "Bridge", "Solo", "Outro", "Dig",
+      "Intro",
+      "Verse",
+      "Chorus",
+      "Stick",
+      "Bridge",
+      "Solo",
+      "Outro",
+      "Dig",
     ];
     const populate = (sel, options, placeholder) => {
       if (!sel) return;
@@ -268,19 +332,21 @@ class StableChordEditor {
     // Fontstorlekar
     const sizes = [14, 16, 18, 20, 22, 24, 28, 32];
     if (this.fontSizeSelector) {
-      this.fontSizeSelector.innerHTML = '';
-      sizes.forEach(size => {
-        const option = document.createElement('option');
+      this.fontSizeSelector.innerHTML = "";
+      sizes.forEach((size) => {
+        const option = document.createElement("option");
         option.value = size;
-        option.textContent = size + ' px';
+        option.textContent = size + " px";
         this.fontSizeSelector.appendChild(option);
       });
     }
   }
 
   applySavedTheme() {
-    const isDarkMode = localStorage.getItem(StableChordEditor.STORAGE_KEYS.DARK_MODE) === "enabled";
-    
+    const isDarkMode =
+      localStorage.getItem(StableChordEditor.STORAGE_KEYS.DARK_MODE) ===
+      "enabled";
+
     // Ikoner för Dark/Light mode
     const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium"><path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM10 7a3 3 0 100 6 3 3 0 000-6zM15.657 5.404a.75.75 0 10-1.06-1.06l-1.061 1.06a.75.75 0 001.06 1.06l1.06-1.06zM5.404 15.657a.75.75 0 10-1.06-1.06l-1.06 1.06a.75.75 0 101.06 1.06l1.06-1.06zM17 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 01.75.75zM4.25 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 01.75.75zM15.657 14.596a.75.75 0 101.06-1.06l-1.06-1.061a.75.75 0 10-1.06 1.06l1.06 1.06zM5.404 4.343a.75.75 0 101.06-1.06l-1.06-1.061a.75.75 0 10-1.06 1.06l1.06 1.06z"/></svg>`;
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium"><path fill-rule="evenodd" d="M7.455 2.104a.75.75 0 00-.98 1.126 8.5 8.5 0 008.62 8.62.75.75 0 001.127-.98 10 10 0 01-9.767-8.766z" clip-rule="evenodd" /></svg>`;
@@ -320,7 +386,9 @@ class StableChordEditor {
           this.wakeLock = null;
         });
       } catch (err) {
-        console.error(`Kunde inte skaffa skärmlås: ${err.name}, ${err.message}`);
+        console.error(
+          `Kunde inte skaffa skärmlås: ${err.name}, ${err.message}`
+        );
       }
     } else {
       console.warn("Wake Lock API stöds inte i denna webbläsare.");
@@ -333,7 +401,9 @@ class StableChordEditor {
         await this.wakeLock.release();
         this.wakeLock = null;
       } catch (err) {
-        console.error(`Kunde inte släppa skärmlås: ${err.name}, ${err.message}`);
+        console.error(
+          `Kunde inte släppa skärmlås: ${err.name}, ${err.message}`
+        );
       }
     }
   }
@@ -357,14 +427,20 @@ class StableChordEditor {
     this.hamburgerBtn.addEventListener("click", toggleMenu);
     this.menuOverlay.addEventListener("click", toggleMenu);
 
-    this.btnToggleChordMode.addEventListener("click", () => this.toggleEditMode());
-    this.mainToggleEditModeBtn.addEventListener("click", () => this.toggleEditMode());
+    this.btnToggleChordMode.addEventListener("click", () =>
+      this.toggleEditMode()
+    );
+    this.mainToggleEditModeBtn.addEventListener("click", () =>
+      this.toggleEditMode()
+    );
 
     this.btnShowHelp.addEventListener("click", () => {
       toggleMenu();
       window.open("https://gobonkers65.github.io/ProChorder/help", "_blank");
     });
-    this.btnToggleDarkMode.addEventListener("click", () => this.toggleDarkMode());
+    this.btnToggleDarkMode.addEventListener("click", () =>
+      this.toggleDarkMode()
+    );
 
     // --- LIVE LÄGE ---
     this.floatingLiveBtn.addEventListener("click", () => {
@@ -376,27 +452,43 @@ class StableChordEditor {
         toggleMenu();
       }
     });
-    this.scrollBtnExit.addEventListener("click", () => this.toggleScrollMode(false));
-    this.scrollBtnPlayPause.addEventListener("click", () => this.toggleScrolling());
-    
+    this.scrollBtnExit.addEventListener("click", () =>
+      this.toggleScrollMode(false)
+    );
+    this.scrollBtnPlayPause.addEventListener("click", () =>
+      this.toggleScrolling()
+    );
+
     this.scrollSpeedSlider.addEventListener("input", (e) => {
       this.setScrollSpeed(e.target.value);
       this.updateDurationFromSpeed();
     });
-    
+
     const durationChangeHandler = () => {
       const totalSeconds = this.getTotalDurationSeconds();
       if (totalSeconds > 0) this.setScrollForDuration(totalSeconds);
     };
-    this.scrollDurationMinutesInput.addEventListener("input", durationChangeHandler);
-    this.scrollDurationSecondsInput.addEventListener("input", durationChangeHandler);
-    
-    this.scrollBtnPrev.addEventListener("click", () => this.loadProjectByIndexDelta(-1));
-    this.scrollBtnNext.addEventListener("click", () => this.loadProjectByIndexDelta(1));
+    this.scrollDurationMinutesInput.addEventListener(
+      "input",
+      durationChangeHandler
+    );
+    this.scrollDurationSecondsInput.addEventListener(
+      "input",
+      durationChangeHandler
+    );
+
+    this.scrollBtnPrev.addEventListener("click", () =>
+      this.loadProjectByIndexDelta(-1)
+    );
+    this.scrollBtnNext.addEventListener("click", () =>
+      this.loadProjectByIndexDelta(1)
+    );
 
     // --- METRONOM ---
-    this.btnToggleMetronome.addEventListener("click", () => this.toggleMetronome());
-    
+    this.btnToggleMetronome.addEventListener("click", () =>
+      this.toggleMetronome()
+    );
+
     this.metronomeBpmInput.addEventListener("input", (e) => {
       let newTempo = parseInt(e.target.value);
       const min = parseInt(e.target.min) || 40;
@@ -404,7 +496,7 @@ class StableChordEditor {
 
       if (newTempo >= min && newTempo <= max) {
         this.tempo = newTempo;
-        if (this.metronomeRunning && this.audioContext?.state === 'suspended') {
+        if (this.metronomeRunning && this.audioContext?.state === "suspended") {
           this.audioContext.resume();
         }
       }
@@ -455,7 +547,11 @@ class StableChordEditor {
 
     this.btnNewProject.addEventListener("click", async () => {
       toggleMenu();
-      if (await this.showCustomConfirm("Är du säker? Osparde ändringar kommer att gå förlorade.")) {
+      if (
+        await this.showCustomConfirm(
+          "Är du säker? Osparde ändringar kommer att gå förlorade."
+        )
+      ) {
         this.createNewProject();
       }
     });
@@ -475,7 +571,11 @@ class StableChordEditor {
       toggleMenu();
       const name = this.projectList.value;
       if (!name) return this.showCustomAlert("Välj ett projekt att ta bort.");
-      if (await this.showCustomConfirm(`Ta bort projektet "${name}"? Detta kan inte ångras!`)) {
+      if (
+        await this.showCustomConfirm(
+          `Ta bort projektet "${name}"? Detta kan inte ångras!`
+        )
+      ) {
         this.deleteProject(name);
       }
     });
@@ -501,7 +601,9 @@ class StableChordEditor {
       openModal(this.transposeModal);
       toggleMenu();
     });
-    this.transposeModalClose.addEventListener("click", () => closeModal(this.transposeModal));
+    this.transposeModalClose.addEventListener("click", () =>
+      closeModal(this.transposeModal)
+    );
     this.btnTransposeUp.addEventListener("click", () => this.transpose(1));
     this.btnTransposeDown.addEventListener("click", () => this.transpose(-1));
 
@@ -510,7 +612,9 @@ class StableChordEditor {
       openModal(this.sectionsModal);
       toggleMenu();
     });
-    this.sectionsModalClose.addEventListener("click", () => closeModal(this.sectionsModal));
+    this.sectionsModalClose.addEventListener("click", () =>
+      closeModal(this.sectionsModal)
+    );
     this.btnInsertSection.addEventListener("click", () => {
       if (this.editMode === "scroll") return;
       const sectionType = this.sectionTypeSelect.value;
@@ -528,21 +632,27 @@ class StableChordEditor {
       openModal(this.exportModal);
       toggleMenu();
     });
-    this.exportModalClose.addEventListener("click", () => closeModal(this.exportModal));
+    this.exportModalClose.addEventListener("click", () =>
+      closeModal(this.exportModal)
+    );
     this.btnOpenImportModal.addEventListener("click", () => {
       openModal(this.importModal);
       toggleMenu();
     });
-    this.importModalClose.addEventListener("click", () => closeModal(this.importModal));
+    this.importModalClose.addEventListener("click", () =>
+      closeModal(this.importModal)
+    );
 
     this.btnExportPdf.addEventListener("click", () => this.exportPdf());
     this.btnExportTxt.addEventListener("click", () => this.exportTxt());
     this.btnExportZip.addEventListener("click", () => this.exportAllAsZip());
     this.btnExportJson.addEventListener("click", () => this.exportJson());
     this.btnExportAllJson.addEventListener("click", () => this.exportAllJson());
-    
+
     this.btnImportJson.addEventListener("click", () => this.fileImport.click());
-    this.fileImport.addEventListener("change", (e) => this.importJsonFromFile(e.target.files[0]));
+    this.fileImport.addEventListener("change", (e) =>
+      this.importJsonFromFile(e.target.files[0])
+    );
     this.btnImportUrl.addEventListener("click", async () => {
       const confirmed = await this.showCustomConfirm(
         "Ladda låtlista från GitHub? Lokala låtar med samma titel skrivs över."
@@ -574,36 +684,45 @@ class StableChordEditor {
     });
 
     this.editor.addEventListener("keydown", this.handleKeyDown.bind(this));
-    
+
     // Smart Paste
     this.editor.addEventListener("paste", (e) => {
       e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData("text/plain");
+      const text = (e.clipboardData || window.clipboardData).getData(
+        "text/plain"
+      );
       const processedText = this.processSmartPaste(text);
       document.execCommand("insertText", false, processedText);
     });
-    
+
     this.editor.addEventListener("input", () => this.recordHistoryDebounced());
     this.editor.addEventListener("keyup", this.handleAutoLinking.bind(this));
-    
+
     // Drag & Drop
     this.editor.addEventListener("dragover", this.handleDragOver.bind(this));
-    this.editor.addEventListener("dragleave", () => (this.dropIndicator.style.display = "none"));
+    this.editor.addEventListener(
+      "dragleave",
+      () => (this.dropIndicator.style.display = "none")
+    );
     this.editor.addEventListener("drop", this.handleDrop.bind(this));
 
     // --- ACKORD MODAL ---
     this.modalBtnClose.addEventListener("click", () => this.closeChordModal());
     this.modalBtnRemove.addEventListener("click", () => this.removeChord());
-    
+
     document.getElementById("center-button").addEventListener("click", () => {
-      const finalChord = document.getElementById("current-chord-display").textContent;
+      const finalChord = document.getElementById(
+        "current-chord-display"
+      ).textContent;
       document.getElementById("center-button").classList.add("confirmed");
       document.getElementById("action-text").textContent = `VALD`;
       this.applyChord(finalChord);
       setTimeout(() => {
         if (document.getElementById("action-text")) {
           document.getElementById("action-text").textContent = `VÄLJ`;
-          document.getElementById("center-button").classList.remove("confirmed");
+          document
+            .getElementById("center-button")
+            .classList.remove("confirmed");
         }
       }, 800);
     });
@@ -622,14 +741,20 @@ class StableChordEditor {
         e.preventDefault();
         this.undo();
       }
-      if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.shiftKey && e.key === "Z"))) {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key === "y" || (e.shiftKey && e.key === "Z"))
+      ) {
         e.preventDefault();
         this.redo();
       }
     });
 
     document.addEventListener("click", (e) => this.handleOutsideClick(e));
-    document.addEventListener("visibilitychange", this.handleVisibilityChange.bind(this));
+    document.addEventListener(
+      "visibilitychange",
+      this.handleVisibilityChange.bind(this)
+    );
   }
 
   // --- METRONOM LOGIK ---
@@ -649,13 +774,16 @@ class StableChordEditor {
       this.audioContext = new AudioContext();
     }
 
-    if (this.audioContext.state === 'suspended') {
+    if (this.audioContext.state === "suspended") {
       await this.audioContext.resume();
     }
 
     this.metronomeRunning = true;
     this.nextNoteTime = this.audioContext.currentTime;
-    this.metronomeInterval = setInterval(() => this.scheduler(), this.lookahead);
+    this.metronomeInterval = setInterval(
+      () => this.scheduler(),
+      this.lookahead
+    );
     this.btnToggleMetronome.classList.add("is-active");
   }
 
@@ -668,7 +796,10 @@ class StableChordEditor {
   }
 
   scheduler() {
-    while (this.nextNoteTime < this.audioContext.currentTime + this.scheduleAheadTime) {
+    while (
+      this.nextNoteTime <
+      this.audioContext.currentTime + this.scheduleAheadTime
+    ) {
       this.playMetronomeClick(this.nextNoteTime);
       let secondsPerBeat = 60.0 / this.tempo;
       this.nextNoteTime += secondsPerBeat;
@@ -682,7 +813,7 @@ class StableChordEditor {
     oscillator.connect(gainNode);
     gainNode.connect(this.audioContext.destination);
 
-    oscillator.frequency.setValueAtTime(880, time); 
+    oscillator.frequency.setValueAtTime(880, time);
     gainNode.gain.setValueAtTime(1, time);
     gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
 
@@ -729,9 +860,14 @@ class StableChordEditor {
     }
 
     if (this.mainToggleEditModeBtn) {
-      this.mainToggleEditModeBtn.classList.toggle("is-active", this.editMode === "chord");
+      this.mainToggleEditModeBtn.classList.toggle(
+        "is-active",
+        this.editMode === "chord"
+      );
       this.mainToggleEditModeBtn.title =
-        this.editMode === "chord" ? "Ackordläge PÅ (Klicka för Textläge)" : "Ackordläge AV (Klicka för Ackordläge)";
+        this.editMode === "chord"
+          ? "Ackordläge PÅ (Klicka för Textläge)"
+          : "Ackordläge AV (Klicka för Ackordläge)";
     }
 
     if (this.editMode === "chord") {
@@ -755,9 +891,10 @@ class StableChordEditor {
       this.editMode = "scroll";
       this.editor.contentEditable = false;
       document.body.classList.add("scroll-mode-active");
-      
+
       setTimeout(() => {
-        const scrollHeight = this.editor.scrollHeight - this.editor.clientHeight;
+        const scrollHeight =
+          this.editor.scrollHeight - this.editor.clientHeight;
         if (scrollHeight <= 0) {
           this.showCustomAlert("Texten är för kort för att scrolla.");
           this.toggleScrollMode(false);
@@ -770,9 +907,9 @@ class StableChordEditor {
     } else {
       this.releaseWakeLock();
       this.stopScrolling();
-      
+
       this.editMode = this.previousEditMode || "chord";
-      
+
       this.editor.contentEditable = true;
       document.body.classList.remove("scroll-mode-active");
       this.updateModeUI();
@@ -797,7 +934,7 @@ class StableChordEditor {
     layer.innerHTML = "";
     const count = items.length;
     const radius = (layer.offsetWidth / 2) * radiusMultiplier;
-    
+
     items.forEach((item, index) => {
       const angle = (index / count) * 2 * Math.PI - Math.PI / 2;
       const x = radius * Math.cos(angle);
@@ -807,12 +944,12 @@ class StableChordEditor {
       let textToShow = item;
       if (item === "(root)") textToShow = "Ø";
       else if (item === "") textToShow = "Ø";
-      
+
       div.textContent = textToShow;
       div.style.left = `${50 + (x / layer.offsetWidth) * 100}%`;
       div.style.top = `${50 + (y / layer.offsetHeight) * 100}%`;
       div.style.transform = "translate(-50%, -50%)";
-      
+
       if (index === currentIndex) {
         div.classList.add("active");
       }
@@ -847,9 +984,24 @@ class StableChordEditor {
       chordName += "/" + this.radialState.base;
     }
     document.getElementById("current-chord-display").textContent = chordName;
-    this.positionItems("inner-layer", this.musicalNotes, this.radialState.rootIndex, 0.85);
-    this.positionItems("middle-layer", this.radialTypes, this.radialState.typeIndex, 0.88);
-    this.positionItems("outer-layer", this.radialBassNotes, this.radialState.baseIndex, 0.92);
+    this.positionItems(
+      "inner-layer",
+      this.musicalNotes,
+      this.radialState.rootIndex,
+      0.85
+    );
+    this.positionItems(
+      "middle-layer",
+      this.radialTypes,
+      this.radialState.typeIndex,
+      0.88
+    );
+    this.positionItems(
+      "outer-layer",
+      this.radialBassNotes,
+      this.radialState.baseIndex,
+      0.92
+    );
   }
 
   parseChordToRadialState(chordName) {
@@ -865,15 +1017,15 @@ class StableChordEditor {
       type = "";
       base = "(root)";
     }
-    
+
     let rootIndex = this.musicalNotes.indexOf(root);
     let typeIndex = this.radialTypes.indexOf(type);
     let baseIndex = this.radialBassNotes.indexOf(base);
-    
+
     if (rootIndex === -1) rootIndex = 3; // Default C
     if (typeIndex === -1) typeIndex = 0;
     if (baseIndex === -1) baseIndex = 0;
-    
+
     this.radialState = {
       root: this.musicalNotes[rootIndex],
       type: this.radialTypes[typeIndex],
@@ -901,7 +1053,8 @@ class StableChordEditor {
   applyChord(chordName) {
     if (!this.currentlyEditing) return;
     if (this.currentlyEditing.element) {
-      const chordTextEl = this.currentlyEditing.element.querySelector(".chord-text");
+      const chordTextEl =
+        this.currentlyEditing.element.querySelector(".chord-text");
       this.currentlyEditing.element.dataset.chord = chordName;
       if (chordTextEl) chordTextEl.textContent = chordName;
     } else if (this.currentlyEditing.range) {
@@ -945,8 +1098,12 @@ class StableChordEditor {
     } else if (document.caretRangeFromPoint) {
       range = document.caretRangeFromPoint(event.clientX, event.clientY);
     }
-    
-    if (!range || !range.startContainer.textContent || range.startContainer.nodeType !== Node.TEXT_NODE) {
+
+    if (
+      !range ||
+      !range.startContainer.textContent ||
+      range.startContainer.nodeType !== Node.TEXT_NODE
+    ) {
       return null;
     }
 
@@ -954,16 +1111,16 @@ class StableChordEditor {
       const text = range.startContainer.textContent;
       let startIndex = range.startOffset;
       let endIndex = range.startOffset;
-      
+
       while (startIndex > 0 && text[startIndex - 1].trim() !== "") {
         startIndex--;
       }
       while (endIndex < text.length && text[endIndex].trim() !== "") {
         endIndex++;
       }
-      
+
       if (startIndex === endIndex) return null;
-      
+
       const wordRange = document.createRange();
       wordRange.setStart(range.startContainer, startIndex);
       wordRange.setEnd(range.startContainer, endIndex);
@@ -979,7 +1136,7 @@ class StableChordEditor {
     if (this.editMode !== "chord") return;
     if (e.ctrlKey || e.altKey) e.dataTransfer.dropEffect = "copy";
     else e.dataTransfer.dropEffect = "move";
-    
+
     let range;
     if (document.caretRangeFromPoint) {
       range = document.caretRangeFromPoint(e.clientX, e.clientY);
@@ -990,7 +1147,7 @@ class StableChordEditor {
         range.setStart(pos.offsetNode, pos.offset);
       }
     }
-    
+
     if (range) {
       const rect = range.getBoundingClientRect();
       this.dropIndicator.style.display = "block";
@@ -1004,7 +1161,7 @@ class StableChordEditor {
     e.stopPropagation();
     this.dropIndicator.style.display = "none";
     if (this.editMode !== "chord") return;
-    
+
     let range = null;
     if (document.caretRangeFromPoint) {
       range = document.caretRangeFromPoint(e.clientX, e.clientY);
@@ -1016,13 +1173,13 @@ class StableChordEditor {
         range.collapse(true);
       }
     }
-    
+
     if (!range || !this.editor.contains(range.startContainer)) {
       range = document.createRange();
       range.selectNodeContents(this.editor);
       range.collapse(false);
     }
-    
+
     let chordNode;
     if ((e.ctrlKey || e.altKey) && this.draggedChord) {
       const chordText = this.draggedChord.dataset.chord;
@@ -1032,17 +1189,17 @@ class StableChordEditor {
         ? this.draggedChord
         : this.createChordSpan(e.dataTransfer.getData("text/plain"));
     }
-    
+
     chordNode.style.display = "inline-block";
     range.insertNode(chordNode);
-    
+
     const sel = window.getSelection();
     sel.removeAllRanges();
     const after = document.createRange();
     after.setStartAfter(chordNode);
     after.collapse(true);
     sel.addRange(after);
-    
+
     this.centerChordHandles();
     this.recordHistoryDebounced();
   }
@@ -1057,7 +1214,7 @@ class StableChordEditor {
     chordText.className = "chord-text";
     chordText.textContent = chord;
     chordText.spellcheck = false;
-    chordText.draggable = true; 
+    chordText.draggable = true;
     span.appendChild(chordText);
 
     span.addEventListener("click", (e) => {
@@ -1083,16 +1240,26 @@ class StableChordEditor {
       e.dataTransfer.effectAllowed = "copyMove";
       this.draggedChord = span;
       document.body.classList.add("is-dragging");
-      
+
       if (e.dataTransfer.setDragImage) {
         const ghost = document.createElement("span");
         ghost.textContent = chord;
-        ghost.style.cssText = `display:inline-block;padding:0.1em 0.4em;border-radius:3px;background-color:${getComputedStyle(document.body).getPropertyValue("--surface")};color:${getComputedStyle(document.body).getPropertyValue("--chord-color")};font-family:var(--font-sans);font-weight:600;font-size:0.85em;border:1px solid ${getComputedStyle(document.body).getPropertyValue("--border")};position:absolute;top:-9999px;left:-9999px;`;
+        ghost.style.cssText = `display:inline-block;padding:0.1em 0.4em;border-radius:3px;background-color:${getComputedStyle(
+          document.body
+        ).getPropertyValue("--surface")};color:${getComputedStyle(
+          document.body
+        ).getPropertyValue(
+          "--chord-color"
+        )};font-family:var(--font-sans);font-weight:600;font-size:0.85em;border:1px solid ${getComputedStyle(
+          document.body
+        ).getPropertyValue(
+          "--border"
+        )};position:absolute;top:-9999px;left:-9999px;`;
         document.body.appendChild(ghost);
         e.dataTransfer.setDragImage(ghost, 10, 15);
         setTimeout(() => document.body.removeChild(ghost), 0);
       }
-      
+
       const isCopy = e.ctrlKey || e.altKey;
       if (!isCopy) {
         setTimeout(() => {
@@ -1117,17 +1284,19 @@ class StableChordEditor {
     if (this.editMode === "scroll") return;
     const sel = window.getSelection();
     if (!sel.rangeCount || !this.editor.contains(sel.anchorNode))
-      return this.showCustomAlert("Placera markören på raden där du vill infoga sektionsmarkören.");
-    
+      return this.showCustomAlert(
+        "Placera markören på raden där du vill infoga sektionsmarkören."
+      );
+
     let node = sel.anchorNode;
     while (node && node.parentNode !== this.editor) node = node.parentNode;
-    
+
     if (!node || node.tagName !== "DIV") {
       const newDiv = document.createElement("div");
       this.editor.appendChild(newDiv);
       node = newDiv;
     }
-    
+
     const existingMarker = node.querySelector(".section-marker");
     if (existingMarker) existingMarker.remove();
     this.insertSectionMarkerInDiv(node, type);
@@ -1135,20 +1304,26 @@ class StableChordEditor {
 
   insertSectionMarkerInDiv(div, type) {
     const abbreviations = {
-      Verse: "V", Chorus: "R", Stick: "S", Intro: "I", Outro: "O",
-      Solo: "Solo", Bridge: "B", Dig: "M",
+      Verse: "V",
+      Chorus: "R",
+      Stick: "S",
+      Intro: "I",
+      Outro: "O",
+      Solo: "Solo",
+      Bridge: "B",
+      Dig: "M",
     };
     const markerSpan = document.createElement("span");
     markerSpan.className = "section-marker";
     markerSpan.dataset.section = type;
     markerSpan.setAttribute("contenteditable", "false");
     markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0);
-    
+
     const textSpan = document.createElement("span");
     textSpan.className = "section-marker-text";
     textSpan.textContent = type;
     markerSpan.appendChild(textSpan);
-    
+
     div.insertBefore(markerSpan, div.firstChild);
     markerSpan.addEventListener("dblclick", (e) => {
       e.stopPropagation();
@@ -1158,7 +1333,9 @@ class StableChordEditor {
   }
 
   clearChordSelection() {
-    this.editor.querySelectorAll(".chord.selected").forEach((s) => s.classList.remove("selected"));
+    this.editor
+      .querySelectorAll(".chord.selected")
+      .forEach((s) => s.classList.remove("selected"));
   }
 
   // --- SÄKER REDIGERING & ENTER-FIX (UPPDATERAD) ---
@@ -1168,76 +1345,80 @@ class StableChordEditor {
     // --- FIX: ENTER VID SEKTIONSRUBRIKER ---
     // Vi kollar specifikt om Shift INTE är nertryckt
     if (e.key === "Enter" && !e.shiftKey) {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return;
-        const range = sel.getRangeAt(0);
-        
-        // Hitta den div vi redigerar i
-        let div = range.startContainer;
-        while (div && div.nodeName !== "DIV" && div.id !== "editor") {
-            div = div.parentNode;
-        }
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
 
-        // Om divven har en sektionsmarkör och vi trycker Enter...
-        if (div && div.querySelector(".section-marker")) {
-            e.preventDefault(); // Stoppa webbläsarens normala, buggiga beteende
+      // Hitta den div vi redigerar i
+      let div = range.startContainer;
+      while (div && div.nodeName !== "DIV" && div.id !== "editor") {
+        div = div.parentNode;
+      }
 
-            // Skapa en ny rad (div)
-            const newDiv = document.createElement("div");
-            
-            // Flytta allt innehåll som är EFTER markören till den nya raden
-            const rangeAfter = range.cloneRange();
-            rangeAfter.setEndAfter(div.lastChild);
-            const content = rangeAfter.extractContents();
-            
-            newDiv.appendChild(content);
-            if (newDiv.innerHTML.trim() === "") newDiv.innerHTML = "<br>"; 
-            
-            div.after(newDiv);
-            
-            // Flytta markören till den nya raden
-            const newRange = document.createRange();
-            newRange.setStart(newDiv, 0);
-            newRange.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(newRange);
-            
-            this.recordHistoryDebounced();
-            return;
-        }
+      // Om divven har en sektionsmarkör och vi trycker Enter...
+      if (div && div.querySelector(".section-marker")) {
+        e.preventDefault(); // Stoppa webbläsarens normala, buggiga beteende
+
+        // Skapa en ny rad (div)
+        const newDiv = document.createElement("div");
+
+        // Flytta allt innehåll som är EFTER markören till den nya raden
+        const rangeAfter = range.cloneRange();
+        rangeAfter.setEndAfter(div.lastChild);
+        const content = rangeAfter.extractContents();
+
+        newDiv.appendChild(content);
+        if (newDiv.innerHTML.trim() === "") newDiv.innerHTML = "<br>";
+
+        div.after(newDiv);
+
+        // Flytta markören till den nya raden
+        const newRange = document.createRange();
+        newRange.setStart(newDiv, 0);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+
+        this.recordHistoryDebounced();
+        return;
+      }
     }
 
     // --- SÄKER BACKSPACE ---
     if (e.key === "Backspace") {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return;
-        const range = sel.getRangeAt(0);
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
 
-        if (range.collapsed && range.startOffset === 0) {
-            const container = range.startContainer;
-            let prevNode = null;
-            if (container.nodeType === Node.TEXT_NODE) {
-                prevNode = container.previousSibling;
-            } else if (container.nodeType === Node.ELEMENT_NODE) {
-                prevNode = container.childNodes[range.startOffset - 1];
-            }
-
-            if (prevNode && prevNode.nodeType === Node.ELEMENT_NODE) {
-                if (prevNode.classList.contains("chord") || prevNode.classList.contains("section-marker")) {
-                    e.preventDefault(); 
-                    this.showCustomAlert("Använd dubbelklick eller menyn för att ta bort ackord/sektioner.");
-                    return;
-                }
-            }
+      if (range.collapsed && range.startOffset === 0) {
+        const container = range.startContainer;
+        let prevNode = null;
+        if (container.nodeType === Node.TEXT_NODE) {
+          prevNode = container.previousSibling;
+        } else if (container.nodeType === Node.ELEMENT_NODE) {
+          prevNode = container.childNodes[range.startOffset - 1];
         }
+
+        if (prevNode && prevNode.nodeType === Node.ELEMENT_NODE) {
+          if (
+            prevNode.classList.contains("chord") ||
+            prevNode.classList.contains("section-marker")
+          ) {
+            e.preventDefault();
+            this.showCustomAlert(
+              "Använd dubbelklick eller menyn för att ta bort ackord/sektioner."
+            );
+            return;
+          }
+        }
+      }
     }
   }
 
   handleMutations(mutations) {
     this.stopObserver();
     mutations.forEach((mutation) => {
-      if (mutation.type === "characterData")
-        this.formatNode(mutation.target);
+      if (mutation.type === "characterData") this.formatNode(mutation.target);
       else if (mutation.type === "childList")
         mutation.addedNodes.forEach((n) => {
           if (n.nodeType === Node.TEXT_NODE) this.formatNode(n);
@@ -1247,26 +1428,31 @@ class StableChordEditor {
   }
 
   formatNode(node) {
-    if (this.editMode !== "chord" || !node.textContent || !node.textContent.includes("[")) return;
-    
+    if (
+      this.editMode !== "chord" ||
+      !node.textContent ||
+      !node.textContent.includes("[")
+    )
+      return;
+
     const text = node.textContent;
     const regex = /\[([^\]]+)\]/g;
     let match;
     const frag = document.createDocumentFragment();
     let lastIndex = 0;
     let replaced = false;
-    
+
     while ((match = regex.exec(text)) !== null) {
       replaced = true;
       const beforeText = text.substring(lastIndex, match.index);
       if (beforeText) frag.appendChild(document.createTextNode(beforeText));
-      
+
       const chord = match[1];
       const chordSpan = this.createChordSpan(chord);
       frag.appendChild(chordSpan);
       lastIndex = regex.lastIndex;
     }
-    
+
     if (replaced) {
       const afterText = text.substring(lastIndex);
       if (afterText) frag.appendChild(document.createTextNode(afterText));
@@ -1277,7 +1463,10 @@ class StableChordEditor {
         const range = document.createRange();
         const lastNode = parent.childNodes[parent.childNodes.length - 1];
         if (lastNode) {
-          range.setStart(lastNode, lastNode.length || lastNode.childNodes.length);
+          range.setStart(
+            lastNode,
+            lastNode.length || lastNode.childNodes.length
+          );
           range.collapse(true);
           sel.removeAllRanges();
           sel.addRange(range);
@@ -1321,7 +1510,7 @@ class StableChordEditor {
     this.stopObserver();
     this.editor.innerHTML = "";
     const lines = text.split("\n");
-    
+
     lines.forEach((lineText) => {
       lineText = lineText.replace(/\[\s*\]/g, "");
       const lineDiv = document.createElement("div");
@@ -1330,9 +1519,9 @@ class StableChordEditor {
         sectionType = type;
         return "";
       });
-      
+
       if (sectionType) this.insertSectionMarkerInDiv(lineDiv, sectionType);
-      
+
       if (lineText.trim() === "" && !lineText.includes("[")) {
         lineDiv.appendChild(document.createElement("br"));
       } else {
@@ -1341,7 +1530,11 @@ class StableChordEditor {
         let match;
         while ((match = regex.exec(lineText)) !== null) {
           if (match.index > lastIndex) {
-            lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex, match.index)));
+            lineDiv.appendChild(
+              document.createTextNode(
+                lineText.substring(lastIndex, match.index)
+              )
+            );
           }
           if (match[1]) {
             const url = match[1].trim();
@@ -1358,12 +1551,14 @@ class StableChordEditor {
           lastIndex = match.index + match[0].length;
         }
         if (lastIndex < lineText.length) {
-          lineDiv.appendChild(document.createTextNode(lineText.substring(lastIndex)));
+          lineDiv.appendChild(
+            document.createTextNode(lineText.substring(lastIndex))
+          );
         }
       }
       this.editor.appendChild(lineDiv);
     });
-    
+
     this.centerChordHandles();
     this.startObserver();
     if (recordHistory) this.recordHistory();
@@ -1373,13 +1568,17 @@ class StableChordEditor {
     const sharpMap = { Db: "C#", Eb: "D#", Gb: "F#", Ab: "G#", Bb: "A#" };
     const match = note.match(/^([A-G](?:#|b)?)/);
     if (!match) return note;
-    
+
     let rootNote = match[0];
-    let normalizedNote = rootNote.includes("b") ? sharpMap[rootNote] || rootNote : rootNote;
-    
+    let normalizedNote = rootNote.includes("b")
+      ? sharpMap[rootNote] || rootNote
+      : rootNote;
+
     const currentIndex = this.musicalNotes.indexOf(normalizedNote);
     if (currentIndex !== -1) {
-      const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length;
+      const newIndex =
+        (currentIndex + steps + this.musicalNotes.length) %
+        this.musicalNotes.length;
       const transposedRoot = this.musicalNotes[newIndex];
       return transposedRoot + note.substring(rootNote.length);
     }
@@ -1390,21 +1589,18 @@ class StableChordEditor {
     if (this.editMode === "scroll") return;
     this.syncChordData();
     const text = this.getContentAsText();
-    const transposedText = text.replace(
-      /\[([^\]]+)\]/g,
-      (fullMatch, chord) => {
-        const parts = chord.split("/");
-        const mainChord = parts[0];
-        const bassNote = parts.length > 1 ? parts[1] : null;
-        const transposedMainChord = this._transposeSingleNote(mainChord, steps);
-        if (bassNote) {
-          const transposedBassNote = this._transposeSingleNote(bassNote, steps);
-          return `[${transposedMainChord}/${transposedBassNote}]`;
-        } else {
-          return `[${transposedMainChord}]`;
-        }
+    const transposedText = text.replace(/\[([^\]]+)\]/g, (fullMatch, chord) => {
+      const parts = chord.split("/");
+      const mainChord = parts[0];
+      const bassNote = parts.length > 1 ? parts[1] : null;
+      const transposedMainChord = this._transposeSingleNote(mainChord, steps);
+      if (bassNote) {
+        const transposedBassNote = this._transposeSingleNote(bassNote, steps);
+        return `[${transposedMainChord}/${transposedBassNote}]`;
+      } else {
+        return `[${transposedMainChord}]`;
       }
-    );
+    });
     this.loadContent(transposedText, true);
   }
 
@@ -1467,7 +1663,10 @@ class StableChordEditor {
   toggleDarkMode() {
     document.body.classList.toggle("dark-mode");
     const isDarkMode = document.body.classList.contains("dark-mode");
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.DARK_MODE, isDarkMode ? "enabled" : "disabled");
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.DARK_MODE,
+      isDarkMode ? "enabled" : "disabled"
+    );
     this.applySavedTheme();
   }
 
@@ -1499,7 +1698,10 @@ class StableChordEditor {
 
   saveProject(name) {
     this.syncChordData();
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
 
     projects[name] = {
       title: this.titleInput.value,
@@ -1511,27 +1713,42 @@ class StableChordEditor {
       tempo: this.tempo,
     };
 
-    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    let order =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
     if (!order.includes(name)) {
-        order.push(name);
-        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+      order.push(name);
+      localStorage.setItem(
+        StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+        JSON.stringify(order)
+      );
     }
 
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECTS,
+      JSON.stringify(projects)
+    );
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
     this.updateProjectList(name);
 
-    const originalText = this.btnSaveProject.querySelector(".menu-grid-title").textContent;
-    this.btnSaveProject.querySelector(".menu-grid-title").textContent = "Sparad!";
+    const originalText =
+      this.btnSaveProject.querySelector(".menu-grid-title").textContent;
+    this.btnSaveProject.querySelector(".menu-grid-title").textContent =
+      "Sparad!";
     this.btnSaveProject.disabled = true;
     setTimeout(() => {
-      this.btnSaveProject.querySelector(".menu-grid-title").textContent = "Spara sång";
+      this.btnSaveProject.querySelector(".menu-grid-title").textContent =
+        "Spara sång";
       this.btnSaveProject.disabled = false;
     }, 1200);
   }
 
   loadProject(name) {
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
     if (projects[name]) {
       const data = projects[name];
       this.titleInput.value = data.title || "";
@@ -1539,33 +1756,40 @@ class StableChordEditor {
       this.editor.style.fontSize = data.fontSize || "16px";
 
       this.loadContent(data.content || "", true);
-      
+
       if (data.scrollSpeed !== undefined) {
         const sliderVal =
-          ((data.scrollSpeed - this.MIN_MOVE_SPEED) / (this.MAX_MOVE_SPEED - this.MIN_MOVE_SPEED)) * 100;
-        this.scrollSpeedSlider.value = Math.max(0, Math.min(100, Math.round(sliderVal)));
+          ((data.scrollSpeed - this.MIN_MOVE_SPEED) /
+            (this.MAX_MOVE_SPEED - this.MIN_MOVE_SPEED)) *
+          100;
+        this.scrollSpeedSlider.value = Math.max(
+          0,
+          Math.min(100, Math.round(sliderVal))
+        );
         this.setScrollSpeed(this.scrollSpeedSlider.value);
       } else {
         this.scrollSpeedSlider.value = 20;
         this.setScrollSpeed(20);
       }
-      
+
       if (data.duration !== undefined) {
         this.updateDurationInputs(data.duration);
       } else {
         this.updateDurationFromSpeed();
       }
-      
+
       this.tempo = data.tempo || 120;
       if (this.metronomeBpmInput) {
         this.metronomeBpmInput.value = this.tempo;
       }
 
       if (this.fontSizeSelector && data.fontSize) {
-        this.fontSizeSelector.value = parseInt((data.fontSize || '16px').replace('px', ''));
+        this.fontSizeSelector.value = parseInt(
+          (data.fontSize || "16px").replace("px", "")
+        );
         this.editor.style.fontSize = data.fontSize;
       }
-      
+
       localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
       if (this.projectList.value !== name) this.projectList.value = name;
       this.currentProjectName.textContent = name;
@@ -1601,7 +1825,9 @@ class StableChordEditor {
 
   loadLastProject() {
     this.updateProjectList();
-    const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+    const last = localStorage.getItem(
+      StableChordEditor.STORAGE_KEYS.LAST_PROJECT
+    );
     if (last) this.loadProject(last);
     else
       this.loadContent(
@@ -1613,80 +1839,96 @@ class StableChordEditor {
   updateProjectList(selectedValue) {
     const list = this.projectList;
     const dropdown = this.projectDropdownMenu;
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-    
-    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
+
+    let order =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
     const projectKeys = Object.keys(projects);
-    
-    order = order.filter(name => projectKeys.includes(name));
-    projectKeys.forEach(name => {
-        if (!order.includes(name)) order.push(name);
+
+    order = order.filter((name) => projectKeys.includes(name));
+    projectKeys.forEach((name) => {
+      if (!order.includes(name)) order.push(name);
     });
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+      JSON.stringify(order)
+    );
 
     list.innerHTML = '<option value="">Ladda projekt...</option>';
     dropdown.innerHTML = "";
 
     if (order.length === 0) {
-        dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
+      dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
     }
 
     order.forEach((name, index) => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        list.appendChild(option);
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      list.appendChild(option);
 
-        const item = document.createElement("div");
-        item.className = "project-dropdown-item";
-        item.textContent = name;
-        item.dataset.name = name;
-        item.draggable = true; 
+      const item = document.createElement("div");
+      item.className = "project-dropdown-item";
+      item.textContent = name;
+      item.dataset.name = name;
+      item.draggable = true;
 
-        item.addEventListener("click", () => {
-            this.selectProject(name);
-        });
+      item.addEventListener("click", () => {
+        this.selectProject(name);
+      });
 
-        item.addEventListener("dragstart", (e) => {
-            e.dataTransfer.setData("text/plain", index);
-            e.dataTransfer.effectAllowed = "move";
-            item.classList.add("dragging");
-        });
+      item.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", index);
+        e.dataTransfer.effectAllowed = "move";
+        item.classList.add("dragging");
+      });
 
-        item.addEventListener("dragend", () => {
-            item.classList.remove("dragging");
-            document.querySelectorAll(".project-dropdown-item").forEach(el => el.classList.remove("drag-over"));
-        });
+      item.addEventListener("dragend", () => {
+        item.classList.remove("dragging");
+        document
+          .querySelectorAll(".project-dropdown-item")
+          .forEach((el) => el.classList.remove("drag-over"));
+      });
 
-        item.addEventListener("dragover", (e) => {
-            e.preventDefault(); 
-            item.classList.add("drag-over");
-        });
+      item.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        item.classList.add("drag-over");
+      });
 
-        item.addEventListener("dragleave", () => {
-            item.classList.remove("drag-over");
-        });
+      item.addEventListener("dragleave", () => {
+        item.classList.remove("drag-over");
+      });
 
-        item.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
-            const toIndex = index;
+      item.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
+        const toIndex = index;
 
-            if (fromIndex !== toIndex) {
-                const itemToMove = order[fromIndex];
-                order.splice(fromIndex, 1);
-                order.splice(toIndex, 0, itemToMove);
-                
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
-                
-                this.updateProjectList(selectedValue);
-            }
-        });
+        if (fromIndex !== toIndex) {
+          const itemToMove = order[fromIndex];
+          order.splice(fromIndex, 1);
+          order.splice(toIndex, 0, itemToMove);
 
-        dropdown.appendChild(item);
+          localStorage.setItem(
+            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+            JSON.stringify(order)
+          );
+
+          this.updateProjectList(selectedValue);
+        }
+      });
+
+      dropdown.appendChild(item);
     });
-    
-    const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+
+    const last =
+      selectedValue ||
+      localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
     if (last && projects[last]) {
       list.value = last;
       this.currentProjectName.textContent = last;
@@ -1697,29 +1939,47 @@ class StableChordEditor {
   }
 
   deleteProject(name) {
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
     delete projects[name];
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-    
-    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
-    order = order.filter(item => item !== name);
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECTS,
+      JSON.stringify(projects)
+    );
 
-    const last = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+    let order =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
+    order = order.filter((item) => item !== name);
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+      JSON.stringify(order)
+    );
+
+    const last = localStorage.getItem(
+      StableChordEditor.STORAGE_KEYS.LAST_PROJECT
+    );
     if (last === name) {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
       this.createNewProject();
     }
-    
+
     this.updateProjectList();
     this.showCustomAlert(`Projektet "${name}" har tagits bort.`);
   }
 
   async deleteAllProjects() {
-    if (await this.showCustomConfirm("Är du säker? Detta raderar ALLA sånger permanent.")) {
+    if (
+      await this.showCustomConfirm(
+        "Är du säker? Detta raderar ALLA sånger permanent."
+      )
+    ) {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER); 
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
       this.updateProjectList();
       this.createNewProject();
       this.showCustomAlert("Alla projekt är borttagna.");
@@ -1727,25 +1987,42 @@ class StableChordEditor {
   }
 
   async renameProject(oldName, newName) {
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
     if (projects[oldName] && !projects[newName]) {
       projects[newName] = projects[oldName];
       projects[newName].title = newName;
       delete projects[oldName];
-      
-      localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-      
-      let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+
+      localStorage.setItem(
+        StableChordEditor.STORAGE_KEYS.PROJECTS,
+        JSON.stringify(projects)
+      );
+
+      let order =
+        JSON.parse(
+          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+        ) || [];
       const index = order.indexOf(oldName);
       if (index !== -1) {
-          order[index] = newName;
-          localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+        order[index] = newName;
+        localStorage.setItem(
+          StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+          JSON.stringify(order)
+        );
       }
 
-      const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
+      const lastProject = localStorage.getItem(
+        StableChordEditor.STORAGE_KEYS.LAST_PROJECT
+      );
       if (lastProject === oldName)
-        localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);
-      
+        localStorage.setItem(
+          StableChordEditor.STORAGE_KEYS.LAST_PROJECT,
+          newName
+        );
+
       this.titleInput.value = newName;
       this.updateProjectList(newName);
       this.showCustomAlert(`Projektet har döpts om till "${newName}".`);
@@ -1761,7 +2038,10 @@ class StableChordEditor {
     let y = 15;
     const sectionMargin = 15;
     const lyricMargin = 35;
-    const baseFontSizePx = parseInt((projectData.fontSize || "16px").replace("px", ""), 10);
+    const baseFontSizePx = parseInt(
+      (projectData.fontSize || "16px").replace("px", ""),
+      10
+    );
     const baseFontSizePt = baseFontSizePx * 0.75;
     const lyricLineHeightMultiplier = 0.7;
     const LYRIC_LINE_HEIGHT = baseFontSizePt * lyricLineHeightMultiplier;
@@ -1777,7 +2057,9 @@ class StableChordEditor {
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(12);
-    doc.text(projectData.author || "Artist", pageWidth - sectionMargin, y, { align: "right" });
+    doc.text(projectData.author || "Artist", pageWidth - sectionMargin, y, {
+      align: "right",
+    });
     y += 12;
 
     const lines = (projectData.content || "").split("\n");
@@ -1803,7 +2085,7 @@ class StableChordEditor {
 
       if (sectionType) {
         if (y > 25) y += LYRIC_LINE_HEIGHT * 0.5;
-        const cleanedSectionType = sectionType.replace(/\u200B/g, '');
+        const cleanedSectionType = sectionType.replace(/\u200B/g, "");
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(baseFontSizePt);
@@ -1823,7 +2105,7 @@ class StableChordEditor {
             doc.setTextColor(CHORD_COLOR);
             doc.text(chord, currentX, y - CHORD_OFFSET);
           } else {
-            const cleanedPart = part.replace(/\u200B/g, '');
+            const cleanedPart = part.replace(/\u200B/g, "");
             doc.setFont("helvetica", "normal");
             doc.setFontSize(baseFontSizePt);
             doc.setTextColor(TEXT_COLOR);
@@ -1833,7 +2115,6 @@ class StableChordEditor {
         });
 
         y += LYRIC_LINE_HEIGHT;
-
       } else if (sectionType) {
         y += LYRIC_LINE_HEIGHT;
       } else {
@@ -1869,10 +2150,13 @@ class StableChordEditor {
     this.btnExportZip.textContent = "Genererar...";
     this.btnExportZip.disabled = true;
     try {
-      const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+      const projects =
+        JSON.parse(
+          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+        ) || {};
       if (Object.keys(projects).length === 0)
         return this.showCustomAlert("Inga projekt att exportera.");
-      
+
       const zip = new JSZip();
       for (const key in projects) {
         const project = projects[key];
@@ -1899,33 +2183,43 @@ class StableChordEditor {
       scrollSpeed: this.scrollSpeed,
       duration: this.getTotalDurationSeconds(),
     };
-    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], {
+      type: "application/json",
+    });
     saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`);
   }
 
   exportAllJson() {
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-    const order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
-    
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
+    const order =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
+
     // SKAPA LISTAN BASERAT PÅ DIN SORTERING
     const projectsArray = [];
-    
+
     // 1. Lägg först till alla låtar som finns i din sorterade lista
-    order.forEach(title => {
-        if (projects[title]) {
-            projectsArray.push(projects[title]);
-        }
+    order.forEach((title) => {
+      if (projects[title]) {
+        projectsArray.push(projects[title]);
+      }
     });
 
-    // 2. (Säkerhetsåtgärd) Lägg till eventuella "föräldralösa" låtar som finns i databasen 
+    // 2. (Säkerhetsåtgärd) Lägg till eventuella "föräldralösa" låtar som finns i databasen
     // men av någon anledning saknas i ordningslistan.
-    Object.keys(projects).forEach(title => {
-        if (!order.includes(title)) {
-            projectsArray.push(projects[title]);
-        }
+    Object.keys(projects).forEach((title) => {
+      if (!order.includes(title)) {
+        projectsArray.push(projects[title]);
+      }
     });
 
-    const blob = new Blob([JSON.stringify(projectsArray, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(projectsArray, null, 2)], {
+      type: "application/json",
+    });
     saveAs(blob, `songs-backup.json`);
   }
 
@@ -1982,27 +2276,29 @@ importMultipleProjects(projectsArray) {
     
     let importedCount = 0, overwrittenCount = 0;
     
-    // Loopa igenom import-filen (som har rätt ordning)
+    // Lista ut vilka titlar som kommer i den nya filen (i rätt ordning!)
+    const newTitles = projectsArray.map(p => p.title).filter(t => t);
+
+    // STEG 1: Städa bort de importerade låtarna från den GAMLA ordningen
+    // Detta gör att vi "lyfter ut" dem så vi kan placera dem rätt.
+    order = order.filter(title => !newTitles.includes(title));
+
+    // STEG 2: Lägg till låtarna och uppdatera ordningen
     for (const project of projectsArray) {
       if (project && project.title) {
         if (projects[project.title]) overwrittenCount++;
         else importedCount++;
         
         projects[project.title] = project;
-
-        // --- FIX: Uppdatera ordningen direkt baserat på filens ordning ---
-        // Om låten inte redan finns i listan, lägg till den sist.
-        // Eftersom vi loopar igenom arrayen i ordning, kommer de hamna
-        // i rätt sekvens i 'order'-listan.
-        if (!order.includes(project.title)) {
-            order.push(project.title);
-        }
       }
     }
+
+    // STEG 3: Lägg in de nya titlarna i slutet av listan (i import-filens ordning)
+    // Om du vill att de ska hamna först istället, använd order.unshift(...newTitles);
+    order.push(...newTitles);
     
-    // Spara BÅDE projekten och den nya ordningen
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order)); // <--- Denna rad saknades/behövdes
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order)); 
     
     this.updateProjectList();
     this.showCustomAlert(`${importedCount} nya låtar importerade. ${overwrittenCount} låtar uppdaterade.`);
@@ -2027,10 +2323,10 @@ importMultipleProjects(projectsArray) {
       this.calculateAndSetScrollSpeed();
     }
     if (this.scrollSpeed <= 0) return;
-    
+
     this.scrollBtnPlayPause.textContent = "❚❚";
     this.scrollRemainder = 0;
-    
+
     const scroll = () => {
       this.scrollRemainder += this.scrollSpeed;
       const move = Math.floor(this.scrollRemainder);
@@ -2038,8 +2334,11 @@ importMultipleProjects(projectsArray) {
         this.editor.scrollTop += move;
         this.scrollRemainder -= move;
       }
-      
-      if (this.editor.scrollTop + this.editor.clientHeight >= this.editor.scrollHeight) {
+
+      if (
+        this.editor.scrollTop + this.editor.clientHeight >=
+        this.editor.scrollHeight
+      ) {
         this.stopScrolling();
       } else {
         this.scrollInterval = requestAnimationFrame(scroll);
@@ -2060,7 +2359,9 @@ importMultipleProjects(projectsArray) {
       this.scrollSpeed = 0;
       return;
     }
-    this.scrollSpeed = this.MIN_MOVE_SPEED + (val / 100) * (this.MAX_MOVE_SPEED - this.MIN_MOVE_SPEED);
+    this.scrollSpeed =
+      this.MIN_MOVE_SPEED +
+      (val / 100) * (this.MAX_MOVE_SPEED - this.MIN_MOVE_SPEED);
   }
 
   getTotalDurationSeconds() {
@@ -2084,25 +2385,33 @@ importMultipleProjects(projectsArray) {
     }
 
     if (this.scrollDurationText) {
-      const formattedSeconds = String(seconds).padStart(2, '0');
+      const formattedSeconds = String(seconds).padStart(2, "0");
       this.scrollDurationText.textContent = `${minutes}:${formattedSeconds}`;
     }
   }
 
   setScrollForDuration(durationSeconds) {
     setTimeout(() => {
-      const scrollHeight = Math.max(1, this.editor.scrollHeight - this.editor.clientHeight);
+      const scrollHeight = Math.max(
+        1,
+        this.editor.scrollHeight - this.editor.clientHeight
+      );
       if (scrollHeight <= 0) return;
       const frames = Math.max(1, durationSeconds * 60);
       this.scrollSpeed = scrollHeight / frames;
-      const percent = Math.round(((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100);
+      const percent = Math.round(
+        ((this.scrollSpeed - 0.02) / (0.5 - 0.02)) * 100
+      );
       this.scrollSpeedSlider.value = Math.max(0, Math.min(100, percent));
     }, 100);
   }
 
   updateDurationFromSpeed() {
     if (this.scrollSpeed < 0.001) return;
-    const scrollHeight = Math.max(1, this.editor.scrollHeight - this.editor.clientHeight);
+    const scrollHeight = Math.max(
+      1,
+      this.editor.scrollHeight - this.editor.clientHeight
+    );
     if (scrollHeight <= 0) return;
     const durationSeconds = scrollHeight / (this.scrollSpeed * 60);
     this.updateDurationInputs(Math.round(durationSeconds));
@@ -2111,18 +2420,20 @@ importMultipleProjects(projectsArray) {
   processSmartPaste(text) {
     const lines = text.split("\n");
     const result = [];
-    
+
     for (let i = 0; i < lines.length; i++) {
       const currentLine = lines[i].trimEnd();
-      const nextLine = (i + 1 < lines.length) ? lines[i + 1].trimEnd() : "";
+      const nextLine = i + 1 < lines.length ? lines[i + 1].trimEnd() : "";
 
       if (this.isChordLine(currentLine)) {
         if (nextLine && !this.isChordLine(nextLine)) {
-          const merged = this.mergeChordAndLyricLines(lines[i], lines[i+1]); 
+          const merged = this.mergeChordAndLyricLines(lines[i], lines[i + 1]);
           result.push(merged);
-          i++; 
+          i++;
         } else {
-          result.push(currentLine.replace(/([A-G][#b]?[a-zA-Z0-9\/]*)/g, "[$1]"));
+          result.push(
+            currentLine.replace(/([A-G][#b]?[a-zA-Z0-9\/]*)/g, "[$1]")
+          );
         }
       } else {
         result.push(currentLine);
@@ -2133,32 +2444,33 @@ importMultipleProjects(projectsArray) {
 
   isChordLine(line) {
     if (!line.trim()) return false;
-    
+
     const tokens = line.trim().split(/\s+/);
     let chordCount = 0;
-    
-    const chordRegex = /^[A-G][#b]?(m|min|maj|dim|aug|sus|add|[0-9])*(\/[A-G][#b]?)?$/;
-    
-    tokens.forEach(token => {
-      const cleanToken = token.replace(/[()]/g, ""); 
+
+    const chordRegex =
+      /^[A-G][#b]?(m|min|maj|dim|aug|sus|add|[0-9])*(\/[A-G][#b]?)?$/;
+
+    tokens.forEach((token) => {
+      const cleanToken = token.replace(/[()]/g, "");
       if (chordRegex.test(cleanToken)) chordCount++;
     });
 
-    return (chordCount / tokens.length) > 0.8; 
+    return chordCount / tokens.length > 0.8;
   }
 
   mergeChordAndLyricLines(chordLine, lyricLine) {
     let result = "";
     let lyricIndex = 0;
-    
-    const regex = /([A-G][#b]?[^\s]*)/g; 
+
+    const regex = /([A-G][#b]?[^\s]*)/g;
     let match;
     const chords = [];
-    
+
     while ((match = regex.exec(chordLine)) !== null) {
       chords.push({
         text: match[1],
-        index: match.index
+        index: match.index,
       });
     }
 
@@ -2166,21 +2478,21 @@ importMultipleProjects(projectsArray) {
 
     for (let i = 0; i < chords.length; i++) {
       const chord = chords[i];
-      
+
       if (chord.index > lyricIndex) {
         if (chord.index > lyricLine.length) {
-           result += lyricLine.substring(lyricIndex);
-           result += " ".repeat(chord.index - lyricLine.length); 
-           lyricIndex = lyricLine.length + (chord.index - lyricLine.length);
+          result += lyricLine.substring(lyricIndex);
+          result += " ".repeat(chord.index - lyricLine.length);
+          lyricIndex = lyricLine.length + (chord.index - lyricLine.length);
         } else {
-           result += lyricLine.substring(lyricIndex, chord.index);
-           lyricIndex = chord.index;
+          result += lyricLine.substring(lyricIndex, chord.index);
+          lyricIndex = chord.index;
         }
       }
-      
+
       result += `[${chord.text}]`;
     }
-    
+
     if (lyricIndex < lyricLine.length) {
       result += lyricLine.substring(lyricIndex);
     }

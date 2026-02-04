@@ -204,7 +204,7 @@ body {
   opacity: 0;
   transform: translateY(-10px);
   transition: opacity 0.2s ease, transform 0.2s ease;
-  padding-bottom: 50px;
+  padding-bottom: 80px;
 }
 
 .project-dropdown.is-open {
@@ -1102,14 +1102,14 @@ button,
 }
 
 /* 2. Fixa dropdown-listan så man ser sista låtarna */
-.project-dropdown {
+/*.project-dropdown {*/
   /* Använd dvh (Dynamic Viewport Height) som anpassar sig efter mobil-menyer */
-  max-height: 60vh; 
-  max-height: 60dvh; 
+  /*max-height: 60vh; 
+  max-height: 60dvh;/*
   
   /* Extra luft i botten av listan */
-  padding-bottom: 30px; 
-}
+  /*padding-bottom: 30px; */
+/*}*/
 
 /* 3. Justera huvudbehållaren så den inte trycks ut av skärmen */
 .main-content {

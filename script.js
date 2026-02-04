@@ -1876,37 +1876,65 @@ class StableChordEditor {
       dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
     }
 
-    order.forEach((name, index) => {
+order.forEach((name, index) => {
+      // Uppdatera <select> listan (för legacy support)
       const option = document.createElement("option");
       option.value = name;
       option.textContent = name;
       list.appendChild(option);
 
+      // --- SKAPA DROPDOWN-ITEM ---
       const item = document.createElement("div");
       item.className = "project-dropdown-item";
-      item.textContent = name;
       item.dataset.name = name;
-      item.draggable = true;
+      // OBS: Vi sätter INTE item.draggable = true längre!
+      
+      // 1. Skapa text-delen (så man kan klicka på namnet utan att dra)
+      const textSpan = document.createElement("span");
+      textSpan.textContent = name;
+      textSpan.style.pointerEvents = "none"; // Låter klicket gå igenom till item
+      textSpan.style.flexGrow = "1"; // Tar upp all plats till vänster
+      
+      // 2. Skapa Drag-handtaget
+      const handle = document.createElement("span");
+      handle.innerHTML = "&#9776;"; // Hamburger-ikonen (☰)
+      handle.className = "drag-handle";
+      handle.draggable = true; // BARA handtaget är dragbart!
 
-      item.addEventListener("click", () => {
+      // --- EVENT LISTENERS ---
+
+      // Klick på raden laddar projektet (som vanligt)
+      item.addEventListener("click", (e) => {
+        // Ignorera om man klickar på handtaget (så man inte laddar låten när man vill dra)
+        if (e.target.closest('.drag-handle')) return;
         this.selectProject(name);
       });
 
-      item.addEventListener("dragstart", (e) => {
+      // --- DRAG EVENTS (Flyttade till handtaget) ---
+      
+      handle.addEventListener("dragstart", (e) => {
+        // Vi måste sätta dataTransfer så att drop-funktionen vet VAD vi flyttar
         e.dataTransfer.setData("text/plain", index);
         e.dataTransfer.effectAllowed = "move";
+        
+        // Sätt klassen på hela raden (för snygghetens skull)
         item.classList.add("dragging");
+        document.body.classList.add("is-dragging"); // Din globala stil
       });
 
-      item.addEventListener("dragend", () => {
+      handle.addEventListener("dragend", () => {
         item.classList.remove("dragging");
+        document.body.classList.remove("is-dragging");
         document
           .querySelectorAll(".project-dropdown-item")
           .forEach((el) => el.classList.remove("drag-over"));
       });
 
+      // --- DROP EVENTS (Ligger kvar på hela raden) ---
+      // Vi måste fortfarande kunna SLÄPPA låten var som helst på en annan rad
+      
       item.addEventListener("dragover", (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Tillåt drop
         item.classList.add("drag-over");
       });
 
@@ -1919,7 +1947,7 @@ class StableChordEditor {
         const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
         const toIndex = index;
 
-        if (fromIndex !== toIndex) {
+        if (fromIndex !== toIndex && !isNaN(fromIndex)) {
           const itemToMove = order[fromIndex];
           order.splice(fromIndex, 1);
           order.splice(toIndex, 0, itemToMove);
@@ -1933,6 +1961,9 @@ class StableChordEditor {
         }
       });
 
+      // Lägg in delarna i raden
+      item.appendChild(textSpan);
+      item.appendChild(handle);
       dropdown.appendChild(item);
     });
 

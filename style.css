@@ -214,20 +214,45 @@ body {
 }
 
 .project-dropdown-item {
+  display: flex; /* Gör så vi kan placera text och handtag bredvid varandra */
+  justify-content: space-between; /* Text till vänster, handtag till höger */
+  align-items: center;
+  
   font-family: var(--font-sans);
   font-weight: 500;
   font-size: 0.9em;
   color: var(--text-color);
-  padding: 0.75em 1em;
+  padding: 0.5em 0.5em 0.5em 1em; /* Lite justerad padding */
   border-radius: 0px;
-  cursor: grab; /* Visar en hand-ikon */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background-color: var(--surface); /* Se till att den har bakgrund */
   
-  /* NYA RADER FÖR ATT STOPPA TEXTMARKERING PÅ IPHONE */
-  -webkit-user-select: none; /* Safari / iPhone */
-  user-select: none;         /* Standard */
+  /* Ta bort dessa från förra försöket, vi hanterar det via handtaget nu */
+  /* cursor: grab; */
+  /* -webkit-user-select: none; */
+  /* user-select: none; */
+}
+
+/* Stilar för det nya handtaget */
+.drag-handle {
+  cursor: grab;
+  padding: 10px 15px; /* Stor träffyta för fingret */
+  color: var(--primary);
+  font-size: 1.2em;
+  line-height: 1;
+  opacity: 0.6;
+  /* Viktigt: Detta säger till mobilen att här får man INTE scrolla, bara dra */
+  touch-action: none; 
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.drag-handle:active {
+  opacity: 1;
+  cursor: grabbing;
+}
+
+.project-dropdown-item:hover {
+  background-color: var(--primary-bg-hover);
 }
 
 .project-dropdown-item:hover {

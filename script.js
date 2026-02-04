@@ -2276,14 +2276,14 @@ importMultipleProjects(projectsArray) {
     
     let importedCount = 0, overwrittenCount = 0;
     
-    // Lista ut vilka titlar som kommer i den nya filen (i rätt ordning!)
+    // 1. Skapa en lista på alla titlar som kommer i den nya filen (i rätt ordning!)
     const newTitles = projectsArray.map(p => p.title).filter(t => t);
 
-    // STEG 1: Städa bort de importerade låtarna från den GAMLA ordningen
-    // Detta gör att vi "lyfter ut" dem så vi kan placera dem rätt.
+    // 2. STÄDNING: Ta bort dessa titlar från den GAMLA ordningen temporärt.
+    // Detta gör att vi "lyfter ut" dem så att de inte ligger kvar på fel plats.
     order = order.filter(title => !newTitles.includes(title));
 
-    // STEG 2: Lägg till låtarna och uppdatera ordningen
+    // 3. Uppdatera databasen med innehållet
     for (const project of projectsArray) {
       if (project && project.title) {
         if (projects[project.title]) overwrittenCount++;
@@ -2293,15 +2293,16 @@ importMultipleProjects(projectsArray) {
       }
     }
 
-    // STEG 3: Lägg in de nya titlarna i slutet av listan (i import-filens ordning)
-    // Om du vill att de ska hamna först istället, använd order.unshift(...newTitles);
+    // 4. LÄGG TILL IGEN: Nu lägger vi in titlarna i slutet, i FILENS ordning.
+    // (Vill du att importerade låtar ska hamna ÖVERST istället? Byt 'push' mot 'unshift' nedan)
     order.push(...newTitles);
     
+    // Spara allt
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order)); 
     
     this.updateProjectList();
-    this.showCustomAlert(`${importedCount} nya låtar importerade. ${overwrittenCount} låtar uppdaterade.`);
+    this.showCustomAlert(`${importedCount} nya låtar importerade. ${overwrittenCount} låtar uppdaterade och sorterade.`);
     
     if (projectsArray.length > 0)
       this.loadProject(projectsArray[0].title);

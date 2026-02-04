@@ -1093,3 +1093,26 @@ button,
   color: #000000 !important;
   stroke: #000000 !important;
 }
+/* --- IPHONE & MOBIL SCROLL FIXAR --- */
+
+/* 1. Gör så att text-editorn har rejält med tomrum i botten */
+/* Detta gör att du kan scrolla upp sista raden ovanför tangentbordet/menyn */
+#editor {
+  padding-bottom: 20vh !important; 
+}
+
+/* 2. Fixa dropdown-listan så man ser sista låtarna */
+.project-dropdown {
+  /* Använd dvh (Dynamic Viewport Height) som anpassar sig efter mobil-menyer */
+  max-height: 60vh; 
+  max-height: 60dvh; 
+  
+  /* Extra luft i botten av listan */
+  padding-bottom: 30px; 
+}
+
+/* 3. Justera huvudbehållaren så den inte trycks ut av skärmen */
+.main-content {
+  height: calc(100vh - 90px);
+  height: calc(100dvh - 90px);
+}

@@ -825,11 +825,21 @@ class StableChordEditor {
   toggleProjectMenu() {
     const isOpen = this.projectDropdownMenu.classList.toggle("is-open");
     this.projectSelectorBtn.classList.toggle("is-active", isOpen);
+
+    // LÅS/LÅS UPP SCROLL I EDITORN
+    if (isOpen) {
+        this.editor.classList.add("scroll-locked");
+    } else {
+        this.editor.classList.remove("scroll-locked");
+    }
   }
 
   closeProjectMenu() {
     this.projectDropdownMenu.classList.remove("is-open");
     this.projectSelectorBtn.classList.remove("is-active");
+    
+    // LÅS UPP SCROLL (VIKTIGT!)
+    this.editor.classList.remove("scroll-locked");
   }
 
   handleOutsideClick(e) {

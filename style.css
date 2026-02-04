@@ -220,10 +220,14 @@ body {
   color: var(--text-color);
   padding: 0.75em 1em;
   border-radius: 0px;
-  cursor: pointer;
+  cursor: grab; /* Visar en hand-ikon */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  
+  /* NYA RADER FÖR ATT STOPPA TEXTMARKERING PÅ IPHONE */
+  -webkit-user-select: none; /* Safari / iPhone */
+  user-select: none;         /* Standard */
 }
 
 .project-dropdown-item:hover {
@@ -1115,4 +1119,16 @@ button,
 .main-content {
   height: calc(100vh - 90px);
   height: calc(100dvh - 90px);
+}
+/* --- SCROLL LOCK FIXAR --- */
+
+/* 1. Klass för att frysa editorn via JavaScript */
+.scroll-locked {
+  overflow: hidden !important;
+  touch-action: none; /* Hjälper till att stoppa touch-gester på mobiler */
+}
+
+/* 2. Hindra scrollen från att "smita ut" från listan */
+.project-dropdown {
+  overscroll-behavior: contain;
 }

@@ -246,10 +246,48 @@ class StableChordEditor {
     this.populateSelects();
     this.applySavedTheme();
     this.setupEventListeners();
+    this.setupSwipeGestures(); // NYTT: Initiera swipe-funktionen
     this.updateModeUI();
     this.updateDurationFromSpeed();
     this.startObserver();
     this.loadLastProject();
+  }
+
+  // --- SWIPE NAVIGERING (NYTT) ---
+  setupSwipeGestures() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    // Start: Spara var fingret landar
+    this.editor.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    // Slut: Räkna ut riktning och agera
+    this.editor.addEventListener('touchend', (e) => {
+      // Om vi håller på med Drag & Drop (flytta ackord/låtar), avbryt swipe
+      if (document.body.classList.contains('is-dragging')) return; 
+
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      
+      const diffX = touchEndX - touchStartX;
+      const diffY = touchEndY - touchStartY;
+
+      // Logik:
+      // 1. Horisontell rörelse måste vara större än vertikal (så vi inte byter låt när vi scrollar texten).
+      // 2. Rörelsen måste vara längre än 50 pixlar (för att undvika oavsiktliga smådarrningar).
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+        if (diffX > 0) {
+          // Swipe Höger -> Gå till Föregående låt (som att bläddra bakåt i en bok)
+          this.loadProjectByIndexDelta(-1);
+        } else {
+          // Swipe Vänster -> Gå till Nästa låt
+          this.loadProjectByIndexDelta(1);
+        }
+      }
+    }, { passive: true });
   }
 
   populateSelects() {

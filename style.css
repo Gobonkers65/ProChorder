@@ -1157,3 +1157,29 @@ button,
 .project-dropdown {
   overscroll-behavior: contain;
 }
+/* --- SÅNGARLÄGE (Dölj Ackord) --- */
+body.lyrics-only #editor .chord {
+  display: none !important; /* Dölj ackorden */
+}
+
+/* Inställningar för hela editorn */
+body.lyrics-only #editor {
+  line-height: 1.2 !important; /* Generellt radavstånd */
+}
+
+/* HÄR ÄR NYCKELN: Avståndet mellan varje textrad */
+body.lyrics-only #editor > div {
+  line-height: 1.2 !important; /* Tajtare radhöjd (var 1.6) */
+  margin-bottom: 0.1em;        /* Mycket litet avstånd mellan rader (var 0.5em) */
+  min-height: 1.2em;           /* Ser till att tomrader fortfarande syns */
+}
+
+/* Justering för Sektionsrubriker (Intro, Verse etc) */
+body.lyrics-only #editor .section-marker {
+  margin-top: 0.8em;    /* Lite luft ovanför rubriken */
+  margin-bottom: 0em;   /* Inget extra avstånd under rubriken (texten kommer direkt) */
+  
+  line-height: 1.0 !important; 
+  padding-bottom: 0;
+  height: auto;
+}

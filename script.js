@@ -21,18 +21,18 @@ class StableChordEditor {
     if (e.key !== " " && e.key !== "Enter") return;
     const selection = window.getSelection();
     if (!selection.rangeCount || !selection.isCollapsed) return;
-    
+
     const range = selection.getRangeAt(0);
     const container = range.startContainer;
     if (container.nodeType !== Node.TEXT_NODE) return;
-    
+
     const textContent = container.textContent.substring(0, range.startOffset);
     const customLinkRegex = /\[\[(.+?)(?:\|(.*?))?\]\]\s*$/;
     const autoLinkRegex = /(?:^|\s)((?:https?:\/\/\S+|(?:www|ftp)\.\S+))\s*$/;
-    
+
     const customMatch = textContent.match(customLinkRegex);
     const autoMatch = !customMatch && textContent.match(autoLinkRegex);
-    
+
     let url, linkText, startIndex, fullMatchLength;
 
     if (customMatch) {
@@ -63,13 +63,13 @@ class StableChordEditor {
     link.textContent = linkText;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    
+
     replaceRange.insertNode(link);
     range.setStartAfter(link);
     range.collapse(true);
     selection.removeAllRanges();
     selection.addRange(range);
-    
+
     this.recordHistoryDebounced();
   }
 
@@ -106,7 +106,7 @@ class StableChordEditor {
     this.historyIndex = -1;
     this.debounceTimer = null;
     this.currentlyEditing = null;
-    
+
     this.musicalNotes = [
       "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#",
     ];
@@ -137,9 +137,11 @@ class StableChordEditor {
       root: "C", type: "", base: "(root)", rootIndex: 3, typeIndex: 0, baseIndex: 0,
     };
 
-    this.selectElements();
+    this.selectElements(); // Här laddas alla knappar in
     this.wakeLock = null;
     this.observer = new MutationObserver(this.handleMutations.bind(this));
+    
+    // Nu är det säkert att köra init(), för knapparna finns!
     this.init();
   }
 
@@ -246,44 +248,36 @@ class StableChordEditor {
     this.populateSelects();
     this.applySavedTheme();
     this.setupEventListeners();
-    this.setupSwipeGestures(); // NYTT: Initiera swipe-funktionen
+    this.setupSwipeGestures();
     this.updateModeUI();
     this.updateDurationFromSpeed();
     this.startObserver();
     this.loadLastProject();
   }
 
-  // --- SWIPE NAVIGERING (NYTT) ---
+  // --- SWIPE NAVIGERING ---
   setupSwipeGestures() {
     let touchStartX = 0;
     let touchStartY = 0;
 
-    // Start: Spara var fingret landar
     this.editor.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
       touchStartY = e.changedTouches[0].screenY;
     }, { passive: true });
 
-    // Slut: Räkna ut riktning och agera
     this.editor.addEventListener('touchend', (e) => {
-      // Om vi håller på med Drag & Drop (flytta ackord/låtar), avbryt swipe
-      if (document.body.classList.contains('is-dragging')) return; 
+      if (document.body.classList.contains('is-dragging')) return;
 
       const touchEndX = e.changedTouches[0].screenX;
       const touchEndY = e.changedTouches[0].screenY;
-      
+
       const diffX = touchEndX - touchStartX;
       const diffY = touchEndY - touchStartY;
 
-      // Logik:
-      // 1. Horisontell rörelse måste vara större än vertikal (så vi inte byter låt när vi scrollar texten).
-      // 2. Rörelsen måste vara längre än 50 pixlar (för att undvika oavsiktliga smådarrningar).
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
         if (diffX > 0) {
-          // Swipe Höger -> Gå till Föregående låt (som att bläddra bakåt i en bok)
           this.loadProjectByIndexDelta(-1);
         } else {
-          // Swipe Vänster -> Gå till Nästa låt
           this.loadProjectByIndexDelta(1);
         }
       }
@@ -303,7 +297,6 @@ class StableChordEditor {
     };
     populate(this.sectionTypeSelect, sectionData, "Välj sektion...");
 
-    // Fontstorlekar
     const sizes = [14, 16, 18, 20, 22, 24, 28, 32];
     if (this.fontSizeSelector) {
       this.fontSizeSelector.innerHTML = '';
@@ -318,8 +311,7 @@ class StableChordEditor {
 
   applySavedTheme() {
     const isDarkMode = localStorage.getItem(StableChordEditor.STORAGE_KEYS.DARK_MODE) === "enabled";
-    
-    // Ikoner för Dark/Light mode
+
     const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium"><path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM10 7a3 3 0 100 6 3 3 0 000-6zM15.657 5.404a.75.75 0 10-1.06-1.06l-1.061 1.06a.75.75 0 001.06 1.06l1.06-1.06zM5.404 15.657a.75.75 0 10-1.06-1.06l-1.06 1.06a.75.75 0 101.06 1.06l1.06-1.06zM17 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 01.75.75zM4.25 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 01.75.75zM15.657 14.596a.75.75 0 101.06-1.06l-1.06-1.061a.75.75 0 10-1.06 1.06l1.06 1.06zM5.404 4.343a.75.75 0 101.06-1.06l-1.06-1.061a.75.75 0 10-1.06 1.06l1.06 1.06z"/></svg>`;
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium"><path fill-rule="evenodd" d="M7.455 2.104a.75.75 0 00-.98 1.126 8.5 8.5 0 008.62 8.62.75.75 0 001.127-.98 10 10 0 01-9.767-8.766z" clip-rule="evenodd" /></svg>`;
 
@@ -349,7 +341,6 @@ class StableChordEditor {
     this.updateModeUI();
   }
 
-  // --- WAKE LOCK (Håll skärmen vaken) ---
   async acquireWakeLock() {
     if ("wakeLock" in navigator) {
       try {
@@ -387,7 +378,6 @@ class StableChordEditor {
   }
 
   setupEventListeners() {
-    // --- TOPP MENY & NAVIGATION ---
     const toggleMenu = () => {
       this.sideMenu.classList.toggle("is-closed");
       this.menuOverlay.classList.toggle("is-closed");
@@ -404,7 +394,6 @@ class StableChordEditor {
     });
     this.btnToggleDarkMode.addEventListener("click", () => this.toggleDarkMode());
 
-    // --- LIVE LÄGE ---
     this.floatingLiveBtn.addEventListener("click", () => {
       this.toggleScrollMode(true, true);
     });
@@ -416,25 +405,24 @@ class StableChordEditor {
     });
     this.scrollBtnExit.addEventListener("click", () => this.toggleScrollMode(false));
     this.scrollBtnPlayPause.addEventListener("click", () => this.toggleScrolling());
-    
+
     this.scrollSpeedSlider.addEventListener("input", (e) => {
       this.setScrollSpeed(e.target.value);
       this.updateDurationFromSpeed();
     });
-    
+
     const durationChangeHandler = () => {
       const totalSeconds = this.getTotalDurationSeconds();
       if (totalSeconds > 0) this.setScrollForDuration(totalSeconds);
     };
     this.scrollDurationMinutesInput.addEventListener("input", durationChangeHandler);
     this.scrollDurationSecondsInput.addEventListener("input", durationChangeHandler);
-    
+
     this.scrollBtnPrev.addEventListener("click", () => this.loadProjectByIndexDelta(-1));
     this.scrollBtnNext.addEventListener("click", () => this.loadProjectByIndexDelta(1));
 
-    // --- METRONOM ---
     this.btnToggleMetronome.addEventListener("click", () => this.toggleMetronome());
-    
+
     this.metronomeBpmInput.addEventListener("input", (e) => {
       let newTempo = parseInt(e.target.value);
       const min = parseInt(e.target.min) || 40;
@@ -466,7 +454,6 @@ class StableChordEditor {
     this.btnBpmUp.addEventListener("click", () => updateBpm(1));
     this.btnBpmDown.addEventListener("click", () => updateBpm(-1));
 
-    // --- PROJEKT HANTERING ---
     this.projectList.addEventListener("change", () => {
       const name = this.projectList.value || "";
       if (name) this.loadProject(name);
@@ -523,18 +510,15 @@ class StableChordEditor {
       this.deleteAllProjects();
     });
 
-    // --- MODAL HANTERING ---
     const openModal = (modal) => modal.classList.add("visible");
     const closeModal = (modal) => modal.classList.remove("visible");
 
-    // Tuner
     this.btnOpenTunerModal.addEventListener("click", () => {
       this.openTunerModal();
       toggleMenu();
     });
     this.tunerBtnClose.addEventListener("click", () => this.closeTunerModal());
 
-    // Transpose
     this.btnOpenTransposeModal.addEventListener("click", () => {
       openModal(this.transposeModal);
       toggleMenu();
@@ -543,7 +527,6 @@ class StableChordEditor {
     this.btnTransposeUp.addEventListener("click", () => this.transpose(1));
     this.btnTransposeDown.addEventListener("click", () => this.transpose(-1));
 
-    // Sektioner
     this.btnOpenSectionsModal.addEventListener("click", () => {
       openModal(this.sectionsModal);
       toggleMenu();
@@ -561,7 +544,6 @@ class StableChordEditor {
       }
     });
 
-    // Export/Import
     this.btnOpenExportModal.addEventListener("click", () => {
       openModal(this.exportModal);
       toggleMenu();
@@ -578,7 +560,7 @@ class StableChordEditor {
     this.btnExportZip.addEventListener("click", () => this.exportAllAsZip());
     this.btnExportJson.addEventListener("click", () => this.exportJson());
     this.btnExportAllJson.addEventListener("click", () => this.exportAllJson());
-    
+
     this.btnImportJson.addEventListener("click", () => this.fileImport.click());
     this.fileImport.addEventListener("change", (e) => this.importJsonFromFile(e.target.files[0]));
     this.btnImportUrl.addEventListener("click", async () => {
@@ -588,7 +570,6 @@ class StableChordEditor {
       if (confirmed) this.importJsonFromUrl(SHARED_SONG_LIST_URL);
     });
 
-    // --- EDITOR HANTERING ---
     this.fontSizeSelector.addEventListener("change", (e) => {
       this.editor.style.fontSize = e.target.value + "px";
       this.recordHistoryDebounced();
@@ -612,27 +593,24 @@ class StableChordEditor {
     });
 
     this.editor.addEventListener("keydown", this.handleKeyDown.bind(this));
-    
-    // Smart Paste
+
     this.editor.addEventListener("paste", (e) => {
       e.preventDefault();
       const text = (e.clipboardData || window.clipboardData).getData("text/plain");
       const processedText = this.processSmartPaste(text);
       document.execCommand("insertText", false, processedText);
     });
-    
+
     this.editor.addEventListener("input", () => this.recordHistoryDebounced());
     this.editor.addEventListener("keyup", this.handleAutoLinking.bind(this));
-    
-    // Drag & Drop
+
     this.editor.addEventListener("dragover", this.handleDragOver.bind(this));
     this.editor.addEventListener("dragleave", () => (this.dropIndicator.style.display = "none"));
     this.editor.addEventListener("drop", this.handleDrop.bind(this));
 
-    // --- ACKORD MODAL ---
     this.modalBtnClose.addEventListener("click", () => this.closeChordModal());
     this.modalBtnRemove.addEventListener("click", () => this.removeChord());
-    
+
     document.getElementById("center-button").addEventListener("click", () => {
       const finalChord = document.getElementById("current-chord-display").textContent;
       document.getElementById("center-button").classList.add("confirmed");
@@ -646,7 +624,6 @@ class StableChordEditor {
       }, 800);
     });
 
-    // --- TANGENTBORDSKORTKOMMANDON ---
     document.addEventListener("keydown", (e) => {
       if (this.editMode === "scroll") {
         if (e.key === " ") {
@@ -720,7 +697,7 @@ class StableChordEditor {
     oscillator.connect(gainNode);
     gainNode.connect(this.audioContext.destination);
 
-    oscillator.frequency.setValueAtTime(880, time); 
+    oscillator.frequency.setValueAtTime(880, time);
     gainNode.gain.setValueAtTime(1, time);
     gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
 
@@ -735,16 +712,16 @@ class StableChordEditor {
 
     // LÅS/LÅS UPP SCROLL I EDITORN
     if (isOpen) {
-        this.editor.classList.add("scroll-locked");
+      this.editor.classList.add("scroll-locked");
     } else {
-        this.editor.classList.remove("scroll-locked");
+      this.editor.classList.remove("scroll-locked");
     }
   }
 
   closeProjectMenu() {
     this.projectDropdownMenu.classList.remove("is-open");
     this.projectSelectorBtn.classList.remove("is-active");
-    
+
     // LÅS UPP SCROLL (VIKTIGT!)
     this.editor.classList.remove("scroll-locked");
   }
@@ -769,17 +746,22 @@ class StableChordEditor {
     this.closeProjectMenu();
   }
 
+  // --- UPPDATERAD LOGIK FÖR KNAPP & SÅNGARLÄGE ---
   updateModeUI() {
     if (this.editMode === "chord") {
+      // GUL KNAPP = CHORD MODE (Visa ackord)
       if (this.chordModeIconText) this.chordModeIconText.textContent = "ON";
+      document.body.classList.remove("lyrics-only"); // Visa ackord
     } else {
+      // GRÅ KNAPP = TEXT MODE / LYRICS MODE (Dölj ackord)
       if (this.chordModeIconText) this.chordModeIconText.textContent = "OFF";
+      document.body.classList.add("lyrics-only"); // Dölj ackord
     }
 
     if (this.mainToggleEditModeBtn) {
       this.mainToggleEditModeBtn.classList.toggle("is-active", this.editMode === "chord");
       this.mainToggleEditModeBtn.title =
-        this.editMode === "chord" ? "Ackordläge PÅ (Klicka för Textläge)" : "Ackordläge AV (Klicka för Ackordläge)";
+        this.editMode === "chord" ? "Ackordläge PÅ (Redigera ackord)" : "Ackordläge AV (Sångarläge - Bara text)";
     }
 
     if (this.editMode === "chord") {
@@ -803,7 +785,7 @@ class StableChordEditor {
       this.editMode = "scroll";
       this.editor.contentEditable = false;
       document.body.classList.add("scroll-mode-active");
-      
+
       setTimeout(() => {
         const scrollHeight = this.editor.scrollHeight - this.editor.clientHeight;
         if (scrollHeight <= 0) {
@@ -818,9 +800,9 @@ class StableChordEditor {
     } else {
       this.releaseWakeLock();
       this.stopScrolling();
-      
+
       this.editMode = this.previousEditMode || "chord";
-      
+
       this.editor.contentEditable = true;
       document.body.classList.remove("scroll-mode-active");
       this.updateModeUI();
@@ -845,7 +827,7 @@ class StableChordEditor {
     layer.innerHTML = "";
     const count = items.length;
     const radius = (layer.offsetWidth / 2) * radiusMultiplier;
-    
+
     items.forEach((item, index) => {
       const angle = (index / count) * 2 * Math.PI - Math.PI / 2;
       const x = radius * Math.cos(angle);
@@ -855,12 +837,12 @@ class StableChordEditor {
       let textToShow = item;
       if (item === "(root)") textToShow = "Ø";
       else if (item === "") textToShow = "Ø";
-      
+
       div.textContent = textToShow;
       div.style.left = `${50 + (x / layer.offsetWidth) * 100}%`;
       div.style.top = `${50 + (y / layer.offsetHeight) * 100}%`;
       div.style.transform = "translate(-50%, -50%)";
-      
+
       if (index === currentIndex) {
         div.classList.add("active");
       }
@@ -913,15 +895,15 @@ class StableChordEditor {
       type = "";
       base = "(root)";
     }
-    
+
     let rootIndex = this.musicalNotes.indexOf(root);
     let typeIndex = this.radialTypes.indexOf(type);
     let baseIndex = this.radialBassNotes.indexOf(base);
-    
+
     if (rootIndex === -1) rootIndex = 3; // Default C
     if (typeIndex === -1) typeIndex = 0;
     if (baseIndex === -1) baseIndex = 0;
-    
+
     this.radialState = {
       root: this.musicalNotes[rootIndex],
       type: this.radialTypes[typeIndex],
@@ -993,7 +975,7 @@ class StableChordEditor {
     } else if (document.caretRangeFromPoint) {
       range = document.caretRangeFromPoint(event.clientX, event.clientY);
     }
-    
+
     if (!range || !range.startContainer.textContent || range.startContainer.nodeType !== Node.TEXT_NODE) {
       return null;
     }
@@ -1002,16 +984,16 @@ class StableChordEditor {
       const text = range.startContainer.textContent;
       let startIndex = range.startOffset;
       let endIndex = range.startOffset;
-      
+
       while (startIndex > 0 && text[startIndex - 1].trim() !== "") {
         startIndex--;
       }
       while (endIndex < text.length && text[endIndex].trim() !== "") {
         endIndex++;
       }
-      
+
       if (startIndex === endIndex) return null;
-      
+
       const wordRange = document.createRange();
       wordRange.setStart(range.startContainer, startIndex);
       wordRange.setEnd(range.startContainer, endIndex);
@@ -1027,7 +1009,7 @@ class StableChordEditor {
     if (this.editMode !== "chord") return;
     if (e.ctrlKey || e.altKey) e.dataTransfer.dropEffect = "copy";
     else e.dataTransfer.dropEffect = "move";
-    
+
     let range;
     if (document.caretRangeFromPoint) {
       range = document.caretRangeFromPoint(e.clientX, e.clientY);
@@ -1038,7 +1020,7 @@ class StableChordEditor {
         range.setStart(pos.offsetNode, pos.offset);
       }
     }
-    
+
     if (range) {
       const rect = range.getBoundingClientRect();
       this.dropIndicator.style.display = "block";
@@ -1052,7 +1034,7 @@ class StableChordEditor {
     e.stopPropagation();
     this.dropIndicator.style.display = "none";
     if (this.editMode !== "chord") return;
-    
+
     let range = null;
     if (document.caretRangeFromPoint) {
       range = document.caretRangeFromPoint(e.clientX, e.clientY);
@@ -1064,13 +1046,13 @@ class StableChordEditor {
         range.collapse(true);
       }
     }
-    
+
     if (!range || !this.editor.contains(range.startContainer)) {
       range = document.createRange();
       range.selectNodeContents(this.editor);
       range.collapse(false);
     }
-    
+
     let chordNode;
     if ((e.ctrlKey || e.altKey) && this.draggedChord) {
       const chordText = this.draggedChord.dataset.chord;
@@ -1080,17 +1062,17 @@ class StableChordEditor {
         ? this.draggedChord
         : this.createChordSpan(e.dataTransfer.getData("text/plain"));
     }
-    
+
     chordNode.style.display = "inline-block";
     range.insertNode(chordNode);
-    
+
     const sel = window.getSelection();
     sel.removeAllRanges();
     const after = document.createRange();
     after.setStartAfter(chordNode);
     after.collapse(true);
     sel.addRange(after);
-    
+
     this.centerChordHandles();
     this.recordHistoryDebounced();
   }
@@ -1105,7 +1087,7 @@ class StableChordEditor {
     chordText.className = "chord-text";
     chordText.textContent = chord;
     chordText.spellcheck = false;
-    chordText.draggable = true; 
+    chordText.draggable = true;
     span.appendChild(chordText);
 
     span.addEventListener("click", (e) => {
@@ -1131,7 +1113,7 @@ class StableChordEditor {
       e.dataTransfer.effectAllowed = "copyMove";
       this.draggedChord = span;
       document.body.classList.add("is-dragging");
-      
+
       if (e.dataTransfer.setDragImage) {
         const ghost = document.createElement("span");
         ghost.textContent = chord;
@@ -1140,7 +1122,7 @@ class StableChordEditor {
         e.dataTransfer.setDragImage(ghost, 10, 15);
         setTimeout(() => document.body.removeChild(ghost), 0);
       }
-      
+
       const isCopy = e.ctrlKey || e.altKey;
       if (!isCopy) {
         setTimeout(() => {
@@ -1166,16 +1148,16 @@ class StableChordEditor {
     const sel = window.getSelection();
     if (!sel.rangeCount || !this.editor.contains(sel.anchorNode))
       return this.showCustomAlert("Placera markören på raden där du vill infoga sektionsmarkören.");
-    
+
     let node = sel.anchorNode;
     while (node && node.parentNode !== this.editor) node = node.parentNode;
-    
+
     if (!node || node.tagName !== "DIV") {
       const newDiv = document.createElement("div");
       this.editor.appendChild(newDiv);
       node = newDiv;
     }
-    
+
     const existingMarker = node.querySelector(".section-marker");
     if (existingMarker) existingMarker.remove();
     this.insertSectionMarkerInDiv(node, type);
@@ -1191,12 +1173,12 @@ class StableChordEditor {
     markerSpan.dataset.section = type;
     markerSpan.setAttribute("contenteditable", "false");
     markerSpan.dataset.abbreviation = abbreviations[type] || type.charAt(0);
-    
+
     const textSpan = document.createElement("span");
     textSpan.className = "section-marker-text";
     textSpan.textContent = type;
     markerSpan.appendChild(textSpan);
-    
+
     div.insertBefore(markerSpan, div.firstChild);
     markerSpan.addEventListener("dblclick", (e) => {
       e.stopPropagation();
@@ -1209,75 +1191,66 @@ class StableChordEditor {
     this.editor.querySelectorAll(".chord.selected").forEach((s) => s.classList.remove("selected"));
   }
 
-  // --- SÄKER REDIGERING & ENTER-FIX (UPPDATERAD) ---
+  // --- SÄKER REDIGERING & ENTER-FIX ---
   handleKeyDown(e) {
     if (this.editMode !== "chord") return;
 
-    // --- FIX: ENTER VID SEKTIONSRUBRIKER ---
-    // Vi kollar specifikt om Shift INTE är nertryckt
     if (e.key === "Enter" && !e.shiftKey) {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return;
-        const range = sel.getRangeAt(0);
-        
-        // Hitta den div vi redigerar i
-        let div = range.startContainer;
-        while (div && div.nodeName !== "DIV" && div.id !== "editor") {
-            div = div.parentNode;
-        }
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
 
-        // Om divven har en sektionsmarkör och vi trycker Enter...
-        if (div && div.querySelector(".section-marker")) {
-            e.preventDefault(); // Stoppa webbläsarens normala, buggiga beteende
+      let div = range.startContainer;
+      while (div && div.nodeName !== "DIV" && div.id !== "editor") {
+        div = div.parentNode;
+      }
 
-            // Skapa en ny rad (div)
-            const newDiv = document.createElement("div");
-            
-            // Flytta allt innehåll som är EFTER markören till den nya raden
-            const rangeAfter = range.cloneRange();
-            rangeAfter.setEndAfter(div.lastChild);
-            const content = rangeAfter.extractContents();
-            
-            newDiv.appendChild(content);
-            if (newDiv.innerHTML.trim() === "") newDiv.innerHTML = "<br>"; 
-            
-            div.after(newDiv);
-            
-            // Flytta markören till den nya raden
-            const newRange = document.createRange();
-            newRange.setStart(newDiv, 0);
-            newRange.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(newRange);
-            
-            this.recordHistoryDebounced();
-            return;
-        }
+      if (div && div.querySelector(".section-marker")) {
+        e.preventDefault();
+
+        const newDiv = document.createElement("div");
+        const rangeAfter = range.cloneRange();
+        rangeAfter.setEndAfter(div.lastChild);
+        const content = rangeAfter.extractContents();
+
+        newDiv.appendChild(content);
+        if (newDiv.innerHTML.trim() === "") newDiv.innerHTML = "<br>";
+
+        div.after(newDiv);
+
+        const newRange = document.createRange();
+        newRange.setStart(newDiv, 0);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+
+        this.recordHistoryDebounced();
+        return;
+      }
     }
 
-    // --- SÄKER BACKSPACE ---
     if (e.key === "Backspace") {
-        const sel = window.getSelection();
-        if (!sel.rangeCount) return;
-        const range = sel.getRangeAt(0);
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
 
-        if (range.collapsed && range.startOffset === 0) {
-            const container = range.startContainer;
-            let prevNode = null;
-            if (container.nodeType === Node.TEXT_NODE) {
-                prevNode = container.previousSibling;
-            } else if (container.nodeType === Node.ELEMENT_NODE) {
-                prevNode = container.childNodes[range.startOffset - 1];
-            }
-
-            if (prevNode && prevNode.nodeType === Node.ELEMENT_NODE) {
-                if (prevNode.classList.contains("chord") || prevNode.classList.contains("section-marker")) {
-                    e.preventDefault(); 
-                    this.showCustomAlert("Använd dubbelklick eller menyn för att ta bort ackord/sektioner.");
-                    return;
-                }
-            }
+      if (range.collapsed && range.startOffset === 0) {
+        const container = range.startContainer;
+        let prevNode = null;
+        if (container.nodeType === Node.TEXT_NODE) {
+          prevNode = container.previousSibling;
+        } else if (container.nodeType === Node.ELEMENT_NODE) {
+          prevNode = container.childNodes[range.startOffset - 1];
         }
+
+        if (prevNode && prevNode.nodeType === Node.ELEMENT_NODE) {
+          if (prevNode.classList.contains("chord") || prevNode.classList.contains("section-marker")) {
+            e.preventDefault();
+            this.showCustomAlert("Använd dubbelklick eller menyn för att ta bort ackord/sektioner.");
+            return;
+          }
+        }
+      }
     }
   }
 
@@ -1296,25 +1269,25 @@ class StableChordEditor {
 
   formatNode(node) {
     if (this.editMode !== "chord" || !node.textContent || !node.textContent.includes("[")) return;
-    
+
     const text = node.textContent;
     const regex = /\[([^\]]+)\]/g;
     let match;
     const frag = document.createDocumentFragment();
     let lastIndex = 0;
     let replaced = false;
-    
+
     while ((match = regex.exec(text)) !== null) {
       replaced = true;
       const beforeText = text.substring(lastIndex, match.index);
       if (beforeText) frag.appendChild(document.createTextNode(beforeText));
-      
+
       const chord = match[1];
       const chordSpan = this.createChordSpan(chord);
       frag.appendChild(chordSpan);
       lastIndex = regex.lastIndex;
     }
-    
+
     if (replaced) {
       const afterText = text.substring(lastIndex);
       if (afterText) frag.appendChild(document.createTextNode(afterText));
@@ -1369,7 +1342,7 @@ class StableChordEditor {
     this.stopObserver();
     this.editor.innerHTML = "";
     const lines = text.split("\n");
-    
+
     lines.forEach((lineText) => {
       lineText = lineText.replace(/\[\s*\]/g, "");
       const lineDiv = document.createElement("div");
@@ -1378,9 +1351,9 @@ class StableChordEditor {
         sectionType = type;
         return "";
       });
-      
+
       if (sectionType) this.insertSectionMarkerInDiv(lineDiv, sectionType);
-      
+
       if (lineText.trim() === "" && !lineText.includes("[")) {
         lineDiv.appendChild(document.createElement("br"));
       } else {
@@ -1411,7 +1384,7 @@ class StableChordEditor {
       }
       this.editor.appendChild(lineDiv);
     });
-    
+
     this.centerChordHandles();
     this.startObserver();
     if (recordHistory) this.recordHistory();
@@ -1421,10 +1394,10 @@ class StableChordEditor {
     const sharpMap = { Db: "C#", Eb: "D#", Gb: "F#", Ab: "G#", Bb: "A#" };
     const match = note.match(/^([A-G](?:#|b)?)/);
     if (!match) return note;
-    
+
     let rootNote = match[0];
     let normalizedNote = rootNote.includes("b") ? sharpMap[rootNote] || rootNote : rootNote;
-    
+
     const currentIndex = this.musicalNotes.indexOf(normalizedNote);
     if (currentIndex !== -1) {
       const newIndex = (currentIndex + steps + this.musicalNotes.length) % this.musicalNotes.length;
@@ -1561,8 +1534,8 @@ class StableChordEditor {
 
     let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
     if (!order.includes(name)) {
-        order.push(name);
-        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+      order.push(name);
+      localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
     }
 
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
@@ -1587,7 +1560,7 @@ class StableChordEditor {
       this.editor.style.fontSize = data.fontSize || "16px";
 
       this.loadContent(data.content || "", true);
-      
+
       if (data.scrollSpeed !== undefined) {
         const sliderVal =
           ((data.scrollSpeed - this.MIN_MOVE_SPEED) / (this.MAX_MOVE_SPEED - this.MIN_MOVE_SPEED)) * 100;
@@ -1597,13 +1570,13 @@ class StableChordEditor {
         this.scrollSpeedSlider.value = 20;
         this.setScrollSpeed(20);
       }
-      
+
       if (data.duration !== undefined) {
         this.updateDurationInputs(data.duration);
       } else {
         this.updateDurationFromSpeed();
       }
-      
+
       this.tempo = data.tempo || 120;
       if (this.metronomeBpmInput) {
         this.metronomeBpmInput.value = this.tempo;
@@ -1613,7 +1586,7 @@ class StableChordEditor {
         this.fontSizeSelector.value = parseInt((data.fontSize || '16px').replace('px', ''));
         this.editor.style.fontSize = data.fontSize;
       }
-      
+
       localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
       if (this.projectList.value !== name) this.projectList.value = name;
       this.currentProjectName.textContent = name;
@@ -1663,13 +1636,13 @@ class StableChordEditor {
     const list = this.projectList;
     const dropdown = this.projectDropdownMenu;
     const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-    
+
     let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
     const projectKeys = Object.keys(projects);
-    
+
     order = order.filter(name => projectKeys.includes(name));
     projectKeys.forEach(name => {
-        if (!order.includes(name)) order.push(name);
+      if (!order.includes(name)) order.push(name);
     });
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
 
@@ -1677,84 +1650,84 @@ class StableChordEditor {
     dropdown.innerHTML = "";
 
     if (order.length === 0) {
-        dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
+      dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
     }
 
     order.forEach((name, index) => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        list.appendChild(option);
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      list.appendChild(option);
 
-        // Skapa list-objekt
-        const item = document.createElement("div");
-        item.className = "project-dropdown-item";
-        item.dataset.name = name;
-        
-        // 1. Text-delen (för att klicka/scrolla)
-        const textSpan = document.createElement("span");
-        textSpan.textContent = name;
-        textSpan.style.pointerEvents = "none"; 
-        textSpan.style.flexGrow = "1";
-        
-        // 2. Drag-handtaget (Hamburgaren ☰)
-        const handle = document.createElement("span");
-        handle.innerHTML = "&#9776;"; 
-        handle.className = "drag-handle";
-        handle.draggable = true; // BARA handtaget är dragbart
+      // Skapa list-objekt
+      const item = document.createElement("div");
+      item.className = "project-dropdown-item";
+      item.dataset.name = name;
 
-        // Ladda låt vid klick på raden (men ignorera om man klickar på handtaget)
-        item.addEventListener("click", (e) => {
-            if (e.target.closest('.drag-handle')) return;
-            this.selectProject(name);
-        });
+      // 1. Text-delen (för att klicka/scrolla)
+      const textSpan = document.createElement("span");
+      textSpan.textContent = name;
+      textSpan.style.pointerEvents = "none";
+      textSpan.style.flexGrow = "1";
 
-        // --- DRAG EVENTS (På handtaget) ---
-        handle.addEventListener("dragstart", (e) => {
-            // Använd String(index) för att undvika "noll-felet" på iPhone
-            e.dataTransfer.setData("text/plain", String(index));
-            e.dataTransfer.effectAllowed = "move";
-            item.classList.add("dragging");
-            document.body.classList.add("is-dragging");
-        });
+      // 2. Drag-handtaget (Hamburgaren ☰)
+      const handle = document.createElement("span");
+      handle.innerHTML = "&#9776;";
+      handle.className = "drag-handle";
+      handle.draggable = true; // BARA handtaget är dragbart
 
-        handle.addEventListener("dragend", () => {
-            item.classList.remove("dragging");
-            document.body.classList.remove("is-dragging");
-            document.querySelectorAll(".project-dropdown-item").forEach(el => el.classList.remove("drag-over"));
-        });
+      // Ladda låt vid klick på raden (men ignorera om man klickar på handtaget)
+      item.addEventListener("click", (e) => {
+        if (e.target.closest('.drag-handle')) return;
+        this.selectProject(name);
+      });
 
-        // --- DROP EVENTS (På hela raden) ---
-        item.addEventListener("dragover", (e) => {
-            e.preventDefault(); 
-            item.classList.add("drag-over");
-        });
+      // --- DRAG EVENTS (På handtaget) ---
+      handle.addEventListener("dragstart", (e) => {
+        // Använd String(index) för att undvika "noll-felet" på iPhone
+        e.dataTransfer.setData("text/plain", String(index));
+        e.dataTransfer.effectAllowed = "move";
+        item.classList.add("dragging");
+        document.body.classList.add("is-dragging");
+      });
 
-        item.addEventListener("dragleave", () => {
-            item.classList.remove("drag-over");
-        });
+      handle.addEventListener("dragend", () => {
+        item.classList.remove("dragging");
+        document.body.classList.remove("is-dragging");
+        document.querySelectorAll(".project-dropdown-item").forEach(el => el.classList.remove("drag-over"));
+      });
 
-        item.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
-            const toIndex = index;
+      // --- DROP EVENTS (På hela raden) ---
+      item.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        item.classList.add("drag-over");
+      });
 
-            // Extra säkerhetskoll !isNaN
-            if (fromIndex !== toIndex && !isNaN(fromIndex)) {
-                const itemToMove = order[fromIndex];
-                order.splice(fromIndex, 1);
-                order.splice(toIndex, 0, itemToMove);
-                
-                localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
-                this.updateProjectList(selectedValue);
-            }
-        });
+      item.addEventListener("dragleave", () => {
+        item.classList.remove("drag-over");
+      });
 
-        item.appendChild(textSpan);
-        item.appendChild(handle);
-        dropdown.appendChild(item);
+      item.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
+        const toIndex = index;
+
+        // Extra säkerhetskoll !isNaN
+        if (fromIndex !== toIndex && !isNaN(fromIndex)) {
+          const itemToMove = order[fromIndex];
+          order.splice(fromIndex, 1);
+          order.splice(toIndex, 0, itemToMove);
+
+          localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+          this.updateProjectList(selectedValue);
+        }
+      });
+
+      item.appendChild(textSpan);
+      item.appendChild(handle);
+      dropdown.appendChild(item);
     });
-    
+
     const last = selectedValue || localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
     if (last && projects[last]) {
       list.value = last;
@@ -1769,7 +1742,7 @@ class StableChordEditor {
     const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
     delete projects[name];
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-    
+
     let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
     order = order.filter(item => item !== name);
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
@@ -1779,7 +1752,7 @@ class StableChordEditor {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
       this.createNewProject();
     }
-    
+
     this.updateProjectList();
     this.showCustomAlert(`Projektet "${name}" har tagits bort.`);
   }
@@ -1788,7 +1761,7 @@ class StableChordEditor {
     if (await this.showCustomConfirm("Är du säker? Detta raderar ALLA sånger permanent.")) {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER); 
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
       this.updateProjectList();
       this.createNewProject();
       this.showCustomAlert("Alla projekt är borttagna.");
@@ -1801,20 +1774,20 @@ class StableChordEditor {
       projects[newName] = projects[oldName];
       projects[newName].title = newName;
       delete projects[oldName];
-      
+
       localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-      
+
       let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
       const index = order.indexOf(oldName);
       if (index !== -1) {
-          order[index] = newName;
-          localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+        order[index] = newName;
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
       }
 
       const lastProject = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
       if (lastProject === oldName)
         localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);
-      
+
       this.titleInput.value = newName;
       this.updateProjectList(newName);
       this.showCustomAlert(`Projektet har döpts om till "${newName}".`);
@@ -1941,7 +1914,7 @@ class StableChordEditor {
       const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
       if (Object.keys(projects).length === 0)
         return this.showCustomAlert("Inga projekt att exportera.");
-      
+
       const zip = new JSZip();
       for (const key in projects) {
         const project = projects[key];
@@ -1976,22 +1949,22 @@ class StableChordEditor {
   exportAllJson() {
     const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
     const order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
-    
+
     // Skapa listan baserat på SORTERINGEN
     const projectsArray = [];
-    
+
     // 1. Lägg till i rätt ordning
     order.forEach(title => {
-        if (projects[title]) {
-            projectsArray.push(projects[title]);
-        }
+      if (projects[title]) {
+        projectsArray.push(projects[title]);
+      }
     });
 
     // 2. Fånga upp ev. missade
     Object.keys(projects).forEach(title => {
-        if (!order.includes(title)) {
-            projectsArray.push(projects[title]);
-        }
+      if (!order.includes(title)) {
+        projectsArray.push(projects[title]);
+      }
     });
 
     const blob = new Blob([JSON.stringify(projectsArray, null, 2)], { type: "application/json" });
@@ -2046,10 +2019,10 @@ class StableChordEditor {
   // --- UPPDATERAD IMPORT: Tvinga filens ordning ---
   importMultipleProjects(projectsArray) {
     const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-    
+
     let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
     let importedCount = 0, overwrittenCount = 0;
-    
+
     // 1. Lista ut nya titlar
     const newTitles = projectsArray.map(p => p.title).filter(t => t);
 
@@ -2061,20 +2034,20 @@ class StableChordEditor {
       if (project && project.title) {
         if (projects[project.title]) overwrittenCount++;
         else importedCount++;
-        
+
         projects[project.title] = project;
       }
     }
 
     // 4. Lägg in dem i slutet (i filens ordning)
     order.push(...newTitles);
-    
+
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order)); 
-    
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+
     this.updateProjectList();
     this.showCustomAlert(`${importedCount} nya låtar importerade. ${overwrittenCount} låtar uppdaterade och sorterade.`);
-    
+
     if (projectsArray.length > 0)
       this.loadProject(projectsArray[0].title);
   }
@@ -2095,10 +2068,10 @@ class StableChordEditor {
       this.calculateAndSetScrollSpeed();
     }
     if (this.scrollSpeed <= 0) return;
-    
+
     this.scrollBtnPlayPause.textContent = "❚❚";
     this.scrollRemainder = 0;
-    
+
     const scroll = () => {
       this.scrollRemainder += this.scrollSpeed;
       const move = Math.floor(this.scrollRemainder);
@@ -2106,7 +2079,7 @@ class StableChordEditor {
         this.editor.scrollTop += move;
         this.scrollRemainder -= move;
       }
-      
+
       if (this.editor.scrollTop + this.editor.clientHeight >= this.editor.scrollHeight) {
         this.stopScrolling();
       } else {
@@ -2179,16 +2152,16 @@ class StableChordEditor {
   processSmartPaste(text) {
     const lines = text.split("\n");
     const result = [];
-    
+
     for (let i = 0; i < lines.length; i++) {
       const currentLine = lines[i].trimEnd();
       const nextLine = (i + 1 < lines.length) ? lines[i + 1].trimEnd() : "";
 
       if (this.isChordLine(currentLine)) {
         if (nextLine && !this.isChordLine(nextLine)) {
-          const merged = this.mergeChordAndLyricLines(lines[i], lines[i+1]); 
+          const merged = this.mergeChordAndLyricLines(lines[i], lines[i + 1]);
           result.push(merged);
-          i++; 
+          i++;
         } else {
           result.push(currentLine.replace(/([A-G][#b]?[a-zA-Z0-9\/]*)/g, "[$1]"));
         }
@@ -2201,28 +2174,28 @@ class StableChordEditor {
 
   isChordLine(line) {
     if (!line.trim()) return false;
-    
+
     const tokens = line.trim().split(/\s+/);
     let chordCount = 0;
-    
+
     const chordRegex = /^[A-G][#b]?(m|min|maj|dim|aug|sus|add|[0-9])*(\/[A-G][#b]?)?$/;
-    
+
     tokens.forEach(token => {
-      const cleanToken = token.replace(/[()]/g, ""); 
+      const cleanToken = token.replace(/[()]/g, "");
       if (chordRegex.test(cleanToken)) chordCount++;
     });
 
-    return (chordCount / tokens.length) > 0.8; 
+    return (chordCount / tokens.length) > 0.8;
   }
 
   mergeChordAndLyricLines(chordLine, lyricLine) {
     let result = "";
     let lyricIndex = 0;
-    
-    const regex = /([A-G][#b]?[^\s]*)/g; 
+
+    const regex = /([A-G][#b]?[^\s]*)/g;
     let match;
     const chords = [];
-    
+
     while ((match = regex.exec(chordLine)) !== null) {
       chords.push({
         text: match[1],
@@ -2234,21 +2207,21 @@ class StableChordEditor {
 
     for (let i = 0; i < chords.length; i++) {
       const chord = chords[i];
-      
+
       if (chord.index > lyricIndex) {
         if (chord.index > lyricLine.length) {
-           result += lyricLine.substring(lyricIndex);
-           result += " ".repeat(chord.index - lyricLine.length); 
-           lyricIndex = lyricLine.length + (chord.index - lyricLine.length);
+          result += lyricLine.substring(lyricIndex);
+          result += " ".repeat(chord.index - lyricLine.length);
+          lyricIndex = lyricLine.length + (chord.index - lyricLine.length);
         } else {
-           result += lyricLine.substring(lyricIndex, chord.index);
-           lyricIndex = chord.index;
+          result += lyricLine.substring(lyricIndex, chord.index);
+          lyricIndex = chord.index;
         }
       }
-      
+
       result += `[${chord.text}]`;
     }
-    
+
     if (lyricIndex < lyricLine.length) {
       result += lyricLine.substring(lyricIndex);
     }

@@ -1157,9 +1157,34 @@ button,
 .project-dropdown {
   overscroll-behavior: contain;
 }
-/* --- SÅNGARLÄGE (Dölj Ackord) --- */
+/* --- SÅNGARLÄGE (Visuella markörer istället för dolda ackord) --- */
+
+/* 1. Dölj själva ackordtexten (C, Am, etc) */
+body.lyrics-only #editor .chord-text {
+  display: none !important;
+}
+
+/* 2. Krymp ackord-behållaren så den inte tar någon plats i texten */
 body.lyrics-only #editor .chord {
-  display: none !important; /* Dölj ackorden */
+  display: inline-block !important;
+  width: 0px;
+  height: 0px;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+  pointer-events: none; /* Gör att markören inte fastnar på dem när du redigerar */
+}
+
+/* 3. Skapa den lilla varningstriangeln */
+body.lyrics-only #editor .chord::after {
+  content: "▾"; /* Du kan byta ut denna mot "•" eller "!" om du föredrar det */
+  position: absolute;
+  top: 0.2em; /* Justera denna om triangeln hamnar för högt eller lågt */
+  left: -0.3em;
+  color: var(--chord-color); /* Använder din befintliga gula/blå färg beroende på tema */
+  font-size: 1.3em;
+  opacity: 0.8; /* Lite genomskinlig så den inte stör för mycket */
 }
 
 /* Inställningar för hela editorn */

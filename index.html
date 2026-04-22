@@ -15,18 +15,17 @@
 
 <body>
   <div class="top-bar">
-    <div class="top-bar-left">
+<div class="top-bar-left">
       <button id="project-selector-btn" class="project-selector">
         <span id="current-project-name">Välj projekt...</span>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-small">
-          <path fill-rule="evenodd"
-            d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z"
-            clip-rule="evenodd" />
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
         </svg>
       </button>
       <select id="project-list" style="display: none"></select>
       <div id="project-dropdown-menu" class="project-dropdown"></div>
 
+      <button id="btn-exit-setlist" class="btn-danger hidden" style="margin-left: 10px; height: 40px; padding: 0 15px; border-radius: 4px; font-weight: bold; border: none; cursor: pointer; white-space: nowrap;">Avsluta Gig</button>
     </div>
     <div class="top-bar-right">
       <button id="main-toggle-edit-mode-btn" class="icon-btn text-btn-chord" title="Växla mellan Ackord/Text-läge">
@@ -53,7 +52,21 @@
   <div id="menu-overlay" class="is-closed"></div>
 
   <nav id="side-menu" class="is-closed">
-
+<div id="auth-container" class="sidebar-controls vertical" style="grid-column: span 3; border-bottom: 1px solid var(--border-soft); padding-bottom: 1em; margin-bottom: 1em;">
+  <div id="user-info" class="hidden" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+    <img id="user-photo" src="" alt="" style="width: 32px; height: 32px; border-radius: 50%; display: none;">
+    <span id="user-name" style="font-size: 0.85em; font-weight: 600;"></span>
+  </div>
+  
+  <button id="btn-login-google" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <svg style="width:18px; height:18px" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C9.03,19.27 6.59,17.38 6.59,13.31C6.59,9.45 8.94,7.4 12.19,7.4C14.12,7.4 15.6,8.11 16.57,9.07L18.57,7.09C17.16,5.77 15,4.68 12.19,4.68C7.69,4.68 3.75,7.79 3.75,13.31C3.75,18.8 7.5,22 12.19,22C16.85,22 21.56,19 21.56,13.3C21.56,12.53 21.44,11.67 21.35,11.1Z" />
+    </svg>
+    Logga in med Google
+  </button>
+  
+  <button id="btn-logout" class="btn-secondary-style hidden">Logga ut</button>
+</div>
     <input type="text" id="song-title" placeholder="Titel" style="grid-column: span 3" />
     <input type="text" id="song-author" placeholder="Artist / Låtskrivare" style="grid-column: span 3" />
 
@@ -114,6 +127,20 @@
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
           class="menu-grid-icon">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
+        </svg>
+      </button>
+
+      <button id="btn-open-create-setlist" class="menu-grid-btn">
+        <span class="menu-grid-title">Share setlist</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+        </svg>
+      </button>
+
+      <button id="btn-open-fetch-setlist" class="menu-grid-btn">
+        <span class="menu-grid-title">Get Setlist</span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="menu-grid-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
         </svg>
       </button>
 
@@ -335,6 +362,52 @@
     </div>
   </div>
 
+  <div id="create-setlist-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box" style="max-width: 400px; width: 90%;">
+      <h3 style="margin-top: 0">Share setlist</h3>
+      <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1em;">Välj de låtar du vill dela. En kod kommer att genereras.</p>
+      <div class="setlist-columns">
+        
+        <div class="setlist-col">
+          <h4 style="margin: 0 0 5px 0; font-size: 0.9em; opacity: 0.8;">Setlist (<span id="selected-count">0</span>)</h4>
+          <div id="setlist-selected-list" class="song-list-container">
+            </div>
+        </div>
+
+        <div class="setlist-col">
+          <h4 style="margin: 0 0 5px 0; font-size: 0.9em; opacity: 0.8;">Bibliotek</h4>
+          <div id="setlist-available-list" class="song-list-container">
+            </div>
+        </div>
+
+      </div>
+      <div id="setlist-song-list" class="song-checkbox-list">
+        </div>
+
+      <div id="setlist-code-display" class="hidden" style="margin-top: 15px; padding: 15px; background: var(--success-bg-light); color: var(--text-color); font-weight: bold; font-size: 1.2em; letter-spacing: 2px;">
+        </div>
+
+      <div class="dialog-buttons">
+        <button id="btn-generate-setlist" class="btn-primary">Skapa kod</button>
+        <button id="create-setlist-close" class="btn-secondary">Stäng</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="fetch-setlist-modal" class="custom-dialog-overlay">
+    <div class="custom-dialog-box">
+      <h3 style="margin-top: 0">Get Setlist</h3>
+      <p style="font-size: 0.85em; opacity: 0.8;">Code for setlist</p>
+      
+      <input type="text" id="setlist-code-input" placeholder="T.ex. ROCK99" style="text-transform: uppercase; text-align: center; font-size: 1.2em; letter-spacing: 2px; margin: 1em 0;">
+
+      <div class="dialog-buttons">
+        <button id="btn-download-setlist" class="btn-primary">Ladda ner</button>
+        <button id="fetch-setlist-close" class="btn-secondary">Stäng</button>
+      </div>
+    </div>
+  </div>
+
   <button id="floating-live-btn" title="Starta Live-läge">▶</button>
   
 
@@ -342,8 +415,44 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
+  
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  // HÄR ÄR DE NYA FIRESTORE-VERKTYGEN
+  import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-  <script src="script.js"></script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBOvOokjR8AICZLjFtAIZpjEI1eziP26dw",
+    authDomain: "chorderpro.firebaseapp.com",
+    projectId: "chorderpro",
+    storageBucket: "chorderpro.firebasestorage.app",
+    messagingSenderId: "887503420734",
+    appId: "1:887503420734:web:e3d171175f59b2c96d006f",
+    measurementId: "G-8QYY7M9YFR"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.fb = {
+    auth: auth,
+    db: db,
+    googleProvider: new GoogleAuthProvider(),
+    signInWithPopup: signInWithPopup,
+    signOut: signOut,
+    onAuthStateChanged: onAuthStateChanged,
+    // EXPORTERA DATABASVERKTYGEN
+    doc: doc,
+    getDoc: getDoc,
+    setDoc: setDoc,
+    collection: collection,
+    getDocs: getDocs
+  };
+</script>
+
+<script src="script.js"></script>
 </body>
 
 </html>

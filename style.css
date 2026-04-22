@@ -98,6 +98,9 @@ body.dark-mode .font-size-slider-container {
 *::after {
   box-sizing: border-box;
 }
+.hidden {
+  display: none !important;
+}
 
 body {
   font-family: var(--font-sans);
@@ -1090,6 +1093,141 @@ body.scroll-mode-active #floating-live-btn {
   padding: 1em;
   border-radius: 0px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Styling för Setlist-checkboxar */
+.song-checkbox-list {
+  max-height: 250px;
+  overflow-y: auto;
+  text-align: left;
+  border: 1px solid var(--border);
+  padding: 10px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.song-checkbox-list label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9em;
+  cursor: pointer;
+  padding: 5px;
+  transition: background-color 0.2s;
+}
+
+.song-checkbox-list label:hover {
+  background-color: var(--primary-bg-hover);
+}
+
+.song-checkbox-list input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+/* Layout för Setlist-kolumner */
+.setlist-columns {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.setlist-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.song-list-container {
+  height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-radius: 4px;
+}
+
+/* Designen för själva låt-knapparna */
+.song-transfer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s, transform 0.1s;
+  user-select: none;
+  font-size: 0.60em;
+}
+
+.song-transfer-item:hover {
+  background: var(--primary-bg-hover);
+}
+
+.song-transfer-item:active {
+  transform: scale(0.98);
+}
+
+.song-transfer-item .drag-handle {
+  cursor: grab;
+  color: var(--primary);
+  opacity: 0.6;
+  margin-right: 10px;
+  touch-action: none;
+}
+
+.song-transfer-item.drag-over {
+  border-top: 2px solid var(--primary);
+}
+
+.action-icon {
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.add-icon { color: var(--success); }
+.remove-icon { color: var(--error); }
+
+/* För mindre skärmar (t.ex. mobiler) */
+@media (max-width: 600px) {
+  .setlist-columns { flex-direction: column; }
+  .song-list-container { height: 180px; }
+}
+
+/* Drag-and-drop rader för setlist */
+.setlist-drag-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: grab;
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+
+.setlist-drag-item:active {
+  cursor: grabbing;
+}
+
+.setlist-drag-item .drag-handle {
+  color: var(--primary);
+  opacity: 0.6;
+  font-size: 1.2em;
+  padding-right: 5px;
+  touch-action: none;
+}
+
+.setlist-drag-item.drag-over {
+  border-top: 2px solid var(--primary);
 }
 
 /* --- MEDIA QUERIES (Responsivitet) --- */

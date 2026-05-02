@@ -1,458 +1,795 @@
 <!DOCTYPE html>
 <html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ProChorder 10.3</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ProChorder 10.3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-  <link rel="stylesheet" href="style.css" />
-</head>
-
-<body>
-  <div class="top-bar">
-<div class="top-bar-left">
-      <button id="project-selector-btn" class="project-selector">
-        <span id="current-project-name">Välj projekt...</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-small">
-          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-        </svg>
-      </button>
-      <select id="project-list" style="display: none"></select>
-      <div id="project-dropdown-menu" class="project-dropdown"></div>
-
-      <button id="btn-exit-setlist" class="btn-danger hidden" style="margin-left: 10px; height: 40px; padding: 0 15px; border-radius: 4px; font-weight: bold; border: none; cursor: pointer; white-space: nowrap;">Avsluta Gig</button>
-    </div>
-    <div class="top-bar-right">
-      <button id="main-toggle-edit-mode-btn" class="icon-btn text-btn-chord" title="Växla mellan Ackord/Text-läge">
-        CHORD
-      </button>
-
-      <button id="btn-toggle-dark-mode" class="icon-btn" title="Växla ljust/mörkt läge">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
-          <path fill-rule="evenodd"
-            d="M7.455 2.104a.75.75 0 00-.98 1.126 8.5 8.5 0 008.62 8.62.75.75 0 001.127-.98 10 10 0 01-9.767-8.766z"
-            clip-rule="evenodd" />
-        </svg>
-      </button>
-      <button id="hamburger-btn" class="icon-btn" title="Meny">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="icon-medium">
-          <path fill-rule="evenodd"
-            d="M3 5.75A.75.75 0 013.75 5h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 5.75zM3 10a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75A.75.75 0 013 10zm0 4.25a.75.75 0 01.75-.75h12.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z"
-            clip-rule="evenodd" />
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <div id="menu-overlay" class="is-closed"></div>
-
-  <nav id="side-menu" class="is-closed">
-<div id="auth-container" class="sidebar-controls vertical" style="grid-column: span 3; border-bottom: 1px solid var(--border-soft); padding-bottom: 1em; margin-bottom: 1em;">
-  <div id="user-info" class="hidden" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-    <img id="user-photo" src="" alt="" style="width: 32px; height: 32px; border-radius: 50%; display: none;">
-    <span id="user-name" style="font-size: 0.85em; font-weight: 600;"></span>
-  </div>
-  
-  <button id="btn-login-google" class="btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-    <svg style="width:18px; height:18px" viewBox="0 0 24 24">
-      <path fill="currentColor" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C9.03,19.27 6.59,17.38 6.59,13.31C6.59,9.45 8.94,7.4 12.19,7.4C14.12,7.4 15.6,8.11 16.57,9.07L18.57,7.09C17.16,5.77 15,4.68 12.19,4.68C7.69,4.68 3.75,7.79 3.75,13.31C3.75,18.8 7.5,22 12.19,22C16.85,22 21.56,19 21.56,13.3C21.56,12.53 21.44,11.67 21.35,11.1Z" />
-    </svg>
-    Logga in med Google
-  </button>
-  
-  <button id="btn-logout" class="btn-secondary-style hidden">Logga ut</button>
-</div>
-    <input type="text" id="song-title" placeholder="Titel" style="grid-column: span 3" />
-    <input type="text" id="song-author" placeholder="Artist / Låtskrivare" style="grid-column: span 3" />
-
-    <div class="sidebar-controls vertical" style="grid-column: span 3; gap: 0.5em;">
-
-      <div class="sidebar-controls horizontal" style="gap: 8px;">
-  <button id="btn-toggle-scroll-mode" class="btn-primary" style="flex: 1 1 0;">
-    LIVE!
-  </button>
-  <button id="btn-toggle-metronome" class="btn-secondary-style" style="flex: 1 1 0;">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="icon-medium"><path stroke-linecap="round" stroke-linejoin="round" d="M10.75 3.75l-4.5 14.5c-0.25 0.8 0.5 1.5 1.25 1.25L12 18.5l4.5 0.9c0.75 0.1 1.5-0.6 1.25-1.25L13.25 3.75a0.75 0.75 0 00-1.5 0zM12 4.5v15M11.25 7.5a0.75 0.75 0 011.5 0v5.25a0.75 0.75 0 01-1.5 0V7.5z" /></svg>
-  </button>
-</div>
-
-      <div id="combined-controls-row" class="sidebar-controls horizontal" style="gap: 8px;">
-  <div class="control-group-half">
-    <span class="menu-grid-title" style="white-space: nowrap; margin-right: 5px;">Size:</span>
-    <select id="font-size-selector" style="width: 100%;"></select>
-  </div>
-
-  <div class="control-group-half bpm-control-wrapper">
-    <button id="btn-bpm-down" class="btn-bpm-control minimal-control">-</button>
-    <div id="bpm-control-container" class="bpm-input-container">
-      <input type="number" id="metronome-bpm-input" value="120" min="40" max="300" placeholder="120">
-    </div>
-    <button id="btn-bpm-up" class="btn-bpm-control minimal-control">+</button>
-  </div>
-</div>
-    </div>
-
-
-    <div class="menu-grid" style="grid-column: span 3">
-      <button id="btn-open-tuner-modal" class="menu-grid-btn">
-        <span class="menu-grid-title">Tuner</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
-        </svg>
-      </button>
-
-      <button id="btn-open-transpose-modal" class="menu-grid-btn">
-        <span class="menu-grid-title">Transpose</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 7.5L7.5 3m0 0L12 7.5M7.5 3v13.5m13.5 0L16.5 21m0 0L12 16.5m4.5 4.5V7.5" />
-        </svg>
-      </button>
-
-      <button id="btn-toggle-chord-mode" class="menu-grid-btn">
-        <span class="menu-grid-title">Chord Mode</span>
-        <span id="chord-mode-icon-text" class="menu-grid-icon-text">C</span>
-      </button>
-
-      <button id="btn-open-sections-modal" class="menu-grid-btn">
-        <span class="menu-grid-title">Sections</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
-        </svg>
-      </button>
-
-      <button id="btn-open-create-setlist" class="menu-grid-btn">
-        <span class="menu-grid-title">Share setlist</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
-        </svg>
-      </button>
-
-      <button id="btn-open-fetch-setlist" class="menu-grid-btn">
-        <span class="menu-grid-title">Get Setlist</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-        </svg>
-      </button>
-
-      <button id="btn-open-export-modal" class="menu-grid-btn">
-        <span class="menu-grid-title">Export/BackUp</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-        </svg>
-      </button>
-
-      <button id="btn-open-import-modal" class="menu-grid-btn">
-        <span class="menu-grid-title">Import</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-        </svg>
-      </button>
-
-      <button id="btn-new-project" class="menu-grid-btn">
-        <span class="menu-grid-title">New Song</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-      </button>
-
-      <button id="btn-save-copy" class="menu-grid-btn">
-        <span class="menu-grid-title">Save Copy</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5" />
-        </svg>
-      </button>
-
-      <button id="btn-show-help" class="menu-grid-btn">
-        <span class="menu-grid-title">Help</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-        </svg>
-      </button>
-
-      <button id="btn-save-project" class="menu-grid-btn menu-btn-save">
-        <span class="menu-grid-title">Save song</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-        </svg>
-      </button>
-
-      <button id="btn-delete-project" class="menu-grid-btn menu-btn-danger">
-        <span class="menu-grid-title">Remove song</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-
-      <button id="btn-delete-all-projects" class="menu-grid-btn menu-btn-danger">
-        <span class="menu-grid-title">Erase all</span>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-          class="menu-grid-icon">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-        </svg>
-      </button>
-    </div>
-  </nav>
-
-  <div class="container">
-    <div class="app-layout">
-      <main class="main-content">
-        <div id="editor" contenteditable="true" spellcheck="false"></div>
-      </main>
-    </div>
-  </div>
-
-  <div id="scroll-controls">
-    <button id="scroll-btn-play-pause">▶</button>
-    <div class="speed-control">
-      <input type="range" id="scroll-speed-slider" min="0" max="100" value="20" />
-    </div>
-    <div class="duration-control">
-      <input type="number" id="scroll-duration-minutes" min="0" max="60" value="4" />
-      <span>m</span>
-      <input type="number" id="scroll-duration-seconds" min="0" max="59" step="5" value="0" />
-      <span>s</span>
-      <div id="scroll-duration-display">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd"
-            d="M10 18a8 8 0 100-16 8 8 0 000 16zM10 4.5a.75.75 0 00-.75.75v4.5a.75.75 0 00.75.75h3.75a.75.75 0 000-1.5H10.5V5.25A.75.75 0 0010 4.5z"
-            clip-rule="evenodd" />
-        </svg>
-        <span id="scroll-duration-text">4:00</span>
-      </div>
-    </div>
-
-    <button id="scroll-btn-prev" class="scroll-nav-btn">&lt;&lt;</button>
-    <button id="scroll-btn-next" class="scroll-nav-btn">&gt;&gt;</button>
-
-    <button id="scroll-btn-exit">Exit</button>
-  </div>
-
-  <div id="custom-alert" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <p id="custom-alert-message"></p>
-      <div class="dialog-buttons">
-        <button id="custom-alert-ok" class="btn-primary">OK</button>
-      </div>
-    </div>
-  </div>
-  <div id="custom-confirm" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <p id="custom-confirm-message"></p>
-      <div class="dialog-buttons">
-        <button id="custom-confirm-cancel">Cancel</button>
-        <button id="custom-confirm-ok" class="btn-danger">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="chord-editor-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <div class="chord-selector-container">
-        <div id="outer-layer" class="layer layer-outer"></div>
-        <div id="middle-layer" class="layer layer-middle"></div>
-        <div id="inner-layer" class="layer layer-inner"></div>
-        <div id="center-button" class="center-button">
-          <div id="current-chord-display" class="current-chord-display">
-            C
-          </div>
-          <div id="action-text" class="action-text">USE</div>
-        </div>
-      </div>
-      <div class="dialog-buttons">
-        <button id="modal-btn-remove" class="btn-danger">
-          Ta bort ackord
+  <body>
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <!-- Ny liten rund projektväljare (samma stil som Edit-knapparna) -->
+        <button id="project-selector-btn" class="tool-btn" title="Välj låt">
+          <!-- Ikon för en låtlista -->
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            style="width: 18px; height: 18px"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"
+            />
+          </svg>
+          <!-- Osynlig text så att gamla script inte kraschar -->
+          <span id="current-project-name" style="display: none"></span>
         </button>
-        <button id="modal-btn-close">Close</button>
+
+        <!-- ProChorder Logo -->
+<div class="app-logo">
+        <img src="logo.png" alt="ProChorder Logo" class="logo-image">
+        <span>ProChorder</span>
+      </div>
+
+        <select id="project-list" style="display: none"></select>
+        <div id="project-dropdown-menu" class="project-dropdown"></div>
+
+        <button
+          id="btn-exit-setlist"
+          class="btn-danger hidden"
+          style="
+            margin-left: 10px;
+            height: 40px;
+            padding: 0 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+          "
+        >
+          Avsluta Gig
+        </button>
+      </div>
+
+      <!-- HÄR ÄR HÖGRA SIDAN SOM FÖRSVANN -->
+      <div class="top-bar-right">
+        <!-- Dark Mode-knappen är tillbaka! -->
+        <button
+          id="btn-toggle-dark-mode"
+          class="icon-btn"
+          title="Växla ljust/mörkt läge"
+        ></button>
+
+        <button id="btn-main-edit-toggle" title="Slå på/av Edit-läge">
+          EDIT
+        </button>
+
+        <button id="hamburger-btn" class="icon-btn" title="Meny">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2"
+            stroke="currentColor"
+            class="icon-medium"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
       </div>
     </div>
-  </div>
 
-  <div id="tuner-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <h3 style="margin-top: 0">Tuner</h3>
-      <iframe id="tuner-iframe" allow="microphone" style="width: 100%; height: 500px; border: none; background: #fff;">
-      </iframe>
-      <div class="dialog-buttons">
-        <button id="tuner-btn-close" class="btn btn-secondary">Close</button>
-      </div>
-    </div>
-  </div>
+    <div id="menu-overlay" class="is-closed"></div>
 
-  <div id="transpose-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <h3 style="margin-top: 0">Transpose</h3>
-      <div class="sidebar-controls horizontal" style="gap: 1.5em; min-width: 220px">
-        <button id="btn-transpose-up">+1</button>
-        <button id="btn-transpose-down">-1</button>
-      </div>
-      <div class="dialog-buttons">
-        <button id="transpose-modal-close" class="btn-primary">Stäng</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="sections-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <h3 style="margin-top: 0">Insert Sektion</h3>
-      <div class="sidebar-controls horizontal" style="min-width: 220px">
-        <select id="section-type-select-menu"></select>
-        <button id="btn-insert-section">Insert</button>
-      </div>
-      <div class="dialog-buttons">
-        <button id="sections-modal-close" class="btn-primary">Stäng</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="export-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <h3 style="margin-top: 0">Export / BackUp</h3>
-      <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
-        <div class="sidebar-controls horizontal">
-          <button id="btn-export-pdf">PDF</button>
-          <button id="btn-export-txt">TXT</button>
-          <button id="btn-export-zip">ZIP</button>
+    <nav id="side-menu" class="is-closed">
+      <div
+        id="auth-container"
+        class="sidebar-controls vertical"
+        style="
+          grid-column: span 3;
+          border-bottom: 1px solid var(--border-soft);
+          padding-bottom: 1em;
+          margin-bottom: 1em;
+        "
+      >
+        <div
+          id="user-info"
+          class="hidden"
+          style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+          "
+        >
+          <img
+            id="user-photo"
+            src=""
+            alt=""
+            style="width: 32px; height: 32px; border-radius: 50%; display: none"
+          />
+          <span
+            id="user-name"
+            style="font-size: 0.85em; font-weight: 600"
+          ></span>
         </div>
-        <div class="sidebar-controls horizontal">
-          <button id="btn-export-json">Song->JSON</button>
-          <button id="btn-export-all-json">All->JSON</button>
-        </div>
-      </div>
-      <div class="dialog-buttons">
-        <button id="export-modal-close" class="btn-primary">Close</button>
-      </div>
-    </div>
-  </div>
 
-  <div id="import-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <h3 style="margin-top: 0">Import</h3>
-      <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
-        <div class="sidebar-controls horizontal">
-          <button id="btn-import-json">Imp.->JSON</button>
-          <button id="btn-import-url" class="btn-primary">Import URL</button>
-        </div>
-        <input type="file" id="file-import" accept="application/json" class="hidden-file" />
-      </div>
-      <div class="dialog-buttons">
-        <button id="import-modal-close" class="btn-primary">Stäng</button>
-      </div>
-    </div>
-  </div>
+        <button
+          id="btn-login-google"
+          class="btn-primary"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+          "
+        >
+          <svg style="width: 18px; height: 18px" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C9.03,19.27 6.59,17.38 6.59,13.31C6.59,9.45 8.94,7.4 12.19,7.4C14.12,7.4 15.6,8.11 16.57,9.07L18.57,7.09C17.16,5.77 15,4.68 12.19,4.68C7.69,4.68 3.75,7.79 3.75,13.31C3.75,18.8 7.5,22 12.19,22C16.85,22 21.56,19 21.56,13.3C21.56,12.53 21.44,11.67 21.35,11.1Z"
+            />
+          </svg>
+          Logga in med Google
+        </button>
 
-  <div id="create-setlist-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box" style="max-width: 400px; width: 90%;">
-      <h3 style="margin-top: 0">Share setlist</h3>
-      <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1em;">Välj de låtar du vill dela. En kod kommer att genereras.</p>
-      <div class="setlist-columns">
-        
-        <div class="setlist-col">
-          <h4 style="margin: 0 0 5px 0; font-size: 0.9em; opacity: 0.8;">Setlist (<span id="selected-count">0</span>)</h4>
-          <div id="setlist-selected-list" class="song-list-container">
+        <button id="btn-logout" class="btn-secondary-style hidden">
+          Logga ut
+        </button>
+      </div>
+      <input
+        type="text"
+        id="song-title"
+        placeholder="Titel"
+        style="grid-column: span 3"
+      />
+      <input
+        type="text"
+        id="song-author"
+        placeholder="Artist / Låtskrivare"
+        style="grid-column: span 3"
+      />
+
+      <div
+        class="sidebar-controls vertical"
+        style="grid-column: span 3; gap: 0.5em"
+      >
+        <button id="btn-toggle-metronome" class="btn-secondary-style">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            class="icon-medium"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M10.75 3.75l-4.5 14.5c-0.25 0.8 0.5 1.5 1.25 1.25L12 18.5l4.5 0.9c0.75 0.1 1.5-0.6 1.25-1.25L13.25 3.75a0.75 0.75 0 00-1.5 0zM12 4.5v15M11.25 7.5a0.75 0.75 0 011.5 0v5.25a0.75 0.75 0 01-1.5 0V7.5z"
+            />
+          </svg>
+        </button>
+
+        <div
+          id="combined-controls-row"
+          class="sidebar-controls horizontal"
+          style="gap: 8px"
+        >
+          <div class="control-group-half">
+            <span
+              class="menu-grid-title"
+              style="white-space: nowrap; margin-right: 5px"
+              >Size:</span
+            >
+            <select id="font-size-selector" style="width: 100%"></select>
+          </div>
+
+          <div class="control-group-half bpm-control-wrapper">
+            <button id="btn-bpm-down" class="btn-bpm-control minimal-control">
+              -
+            </button>
+            <div id="bpm-control-container" class="bpm-input-container">
+              <input
+                type="number"
+                id="metronome-bpm-input"
+                value="120"
+                min="40"
+                max="300"
+                placeholder="120"
+              />
             </div>
+            <button id="btn-bpm-up" class="btn-bpm-control minimal-control">
+              +
+            </button>
+          </div>
         </div>
+      </div>
 
-        <div class="setlist-col">
-          <h4 style="margin: 0 0 5px 0; font-size: 0.9em; opacity: 0.8;">Bibliotek</h4>
-          <div id="setlist-available-list" class="song-list-container">
+      <div class="menu-grid" style="grid-column: span 3">
+        <button id="btn-open-tuner-modal" class="menu-grid-btn">
+          <span class="menu-grid-title">Tuner</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-toggle-chord-mode" class="menu-grid-btn">
+          <span class="menu-grid-title">Chord Mode</span>
+          <span id="chord-mode-icon-text" class="menu-grid-icon-text">C</span>
+        </button>
+
+        <button id="btn-open-create-setlist" class="menu-grid-btn">
+          <span class="menu-grid-title">Share setlist</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-open-fetch-setlist" class="menu-grid-btn">
+          <span class="menu-grid-title">Get Setlist</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-open-export-modal" class="menu-grid-btn">
+          <span class="menu-grid-title">Export/BackUp</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-open-import-modal" class="menu-grid-btn">
+          <span class="menu-grid-title">Import</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-new-project" class="menu-grid-btn">
+          <span class="menu-grid-title">New Song</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M12 4.5v15m7.5-7.5h-15"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-save-copy" class="menu-grid-btn">
+          <span class="menu-grid-title">Save Copy</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-show-help" class="menu-grid-btn">
+          <span class="menu-grid-title">Help</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-save-project" class="menu-grid-btn menu-btn-save">
+          <span class="menu-grid-title">Save song</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M4.5 12.75l6 6 9-13.5"
+            />
+          </svg>
+        </button>
+
+        <button id="btn-delete-project" class="menu-grid-btn menu-btn-danger">
+          <span class="menu-grid-title">Remove song</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        <button
+          id="btn-delete-all-projects"
+          class="menu-grid-btn menu-btn-danger"
+        >
+          <span class="menu-grid-title">Erase all</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="menu-grid-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+            />
+          </svg>
+        </button>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="app-layout">
+        <main class="main-content">
+          <div id="editor" contenteditable="true" spellcheck="false"></div>
+        </main>
+      </div>
+    </div>
+
+    <div id="scroll-controls">
+      <button id="scroll-btn-play-pause">▶</button>
+      <div class="speed-control">
+        <input
+          type="range"
+          id="scroll-speed-slider"
+          min="0"
+          max="100"
+          value="20"
+        />
+      </div>
+      <div class="duration-control">
+        <input
+          type="number"
+          id="scroll-duration-minutes"
+          min="0"
+          max="60"
+          value="4"
+        />
+        <span>m</span>
+        <input
+          type="number"
+          id="scroll-duration-seconds"
+          min="0"
+          max="59"
+          step="5"
+          value="0"
+        />
+        <span>s</span>
+        <div id="scroll-duration-display">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM10 4.5a.75.75 0 00-.75.75v4.5a.75.75 0 00.75.75h3.75a.75.75 0 000-1.5H10.5V5.25A.75.75 0 0010 4.5z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span id="scroll-duration-text">4:00</span>
+        </div>
+      </div>
+
+      <button id="scroll-btn-prev" class="scroll-nav-btn">&lt;&lt;</button>
+      <button id="scroll-btn-next" class="scroll-nav-btn">&gt;&gt;</button>
+
+      <button id="scroll-btn-exit">Exit</button>
+    </div>
+
+    <div id="custom-alert" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <p id="custom-alert-message"></p>
+        <div class="dialog-buttons">
+          <button id="custom-alert-ok" class="btn-primary">OK</button>
+        </div>
+      </div>
+    </div>
+    <div id="custom-confirm" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <p id="custom-confirm-message"></p>
+        <div class="dialog-buttons">
+          <button id="custom-confirm-cancel">Cancel</button>
+          <button id="custom-confirm-ok" class="btn-danger">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="chord-editor-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <div class="chord-selector-container">
+          <div id="outer-layer" class="layer layer-outer"></div>
+          <div id="middle-layer" class="layer layer-middle"></div>
+          <div id="inner-layer" class="layer layer-inner"></div>
+          <div id="center-button" class="center-button">
+            <div id="current-chord-display" class="current-chord-display">
+              C
             </div>
+            <div id="action-text" class="action-text">USE</div>
+          </div>
         </div>
-
-      </div>
-      <div id="setlist-song-list" class="song-checkbox-list">
+        <div class="dialog-buttons">
+          <button id="modal-btn-remove" class="btn-danger">
+            Ta bort ackord
+          </button>
+          <button id="modal-btn-close">Close</button>
         </div>
-
-      <div id="setlist-code-display" class="hidden" style="margin-top: 15px; padding: 15px; background: var(--success-bg-light); color: var(--text-color); font-weight: bold; font-size: 1.2em; letter-spacing: 2px;">
-        </div>
-
-      <div class="dialog-buttons">
-        <button id="btn-generate-setlist" class="btn-primary">Skapa kod</button>
-        <button id="create-setlist-close" class="btn-secondary">Stäng</button>
       </div>
     </div>
-  </div>
 
-  <div id="fetch-setlist-modal" class="custom-dialog-overlay">
-    <div class="custom-dialog-box">
-      <h3 style="margin-top: 0">Get Setlist</h3>
-      <p style="font-size: 0.85em; opacity: 0.8;">Code for setlist</p>
-      
-      <input type="text" id="setlist-code-input" placeholder="T.ex. ROCK99" style="text-transform: uppercase; text-align: center; font-size: 1.2em; letter-spacing: 2px; margin: 1em 0;">
-
-      <div class="dialog-buttons">
-        <button id="btn-download-setlist" class="btn-primary">Ladda ner</button>
-        <button id="fetch-setlist-close" class="btn-secondary">Stäng</button>
+    <div id="tuner-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <h3 style="margin-top: 0">Tuner</h3>
+        <iframe
+          id="tuner-iframe"
+          allow="microphone"
+          style="width: 100%; height: 500px; border: none; background: #fff"
+        >
+        </iframe>
+        <div class="dialog-buttons">
+          <button id="tuner-btn-close" class="btn btn-secondary">Close</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <button id="floating-live-btn" title="Starta Live-läge">▶</button>
-  
+    <div id="export-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <h3 style="margin-top: 0">Export / BackUp</h3>
+        <div
+          class="sidebar-controls vertical"
+          style="gap: 0.8em; min-width: 250px"
+        >
+          <div class="sidebar-controls horizontal">
+            <button id="btn-export-pdf">PDF</button>
+            <button id="btn-export-txt">TXT</button>
+            <button id="btn-export-zip">ZIP</button>
+          </div>
+          <div class="sidebar-controls horizontal">
+            <button id="btn-export-json">Song->JSON</button>
+            <button id="btn-export-all-json">All->JSON</button>
+          </div>
+        </div>
+        <div class="dialog-buttons">
+          <button id="export-modal-close" class="btn-primary">Close</button>
+        </div>
+      </div>
+    </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
-  
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-  // HÄR ÄR DE NYA FIRESTORE-VERKTYGEN
-  import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    <div id="import-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <h3 style="margin-top: 0">Import</h3>
+        <div
+          class="sidebar-controls vertical"
+          style="gap: 0.8em; min-width: 250px"
+        >
+          <div class="sidebar-controls horizontal">
+            <button id="btn-import-json">Imp.->JSON</button>
+            <button id="btn-import-url" class="btn-primary">Import URL</button>
+          </div>
+          <input
+            type="file"
+            id="file-import"
+            accept="application/json"
+            class="hidden-file"
+          />
+        </div>
+        <div class="dialog-buttons">
+          <button id="import-modal-close" class="btn-primary">Stäng</button>
+        </div>
+      </div>
+    </div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBOvOokjR8AICZLjFtAIZpjEI1eziP26dw",
-    authDomain: "chorderpro.firebaseapp.com",
-    projectId: "chorderpro",
-    storageBucket: "chorderpro.firebasestorage.app",
-    messagingSenderId: "887503420734",
-    appId: "1:887503420734:web:e3d171175f59b2c96d006f",
-    measurementId: "G-8QYY7M9YFR"
-  };
+    <div id="create-setlist-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box" style="max-width: 400px; width: 90%">
+        <h3 style="margin-top: 0">Share setlist</h3>
+        <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1em">
+          Välj de låtar du vill dela. En kod kommer att genereras.
+        </p>
+        <div class="setlist-columns">
+          <div class="setlist-col">
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9em; opacity: 0.8">
+              Setlist (<span id="selected-count">0</span>)
+            </h4>
+            <div id="setlist-selected-list" class="song-list-container"></div>
+          </div>
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+          <div class="setlist-col">
+            <h4 style="margin: 0 0 5px 0; font-size: 0.9em; opacity: 0.8">
+              Bibliotek
+            </h4>
+            <div id="setlist-available-list" class="song-list-container"></div>
+          </div>
+        </div>
+        <div id="setlist-song-list" class="song-checkbox-list"></div>
 
-  window.fb = {
-    auth: auth,
-    db: db,
-    googleProvider: new GoogleAuthProvider(),
-    signInWithPopup: signInWithPopup,
-    signOut: signOut,
-    onAuthStateChanged: onAuthStateChanged,
-    // EXPORTERA DATABASVERKTYGEN
-    doc: doc,
-    getDoc: getDoc,
-    setDoc: setDoc,
-    collection: collection,
-    getDocs: getDocs
-  };
-</script>
+        <div
+          id="setlist-code-display"
+          class="hidden"
+          style="
+            margin-top: 15px;
+            padding: 15px;
+            background: var(--success-bg-light);
+            color: var(--text-color);
+            font-weight: bold;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+          "
+        ></div>
 
-<script src="script.js"></script>
-</body>
+        <div class="dialog-buttons">
+          <button id="btn-generate-setlist" class="btn-primary">
+            Skapa kod
+          </button>
+          <button id="create-setlist-close" class="btn-secondary">Stäng</button>
+        </div>
+      </div>
+    </div>
 
+    <div id="fetch-setlist-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <h3 style="margin-top: 0">Get Setlist</h3>
+        <p style="font-size: 0.85em; opacity: 0.8">Code for setlist</p>
+
+        <input
+          type="text"
+          id="setlist-code-input"
+          placeholder="T.ex. ROCK99"
+          style="
+            text-transform: uppercase;
+            text-align: center;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+            margin: 1em 0;
+          "
+        />
+
+        <div class="dialog-buttons">
+          <button id="btn-download-setlist" class="btn-primary">
+            Ladda ner
+          </button>
+          <button id="fetch-setlist-close" class="btn-secondary">Stäng</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="floating-live-btn" title="Starta Live-läge">▶</button>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider,
+        signOut,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+      // HÄR ÄR DE NYA FIRESTORE-VERKTYGEN
+      import {
+        getFirestore,
+        doc,
+        getDoc,
+        setDoc,
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBOvOokjR8AICZLjFtAIZpjEI1eziP26dw",
+        authDomain: "chorderpro.firebaseapp.com",
+        projectId: "chorderpro",
+        storageBucket: "chorderpro.firebasestorage.app",
+        messagingSenderId: "887503420734",
+        appId: "1:887503420734:web:e3d171175f59b2c96d006f",
+        measurementId: "G-8QYY7M9YFR",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.fb = {
+        auth: auth,
+        db: db,
+        googleProvider: new GoogleAuthProvider(),
+        signInWithPopup: signInWithPopup,
+        signOut: signOut,
+        onAuthStateChanged: onAuthStateChanged,
+        // EXPORTERA DATABASVERKTYGEN
+        doc: doc,
+        getDoc: getDoc,
+        setDoc: setDoc,
+        collection: collection,
+        getDocs: getDocs,
+      };
+    </script>
+
+    <script src="script.js"></script>
+    <div id="floating-edit-toolbar" class="is-hidden">
+      <div class="toolbar-group">
+        <button
+          class="tool-btn"
+          onclick="app.toggleSectionMenu()"
+          title="Lägg till sektion"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <line x1="6" y1="6" x2="12" y2="6"></line>
+            <line x1="6" y1="12" x2="18" y2="12"></line>
+            <line x1="6" y1="18" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <button
+          class="tool-btn"
+          onclick="app.addBlock('Instruction')"
+          title="Add Note"
+        >
+          ✍
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <button
+          class="tool-btn"
+          onclick="app.transpose(1)"
+          title="Transpose Up"
+        >
+          ♯
+        </button>
+        <button
+          class="tool-btn"
+          onclick="app.transpose(-1)"
+          title="Transpose Down"
+        >
+          ♭
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <button
+          id="tool-toggle-chords"
+          class="tool-btn"
+          onclick="app.toggleChordsOnly()"
+          title="Toggle Chords/Text"
+        >
+          C/T
+        </button>
+      </div>
+    </div>
+
+    <div id="section-type-toolbar" class="is-hidden">
+      <button onclick="app.addBlock('Intro')">Intro</button>
+      <button onclick="app.addBlock('Verse')">Verse</button>
+      <button onclick="app.addBlock('Chorus')">Chorus</button>
+      <button onclick="app.addBlock('Pre Chorus')">Pre Chorus</button>
+      <button onclick="app.addBlock('Bridge')">Bridge</button>
+      <button onclick="app.addBlock('Break')">Break</button>
+      <button onclick="app.addBlock('Outro')">Outro</button>
+      <button onclick="app.addBlock('Pure Chords')">Pure Chords</button>
+      <button onclick="app.addBlock('Instrumental')">Inst.</button>
+    </div>
+  </body>
 </html>

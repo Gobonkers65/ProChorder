@@ -123,6 +123,7 @@ class StableChordEditor {
   constructor(editorId) {
     this.editor = document.getElementById(editorId);
     this.editMode = "chord";
+    this.isEditMode = false;
     this.draggedChord = null;
     this.scrollInterval = null;
     this.scrollSpeed = 0.2;
@@ -143,6 +144,7 @@ class StableChordEditor {
         );
       });
     }
+
     this.musicalNotes = [
       "A",
       "A#",
@@ -365,6 +367,9 @@ class StableChordEditor {
     this.dropIndicator.id = "drop-indicator";
     document.body.appendChild(this.dropIndicator);
     this.floatingLiveBtn = document.getElementById("floating-live-btn");
+    // -- NYA EDIT-LÄGET --
+    this.btnMainEditToggle = document.getElementById("btn-main-edit-toggle");
+    this.floatingToolbar = document.getElementById("floating-edit-toolbar");
   }
 
   init() {
@@ -511,7 +516,141 @@ class StableChordEditor {
     this.observer.disconnect();
   }
 
+  // Öppna/stäng den utfällbara sektionsmenyn
+  toggleSectionMenu() {
+    const menu = document.getElementById("section-type-toolbar");
+    if (menu) menu.classList.toggle("is-hidden");
+  }
+
+  // --- VÄXLA TILL EDIT MODE ---
+  // --- VÄXLA TILL EDIT MODE ---
   toggleEditMode() {
+    // NYTT: Om Live-läget (scroll) är igång, stäng av det först!
+    if (
+      !this.isEditMode &&
+      document.body.classList.contains("scroll-mode-active")
+    ) {
+      this.toggleScrollMode(false);
+    }
+
+    this.isEditMode = !this.isEditMode;
+
+    if (this.isEditMode) {
+      document.body.classList.add("edit-mode-on");
+      this.floatingToolbar.classList.remove("is-hidden");
+
+      // Tillåt redigering i alla containrar
+      this.editor
+        .querySelectorAll(".block-content, .block-badge")
+        .forEach((el) => (el.contentEditable = "true"));
+    } else {
+      document.body.classList.remove("edit-mode-on");
+      this.floatingToolbar.classList.add("is-hidden");
+
+      // Stäng sektionsmenyn om den är öppen
+      const secMenu = document.getElementById("section-type-toolbar");
+      if (secMenu) secMenu.classList.add("is-hidden");
+
+      // Lås redigeringen i alla containrar
+      this.editor
+        .querySelectorAll(".block-content, .block-badge")
+        .forEach((el) => (el.contentEditable = "false"));
+
+      if (this.titleInput.value) {
+        this.saveProject(this.titleInput.value);
+      }
+    }
+  }
+
+  // --- LÄGG TILL ETT CONTAINER-BLOCK ---
+  addBlock(type, contentHTML = "<br>", autoFocus = true) {
+    const block = document.createElement("div");
+    block.className = "song-block";
+    block.dataset.type = type;
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "song-block-header";
+
+    const badge = document.createElement("div");
+    badge.className = "block-badge";
+    badge.textContent = type;
+    badge.contentEditable = this.isEditMode ? "true" : "false";
+    badge.spellcheck = false;
+
+    // --- SKAPA KONTROLLER (Flytta, Kopiera, Radera) ---
+    const controls = document.createElement("div");
+    controls.className = "block-controls";
+
+    // Flytta UPP
+    const btnUp = document.createElement("button");
+    btnUp.className = "block-control-btn";
+    btnUp.innerHTML = "↑";
+    btnUp.onclick = () => this.moveBlock(block, -1);
+
+    // Flytta NER
+    const btnDown = document.createElement("button");
+    btnDown.className = "block-control-btn";
+    btnDown.innerHTML = "↓";
+    btnDown.onclick = () => this.moveBlock(block, 1);
+
+    // KOPIERA Sektionen
+    const btnCopy = document.createElement("button");
+    btnCopy.className = "block-control-btn";
+    btnCopy.innerHTML = "⧉";
+    btnCopy.onclick = () => {
+      // Kopierar det exakta innehållet i blocket (inkl ackord)
+      const currentContent = block.querySelector(".block-content").innerHTML;
+      const newBlock = this.addBlock(type, currentContent);
+      block.after(newBlock); // Lägg inkopian direkt under!
+    };
+
+    // RADERA Sektionen
+    const btnDel = document.createElement("button");
+    btnDel.className = "block-control-btn delete-btn";
+    btnDel.innerHTML = "✕";
+    btnDel.onclick = () => {
+      if (confirm("Ta bort sektionen?")) block.remove();
+    };
+
+    controls.appendChild(btnUp);
+    controls.appendChild(btnDown);
+    controls.appendChild(btnCopy);
+    controls.appendChild(btnDel);
+
+    headerRow.appendChild(badge);
+    headerRow.appendChild(controls);
+
+    const content = document.createElement("div");
+    content.className = "block-content";
+    content.contentEditable = this.isEditMode ? "true" : "false";
+    content.innerHTML = contentHTML;
+
+    block.appendChild(headerRow);
+    block.appendChild(content);
+
+    // Placera blocket i editorn
+    this.editor.appendChild(block);
+
+    // Fokusera och stäng menyn (om vi inte bygger en hel låt i bakgrunden)
+    if (this.isEditMode && autoFocus) content.focus();
+    const secMenu = document.getElementById("section-type-toolbar");
+    if (secMenu) secMenu.classList.add("is-hidden");
+
+    return block;
+  }
+
+  // --- FLYTTA LOGIK ---
+  moveBlock(block, direction) {
+    if (direction === -1 && block.previousElementSibling) {
+      // Flytta upp (före föregående block)
+      block.parentNode.insertBefore(block, block.previousElementSibling);
+    } else if (direction === 1 && block.nextElementSibling) {
+      // Flytta ner (efter nästa block)
+      block.parentNode.insertBefore(block.nextElementSibling, block);
+    }
+  }
+
+  toggleChordsOnly() {
     this.editMode = this.editMode === "chord" ? "text" : "chord";
     this.updateModeUI();
   }
@@ -565,35 +704,38 @@ class StableChordEditor {
     this.menuOverlay.addEventListener("click", toggleMenu);
 
     this.btnToggleChordMode.addEventListener("click", () =>
-      this.toggleEditMode()
-    );
-    this.mainToggleEditModeBtn.addEventListener("click", () =>
-      this.toggleEditMode()
+      this.toggleChordsOnly()
     );
 
-    this.btnShowHelp.addEventListener("click", () => {
+    if (this.btnMainEditToggle) {
+      this.btnMainEditToggle.addEventListener("click", () =>
+        this.toggleEditMode()
+      );
+    }
+
+   this.btnShowHelp.addEventListener("click", () => {
       toggleMenu();
       window.open("https://gobonkers65.github.io/ProChorder/help", "_blank");
     });
-    this.btnToggleDarkMode.addEventListener("click", () =>
-      this.toggleDarkMode()
-    );
+    
+    // Säkerhetskontroll: Lyssna bara på knappen OM den finns
+    if (this.btnToggleDarkMode) {
+      this.btnToggleDarkMode.addEventListener("click", () => this.toggleDarkMode());
+    }
 
     this.floatingLiveBtn.addEventListener("click", () => {
       this.toggleScrollMode(true, true);
     });
-    this.btnToggleScrollMode.addEventListener("click", () => {
-      this.toggleScrollMode(true);
-      if (!this.sideMenu.classList.contains("is-closed")) {
-        toggleMenu();
-      }
-    });
+
     this.scrollBtnExit.addEventListener("click", () =>
       this.toggleScrollMode(false)
     );
     this.scrollBtnPlayPause.addEventListener("click", () =>
       this.toggleScrolling()
     );
+
+    this.titleInput.addEventListener("input", () => this.updateEditorHeader());
+    this.authorInput.addEventListener("input", () => this.updateEditorHeader());
 
     this.scrollSpeedSlider.addEventListener("input", (e) => {
       this.setScrollSpeed(e.target.value);
@@ -728,34 +870,6 @@ class StableChordEditor {
     });
 
     this.tunerBtnClose.addEventListener("click", () => this.closeTunerModal());
-    this.btnOpenTransposeModal.addEventListener("click", () => {
-      openModal(this.transposeModal);
-      toggleMenu();
-    });
-    this.transposeModalClose.addEventListener("click", () =>
-      closeModal(this.transposeModal)
-    );
-    this.btnTransposeUp.addEventListener("click", () => this.transpose(1));
-    this.btnTransposeDown.addEventListener("click", () => this.transpose(-1));
-
-    this.btnOpenSectionsModal.addEventListener("click", () => {
-      openModal(this.sectionsModal);
-      toggleMenu();
-    });
-    this.sectionsModalClose.addEventListener("click", () =>
-      closeModal(this.sectionsModal)
-    );
-    this.btnInsertSection.addEventListener("click", () => {
-      if (this.editMode === "scroll") return;
-      const sectionType = this.sectionTypeSelect.value;
-      if (sectionType) {
-        this.insertSectionMarker(sectionType);
-        this.recordHistoryDebounced();
-        this.sectionTypeSelect.selectedIndex = 0;
-      } else {
-        this.showCustomAlert("Välj en sektionstyp");
-      }
-    });
 
     this.btnOpenExportModal.addEventListener("click", () => {
       openModal(this.exportModal);
@@ -795,6 +909,9 @@ class StableChordEditor {
     });
 
     this.editor.addEventListener("click", (e) => {
+      // NYTT: Blockera ackordväljaren om man klickar på rubriker eller småknapparna!
+      if (e.target.closest(".song-block-header")) return;
+
       const link = e.target.closest("a");
       if (link && link.href) {
         e.preventDefault();
@@ -1058,6 +1175,11 @@ class StableChordEditor {
 
   toggleScrollMode(enter, startImmediately = false) {
     if (enter) {
+      // NYTT: Om Edit-läget är igång, stäng det och spara först!
+      if (this.isEditMode) {
+        this.toggleEditMode();
+      }
+
       this.previousEditMode = this.editMode;
 
       if (!this.editor.textContent.trim()) {
@@ -1087,7 +1209,6 @@ class StableChordEditor {
 
       this.editMode = this.previousEditMode || "chord";
 
-      this.editor.contentEditable = true;
       document.body.classList.remove("scroll-mode-active");
       this.updateModeUI();
     }
@@ -1651,82 +1772,173 @@ class StableChordEditor {
     });
   }
 
+  // LÄSER AV EDITORN OCH SPARAR TILL JSON (Nu stöder den Block!)
   getContentAsText() {
     let result = [];
-    this.editor.childNodes.forEach((lineDiv) => {
-      let lineText = "";
-      if (lineDiv.nodeType !== Node.ELEMENT_NODE) return;
-      const marker = lineDiv.querySelector(".section-marker");
-      if (marker) {
-        lineText += `::${marker.dataset.section}::`;
+    this.editor.childNodes.forEach((node) => {
+      if (node.id === "song-header") return; // NYTT: Ignorera låtrubriken vid sparning!
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+      // Om det är ett NYTT Block
+      if (node.classList.contains("song-block")) {
+        // NYTT: Hämta det faktiska namnet från rubriken (så att "Verse 1" sparas istället för "Verse")
+        const badgeElement = node.querySelector(".block-badge");
+        const currentType = badgeElement
+          ? badgeElement.textContent.trim()
+          : node.dataset.type || "Custom";
+        result.push(`::${currentType}::`);
+
+        const contentDiv = node.querySelector(".block-content");
+        if (contentDiv) {
+          contentDiv.childNodes.forEach((child) => {
+            let lineText = "";
+            if (child.nodeType === Node.TEXT_NODE) {
+              lineText += child.textContent;
+            } else if (child.tagName === "BR") {
+              // Tom rad
+            } else if (child.tagName === "DIV") {
+              // Text på ny rad i ett block
+              child.childNodes.forEach((c) => {
+                if (c.nodeType === Node.TEXT_NODE) lineText += c.textContent;
+                else if (c.matches && c.matches(".chord"))
+                  lineText += `[${c.dataset.chord}]`;
+                else if (c.tagName === "A")
+                  lineText += `[[${c.href}|${c.textContent}]]`;
+              });
+            } else if (child.matches && child.matches(".chord")) {
+              lineText += `[${child.dataset.chord}]`;
+            } else if (child.tagName === "A") {
+              lineText += `[[${child.href}|${child.textContent}]]`;
+            }
+
+            if (
+              child.tagName === "DIV" ||
+              lineText.trim() !== "" ||
+              lineText.includes("[")
+            ) {
+              result.push(lineText);
+            } else if (child.tagName === "BR") {
+              result.push(""); // Skapa en blank rad för <br>
+            }
+          });
+        }
+        return;
       }
-      lineDiv.childNodes.forEach((node) => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          lineText += node.textContent;
-        } else if (node.matches && node.matches(".chord")) {
-          lineText += `[${node.dataset.chord}]`;
-        } else if (node.tagName === "A") {
-          lineText += `[[${node.href}|${node.textContent}]]`;
+
+      // Gammal logik för lösa rader (bakåtkompatibilitet för gamla låtar)
+      let lineText = "";
+      const marker = node.querySelector(".section-marker");
+      if (marker) lineText += `::${marker.dataset.section}::`;
+
+      node.childNodes.forEach((child) => {
+        if (child.nodeType === Node.TEXT_NODE) {
+          lineText += child.textContent;
+        } else if (child.matches && child.matches(".chord")) {
+          lineText += `[${child.dataset.chord}]`;
+        } else if (child.tagName === "A") {
+          lineText += `[[${child.href}|${child.textContent}]]`;
         }
       });
-      result.push(lineText);
+      if (lineText) result.push(lineText);
     });
     return result.join("\n");
   }
-
+  // Ritar ut Låtnamn och Artist högst upp på pappret
+  updateEditorHeader() {
+    let header = this.editor.querySelector("#song-header");
+    if (!header) {
+      header = document.createElement("div");
+      header.id = "song-header";
+      header.contentEditable = "false";
+      header.className = "song-header-block";
+      this.editor.prepend(header);
+    }
+    header.innerHTML = `
+      <h1 class="song-header-title">${this.titleInput.value || "Ny låt"}</h1>
+      <h3 class="song-header-author">${this.authorInput.value || ""}</h3>
+    `;
+  }
+  // LADDAR IN LÅTEN PÅ SKÄRMEN I DOM NYA BLOCKEN
   loadContent(text, recordHistory = false) {
     this.stopObserver();
     this.editor.innerHTML = "";
     const lines = text.split("\n");
 
+    let currentBlockContent = document.createElement("div");
+    let currentType = null;
+
+    const flushBlock = () => {
+      if (currentType || currentBlockContent.innerHTML !== "") {
+        const html = currentBlockContent.innerHTML || "<br>";
+        this.addBlock(currentType || "Verse", html, false);
+        currentBlockContent.innerHTML = "";
+        currentType = null;
+      }
+    };
+
     lines.forEach((lineText) => {
       lineText = lineText.replace(/\[\s*\]/g, "");
-      const lineDiv = document.createElement("div");
+
       let sectionType = null;
-      lineText = lineText.replace(/^::(.*?)::/, (match, type) => {
+      let remainingText = lineText.replace(/^::(.*?)::/, (match, type) => {
         sectionType = type;
         return "";
       });
 
-      if (sectionType) this.insertSectionMarkerInDiv(lineDiv, sectionType);
+      // Hittade vi en sektionsmarkör (::Verse::)? Då bygger vi en ny kloss!
+      if (sectionType) {
+        flushBlock();
+        currentType = sectionType;
+      }
 
-      if (lineText.trim() === "" && !lineText.includes("[")) {
-        lineDiv.appendChild(document.createElement("br"));
-      } else {
-        const regex = /\[\[(.+?)(?:\|(.*?))?\]\]|\[([^\]]+)\]/g;
-        let lastIndex = 0;
-        let match;
-        while ((match = regex.exec(lineText)) !== null) {
-          if (match.index > lastIndex) {
-            lineDiv.appendChild(
-              document.createTextNode(
-                lineText.substring(lastIndex, match.index)
-              )
-            );
-          }
-          if (match[1]) {
-            const url = match[1].trim();
-            const linkText = (match[2] || "").trim() || url;
-            const link = document.createElement("a");
-            link.href = url.startsWith("http") ? url : `http://${url}`;
-            link.textContent = linkText;
-            link.target = "_blank";
-            link.rel = "noopener noreferrer";
-            lineDiv.appendChild(link);
-          } else if (match[3]) {
-            lineDiv.appendChild(this.createChordSpan(match[3]));
-          }
-          lastIndex = match.index + match[0].length;
-        }
-        if (lastIndex < lineText.length) {
+      // Om raden är helt tom
+      if (remainingText.trim() === "" && !remainingText.includes("[")) {
+        if (!sectionType)
+          currentBlockContent.appendChild(document.createElement("br"));
+        return;
+      }
+
+      // Analysera texten och återskapa ackorden
+      const lineDiv = document.createElement("div");
+      const regex = /\[\[(.+?)(?:\|(.*?))?\]\]|\[([^\]]+)\]/g;
+      let lastIndex = 0;
+      let match;
+
+      while ((match = regex.exec(remainingText)) !== null) {
+        if (match.index > lastIndex) {
           lineDiv.appendChild(
-            document.createTextNode(lineText.substring(lastIndex))
+            document.createTextNode(
+              remainingText.substring(lastIndex, match.index)
+            )
           );
         }
+        if (match[1]) {
+          // Det var en länk
+          const url = match[1].trim();
+          const link = document.createElement("a");
+          link.href = url.startsWith("http") ? url : `http://${url}`;
+          link.textContent = (match[2] || "").trim() || url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          lineDiv.appendChild(link);
+        } else if (match[3]) {
+          // Det var ett ackord
+          lineDiv.appendChild(this.createChordSpan(match[3]));
+        }
+        lastIndex = match.index + match[0].length;
       }
-      this.editor.appendChild(lineDiv);
+      if (lastIndex < remainingText.length) {
+        lineDiv.appendChild(
+          document.createTextNode(remainingText.substring(lastIndex))
+        );
+      }
+
+      currentBlockContent.appendChild(lineDiv);
     });
 
+    // Glöm inte trycka in sista blocket
+    flushBlock();
+    this.updateEditorHeader();
     this.centerChordHandles();
     this.startObserver();
     if (recordHistory) this.recordHistory();
@@ -2013,6 +2225,7 @@ class StableChordEditor {
       this.editor.style.fontSize = data.fontSize || "16px";
 
       this.loadContent(data.content || "", true);
+      this.editor.scrollTop = 0;
 
       if (data.scrollSpeed !== undefined) {
         const sliderVal =
@@ -2511,12 +2724,12 @@ class StableChordEditor {
 
   // Bygger listan med drag-and-drop-rader
   // Bygger två kolumner (Alla låtar vs Setlist)
+  // Bygger listan med drag-and-drop-rader
   populateSetlistOptions() {
     this.setlistSelectedList.innerHTML = "";
     this.setlistAvailableList.innerHTML = "";
     this.setlistCodeDisplay.classList.add("hidden");
     this.setlistCodeDisplay.textContent = "";
-    if (this.customSetlistCode) this.customSetlistCode.value = "";
 
     const projects =
       JSON.parse(
@@ -2530,32 +2743,34 @@ class StableChordEditor {
     if (order.length === 0) {
       this.setlistAvailableList.innerHTML =
         "<p style='padding:10px; opacity:0.7;'>Inga låtar sparade.</p>";
-      this.selectedCount.textContent = "0";
+      if (this.selectedCount) this.selectedCount.textContent = "0";
       return;
     }
 
     let draggedItem = null;
 
-    // Hjälpfunktion för att räkna hur många låtar vi valt
     const updateCount = () => {
       if (this.selectedCount)
         this.selectedCount.textContent =
           this.setlistSelectedList.children.length;
     };
 
+    // Ladda in Gig-läget eller det senaste utkastet man pillade med!
+    const preSelectedTitles = this.activeSetlist || this.draftSetlist || [];
+
     order.forEach((title) => {
       if (projects[title]) {
         const row = document.createElement("div");
         row.className = "song-transfer-item";
         row.draggable = true;
-        row.dataset.title = title; // Sparar titeln gömd i elementet
+        row.dataset.title = title;
 
         const leftContent = document.createElement("div");
         leftContent.style.display = "flex";
         leftContent.style.alignItems = "center";
 
         const handle = document.createElement("span");
-        handle.innerHTML = "&#9776;"; // Drag-ikon
+        handle.innerHTML = "&#9776;";
         handle.className = "drag-handle";
 
         const labelSpan = document.createElement("span");
@@ -2564,32 +2779,32 @@ class StableChordEditor {
         leftContent.appendChild(handle);
         leftContent.appendChild(labelSpan);
 
+        // Kolla om låten ska ligga i setlistan från början
+        const isSelected = preSelectedTitles.includes(title);
+
         const actionIcon = document.createElement("span");
-        actionIcon.innerHTML = "+";
-        actionIcon.className = "action-icon add-icon";
+        actionIcon.innerHTML = isSelected ? "&times;" : "+";
+        actionIcon.className = isSelected
+          ? "action-icon remove-icon"
+          : "action-icon add-icon";
 
         row.appendChild(leftContent);
         row.appendChild(actionIcon);
 
-        // -- Klicka för att flytta fram och tillbaka --
         row.addEventListener("click", (e) => {
-          if (e.target === handle) return; // Om man klickar på drag-ikonen ska den inte flyttas
-
+          if (e.target === handle) return;
           if (row.parentNode === this.setlistAvailableList) {
-            // Flytta TILL Setlistan
             this.setlistSelectedList.appendChild(row);
-            actionIcon.innerHTML = "&times;"; // Ändra till ett rött X
+            actionIcon.innerHTML = "&times;";
             actionIcon.className = "action-icon remove-icon";
           } else {
-            // Flytta TILLBAKA till biblioteket
             this.setlistAvailableList.appendChild(row);
-            actionIcon.innerHTML = "+"; // Ändra till ett grönt +
+            actionIcon.innerHTML = "+";
             actionIcon.className = "action-icon add-icon";
           }
           updateCount();
         });
 
-        // -- Drag and drop (För att ändra ordning) --
         row.addEventListener("dragstart", function (e) {
           draggedItem = this;
           setTimeout(() => (this.style.opacity = "0.4"), 0);
@@ -2603,19 +2818,16 @@ class StableChordEditor {
         row.addEventListener("dragover", function (e) {
           e.preventDefault();
         });
-
         row.addEventListener("dragenter", function (e) {
           e.preventDefault();
           this.classList.add("drag-over");
         });
-
         row.addEventListener("dragleave", function () {
           this.classList.remove("drag-over");
         });
 
         row.addEventListener("drop", function () {
           this.classList.remove("drag-over");
-          // Tillåt bara omstrukturering om båda är i samma lista (Setlistan)
           if (
             this !== draggedItem &&
             this.parentNode === draggedItem.parentNode
@@ -2623,7 +2835,6 @@ class StableChordEditor {
             const allItems = Array.from(this.parentNode.children);
             const draggedIndex = allItems.indexOf(draggedItem);
             const targetIndex = allItems.indexOf(this);
-
             if (draggedIndex < targetIndex) {
               this.parentNode.insertBefore(draggedItem, this.nextSibling);
             } else {
@@ -2632,10 +2843,26 @@ class StableChordEditor {
           }
         });
 
-        // Lägg låten i högra listan från början
-        this.setlistAvailableList.appendChild(row);
+        // Placera raden i rätt kolumn från start!
+        if (isSelected) {
+          this.setlistSelectedList.appendChild(row);
+        } else {
+          this.setlistAvailableList.appendChild(row);
+        }
       }
     });
+
+    // Sortera Setlistan så att den matchar den exakta ordningen man hade
+    if (preSelectedTitles.length > 0) {
+      const selectedRows = Array.from(this.setlistSelectedList.children);
+      selectedRows.sort((a, b) => {
+        return (
+          preSelectedTitles.indexOf(a.dataset.title) -
+          preSelectedTitles.indexOf(b.dataset.title)
+        );
+      });
+      selectedRows.forEach((row) => this.setlistSelectedList.appendChild(row));
+    }
 
     updateCount();
   }
@@ -2650,16 +2877,12 @@ class StableChordEditor {
     return code;
   }
 
-  // Sparar de valda låtarna till den publika mappen i Firebase
-  // Sparar de valda låtarna till Firebase i EXAKT den ordning de ligger i listan
-  // Sparar de valda låtarna till Firebase i EXAKT den ordning de ligger i listan
   async generateSetlist() {
     if (!window.fb) {
       this.showCustomAlert("Firebase är inte anslutet.");
       return;
     }
 
-    // Hämta ALLA rader i DOM-ordning (uppifrån och ner)
     const rows = this.setlistSelectedList.querySelectorAll(
       ".song-transfer-item"
     );
@@ -2669,7 +2892,6 @@ class StableChordEditor {
       ) || {};
     const sharedSongs = [];
 
-    // Gå igenom rad för rad
     rows.forEach((row) => {
       const title = row.dataset.title;
       if (projects[title]) {
@@ -2682,6 +2904,9 @@ class StableChordEditor {
       return;
     }
 
+    // NYTT: Spara listan som "utkast" så rutan minns detta nästa gång du öppnar den!
+    this.draftSetlist = sharedSongs.map((s) => s.title);
+
     this.btnGenerateSetlist.textContent = "Skapar...";
     this.btnGenerateSetlist.disabled = true;
 
@@ -2691,11 +2916,9 @@ class StableChordEditor {
 
       const setlistRef = doc(db, "shared_setlists", shareCode);
 
-      // -- NYTT: Tvinga en timeout om Firebase hänger sig --
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("TIMEOUT")), 8000)
       );
-
       const uploadPromise = setDoc(setlistRef, {
         createdAt: new Date().toISOString(),
         songs: sharedSongs,
@@ -2704,7 +2927,6 @@ class StableChordEditor {
           : "Anonym",
       });
 
-      // Tävla mellan uppladdningen och timeouten (den som blir klar först vinner)
       await Promise.race([uploadPromise, timeoutPromise]);
 
       this.setlistCodeDisplay.textContent = shareCode;
@@ -2712,8 +2934,6 @@ class StableChordEditor {
       this.showCustomAlert(`Setlist delad! Din kod är: ${shareCode}`);
     } catch (error) {
       console.error("Fel vid delning:", error);
-
-      // Ge ett tydligt felmeddelande baserat på vad som gick snett
       if (error.message === "TIMEOUT") {
         this.showCustomAlert(
           "Firebase svarar inte (Timeout). Har du ställt in säkerhetsreglerna i molnet?"
@@ -3164,4 +3384,6 @@ class StableChordEditor {
   }
 }
 
-window.addEventListener("load", () => new StableChordEditor("editor"));
+window.addEventListener("load", () => {
+  window.app = new StableChordEditor("editor");
+});

@@ -1030,10 +1030,10 @@ class StableChordEditor {
     this.btnLogout.addEventListener("click", () => this.logout());
 
     // Lyssna på om användaren loggar in/ut (Firebase auth state)
-    if (window.fbAuth) {
-      const { onAuthStateChanged } = window.fbAuth; // Vi hämtar funktionen från fönstret
+   //  if (window.fbAuth) {
+    //   const { onAuthStateChanged } = window.fbAuth; // Vi hämtar funktionen från fönstret
       // Men vänta, vi behöver importera rätt funktioner först...
-    }
+   //  }
   }
 
   // --- METRONOM LOGIK ---
@@ -2130,7 +2130,7 @@ class StableChordEditor {
         });
 
         console.log(`Låten "${name}" sparades i molnet!`);
-      } catch (error) {
+} catch (error) {
         console.error("Kunde inte spara till molnet:", error);
         this.showCustomAlert(
           "Låten sparades lokalt, men ett fel uppstod vid molnsparning."
@@ -2138,17 +2138,39 @@ class StableChordEditor {
       }
     }
 
-    const originalText =
-      this.btnSaveProject.querySelector(".menu-grid-title").textContent;
-    this.btnSaveProject.querySelector(".menu-grid-title").textContent =
-      "Sparad!";
-    this.btnSaveProject.disabled = true;
-    setTimeout(() => {
-      this.btnSaveProject.querySelector(".menu-grid-title").textContent =
-        "Spara sång";
-      this.btnSaveProject.disabled = false;
-    }, 1200);
-  }
+    // --- VISUELL FEEDBACK ATT LÅTEN ÄR SPARAD ---
+    
+    // 1. Feedback i Hamburgermenyn (för de som sparar manuellt)
+    if (this.btnSaveProject) {
+      const titleSpan = this.btnSaveProject.querySelector(".menu-grid-title");
+      if (titleSpan) titleSpan.textContent = "Sparad!";
+      this.btnSaveProject.disabled = true;
+      setTimeout(() => {
+        if (titleSpan) titleSpan.textContent = "Save song";
+        this.btnSaveProject.disabled = false;
+      }, 1500);
+    }
+
+    // 2. Feedback på EDIT-knappen (för autosparningen)
+    if (this.btnMainEditToggle && !this.isEditMode) {
+      const originalText = this.btnMainEditToggle.textContent;
+      
+      // Byt utseende till "Sparat"
+      this.btnMainEditToggle.textContent = "✓";
+      this.btnMainEditToggle.style.backgroundColor = "var(--success-bg)";
+      this.btnMainEditToggle.style.borderColor = "var(--success-bg)";
+      this.btnMainEditToggle.style.color = "#ffffff";
+      
+      // Återställ till "EDIT" efter 1.5 sekunder
+      setTimeout(() => {
+        this.btnMainEditToggle.textContent = "EDIT";
+        this.btnMainEditToggle.style.backgroundColor = "";
+        this.btnMainEditToggle.style.borderColor = "";
+        this.btnMainEditToggle.style.color = "";
+      }, 1500);
+    }
+  } // <--- Här slutar funktionen saveProject
+
   async fetchSongsFromCloud() {
     // Kolla så att vi faktiskt är inloggade
     if (!window.fb || !window.fb.auth.currentUser) return;

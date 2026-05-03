@@ -2784,7 +2784,7 @@ class StableChordEditor {
       if (projects[title]) {
         const row = document.createElement("div");
         row.className = "song-transfer-item";
-        row.draggable = true;
+        //row.draggable = true;
         row.dataset.title = title;
 
         const leftContent = document.createElement("div");
@@ -2794,6 +2794,8 @@ class StableChordEditor {
         const handle = document.createElement("span");
         handle.innerHTML = "&#9776;";
         handle.className = "drag-handle";
+        handle.addEventListener("mousedown", () => row.draggable = true);
+        handle.addEventListener("touchstart", () => row.draggable = true, { passive: true });
 
         const labelSpan = document.createElement("span");
         labelSpan.textContent = title;
@@ -2835,6 +2837,7 @@ class StableChordEditor {
         row.addEventListener("dragend", function () {
           setTimeout(() => (this.style.opacity = "1"), 0);
           draggedItem = null;
+          this.draggable = false; // <--- NYTT: Stäng av dragläget igen
         });
 
         row.addEventListener("dragover", function (e) {

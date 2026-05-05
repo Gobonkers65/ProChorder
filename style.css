@@ -737,7 +737,8 @@ body.scroll-mode-active #floating-live-btn {
 /* --- SHARE SETLIST OMMÖBLERING --- */
 .setlist-columns {
   display: flex;
-  gap: 15px;
+  flex-direction: column; 
+  gap: 10px; /* NYTT: Minskat från 15px för att spara höjd */
   margin-top: 10px;
 }
 .setlist-col {
@@ -750,6 +751,8 @@ body.scroll-mode-active #floating-live-btn {
 #create-setlist-modal .custom-dialog-box {
   max-width: 500px !important; 
   padding: 1.5em; 
+  max-height: 90vh; /* NYTT: Fönstret får aldrig bli högre än 90% av skärmen */
+  overflow-y: auto; /* NYTT: Skapar en scrollbar i fönstret om det är trångt */
 }
 
 /* Mindre luft i rubrikerna överst i rutan */
@@ -758,7 +761,7 @@ body.scroll-mode-active #floating-live-btn {
 
 /* Kompaktare list-containrar */
 .song-list-container {
-  height: 300px; 
+  height: 150px; /* NYTT: Sänkt från 220px för att inte bli för långt på datorn */
   padding: 5px;
   gap: 4px;
   overflow-y: auto;
@@ -1325,19 +1328,42 @@ body.dark-mode .song-header-title {
   opacity: 0.7;
   font-weight: 400;
 }
-/* --- MEDIA QUERIES --- */
+/* --- MEDIA QUERIES (Uppdaterad för mobil) --- */
 @media (max-width: 600px) {
-  .top-bar .icon-btn {
-    width: 40px;
-    height: 35px;
+  
+  /* 1. Kläm ihop toppmenyn lite för att spara plats */
+  .top-bar {
+    padding: 8px; 
   }
-  .top-bar-right,
-  .top-bar-left {
-    gap: 0em;
+  .top-bar-left, .top-bar-right {
+    gap: 4px; /* Mindre luft mellan knapparna */
+  }
+
+  /* 3. FIX FÖR OVALA KNAPPAR (Tvinga dem att vara perfekt runda) */
+  #btn-main-edit-toggle,
+  #btn-exit-setlist,
+  .tool-btn,
+  .icon-btn {
+    flex-shrink: 0 !important; /* Förhindrar att de kläms ihop */
+    width: 38px !important; 
+    height: 38px !important; /* Lika höga som breda = Alltid runda! */
+  }
+
+  /* 4. Maxa Setlist-rutans bredd på mobil */
+  #create-setlist-modal .custom-dialog-box {
+    width: 96% !important; /* Tar upp nästan hela skärmbredden */
+    max-width: none !important;
+    padding: 15px 10px !important; /* Mindre luft i kanterna */
+    margin: 0 auto !important; 
+  }
+  
+  /* Gör listorna lite kortare just på små mobiler så skaparknappen inte hamnar utanför skärmen */
+  .song-list-container {
+    height: 180px !important; 
   }
 }
 
-/* Fixar */
+/* Fixar för touchskärmar */
 button,
 .btn-bpm-control,
 #metronome-bpm-input {
@@ -1346,4 +1372,8 @@ button,
 .scroll-locked {
   overflow: hidden !important;
   touch-action: none;
+}
+/* Ta bort "grip-handen" från ackorden när Edit-läge är avstängt */
+body:not(.edit-mode-on) #editor .chord-text {
+  cursor: default;
 }

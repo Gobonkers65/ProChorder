@@ -21,17 +21,17 @@ class StableChordEditor {
       const { auth, googleProvider, signInWithPopup } = window.fb;
       const result = await signInWithPopup(auth, googleProvider);
       console.log("Inloggad användare:", result.user.displayName);
-      this.showCustomAlert(`Välkommen ${result.user.displayName}!`);
+      this.showCustomAlert(`Welcome ${result.user.displayName}!`);
     } catch (error) {
       console.error("Inloggningsfel:", error);
-      this.showCustomAlert("Kunde inte logga in: " + error.message);
+      this.showCustomAlert("Could not sign in: " + error.message);
     }
   }
 
   async logout() {
     try {
       await window.fb.signOut(window.fb.auth);
-      this.showCustomAlert("Du har loggat ut.");
+      this.showCustomAlert("You have signed out.");
     } catch (error) {
       console.error("Utloggningsfel:", error);
     }
@@ -134,13 +134,18 @@ class StableChordEditor {
 
     this.btnExitSetlist = document.getElementById("btn-exit-setlist");
     // Avsluta Gig-läge
+    // Avsluta Gig-läge
     if (this.btnExitSetlist) {
       this.btnExitSetlist.addEventListener("click", () => {
-        this.activeSetlist = null; // Töm setlist-minnet
-        this.btnExitSetlist.classList.add("hidden"); // Dölj knappen
-        this.updateProjectList(); // Ladda om alla låtar!
+        this.activeSetlist = null;
+        this.btnExitSetlist.classList.add("hidden");
+
+        // --- LÄGG TILL DENNA RAD FÖR ATT VISA MENYN IGEN ---
+        this.hamburgerBtn.classList.remove("hidden");
+
+        this.updateProjectList();
         this.showCustomAlert(
-          "Setlist avslutad. Hela ditt låtbibliotek är tillbaka i menyn!"
+          "Gig mode ended. Your full library is back!"
         );
       });
     }
@@ -473,7 +478,7 @@ class StableChordEditor {
         (o) => (sel.innerHTML += `<option value="${o}">${o}</option>`)
       );
     };
-    populate(this.sectionTypeSelect, sectionData, "Välj sektion...");
+    populate(this.sectionTypeSelect, sectionData, "Select section...");
 
     const sizes = [14, 16, 18, 20, 22, 24, 28, 32];
     if (this.fontSizeSelector) {
@@ -609,7 +614,7 @@ class StableChordEditor {
     btnDel.className = "block-control-btn delete-btn";
     btnDel.innerHTML = "✕";
     btnDel.onclick = () => {
-      if (confirm("Ta bort sektionen?")) block.remove();
+      if (confirm("Delete this section?")) block.remove();
     };
 
     controls.appendChild(btnUp);
@@ -713,14 +718,16 @@ class StableChordEditor {
       );
     }
 
-   this.btnShowHelp.addEventListener("click", () => {
+    this.btnShowHelp.addEventListener("click", () => {
       toggleMenu();
       window.open("https://gobonkers65.github.io/ProChorder/help", "_blank");
     });
-    
+
     // Säkerhetskontroll: Lyssna bara på knappen OM den finns
     if (this.btnToggleDarkMode) {
-      this.btnToggleDarkMode.addEventListener("click", () => this.toggleDarkMode());
+      this.btnToggleDarkMode.addEventListener("click", () =>
+        this.toggleDarkMode()
+      );
     }
 
     this.floatingLiveBtn.addEventListener("click", () => {
@@ -811,7 +818,7 @@ class StableChordEditor {
       const newName = this.titleInput.value.trim();
       if (oldName && newName && oldName !== newName) {
         const confirmed = await this.showCustomConfirm(
-          `Vill du byta namn på "${oldName}" till "${newName}"?`
+          `Rename "${oldName}" to "${newName}"?`
         );
         if (confirmed) {
           this.renameProject(oldName, newName);
@@ -825,7 +832,7 @@ class StableChordEditor {
       toggleMenu();
       if (
         await this.showCustomConfirm(
-          "Är du säker? Osparde ändringar kommer att gå förlorade."
+          "Are you sure? Unsaved changes will be lost."
         )
       ) {
         this.createNewProject();
@@ -839,17 +846,17 @@ class StableChordEditor {
 
     this.btnSaveProject.addEventListener("click", () => {
       const name = this.titleInput.value.trim();
-      if (!name) return this.showCustomAlert("Namnge din sång först.");
+      if (!name) return this.showCustomAlert("Please name your song first.");
       this.saveProject(name);
     });
 
     this.btnDeleteProject.addEventListener("click", async () => {
       toggleMenu();
       const name = this.projectList.value;
-      if (!name) return this.showCustomAlert("Välj ett projekt att ta bort.");
+      if (!name) return this.showCustomAlert("Select a song to delete.");
       if (
         await this.showCustomConfirm(
-          `Ta bort projektet "${name}"? Detta kan inte ångras!`
+          `Delete "${name}"? This cannot be undone!`
         )
       ) {
         this.deleteProject(name);
@@ -898,7 +905,7 @@ class StableChordEditor {
     );
     this.btnImportUrl.addEventListener("click", async () => {
       const confirmed = await this.showCustomConfirm(
-        "Ladda låtlista från GitHub? Lokala låtar med samma titel skrivs över."
+        "Load songs from GitHub? Local songs with the same title will be overwritten."
       );
       if (confirmed) this.importJsonFromUrl(SHARED_SONG_LIST_URL);
     });
@@ -918,7 +925,7 @@ class StableChordEditor {
         window.open(link.href, "_blank");
         return;
       }
-      if (this.editMode !== "chord") return;
+     if (this.editMode !== "chord" || !this.isEditMode) return;
       const clickedChord = e.target.closest(".chord");
       if (clickedChord) {
         this.openChordModal(clickedChord, null);
@@ -986,11 +993,11 @@ class StableChordEditor {
         "current-chord-display"
       ).textContent;
       document.getElementById("center-button").classList.add("confirmed");
-      document.getElementById("action-text").textContent = `VALD`;
+      document.getElementById("action-text").textContent = `SELECTED`;
       this.applyChord(finalChord);
       setTimeout(() => {
         if (document.getElementById("action-text")) {
-          document.getElementById("action-text").textContent = `VÄLJ`;
+          document.getElementById("action-text").textContent = `USE`;
           document
             .getElementById("center-button")
             .classList.remove("confirmed");
@@ -1030,10 +1037,10 @@ class StableChordEditor {
     this.btnLogout.addEventListener("click", () => this.logout());
 
     // Lyssna på om användaren loggar in/ut (Firebase auth state)
-   //  if (window.fbAuth) {
+    //  if (window.fbAuth) {
     //   const { onAuthStateChanged } = window.fbAuth; // Vi hämtar funktionen från fönstret
-      // Men vänta, vi behöver importera rätt funktioner först...
-   //  }
+    // Men vänta, vi behöver importera rätt funktioner först...
+    //  }
   }
 
   // --- METRONOM LOGIK ---
@@ -1183,7 +1190,7 @@ class StableChordEditor {
       this.previousEditMode = this.editMode;
 
       if (!this.editor.textContent.trim()) {
-        this.showCustomAlert("Lägg till text innan du startar Live Mode.");
+        this.showCustomAlert("Please add some text before starting Live Mode.");
         return;
       }
       this.acquireWakeLock();
@@ -1195,7 +1202,7 @@ class StableChordEditor {
         const scrollHeight =
           this.editor.scrollHeight - this.editor.clientHeight;
         if (scrollHeight <= 0) {
-          this.showCustomAlert("Texten är för kort för att scrolla.");
+          this.showCustomAlert("The text is too short to scroll.");
           this.toggleScrollMode(false);
           return;
         }
@@ -1431,7 +1438,7 @@ class StableChordEditor {
 
   handleDragOver(e) {
     e.preventDefault();
-    if (this.editMode !== "chord") return;
+ if (this.editMode !== "chord" || !this.isEditMode) return;
     if (e.ctrlKey || e.altKey) e.dataTransfer.dropEffect = "copy";
     else e.dataTransfer.dropEffect = "move";
 
@@ -1458,7 +1465,7 @@ class StableChordEditor {
     e.preventDefault();
     e.stopPropagation();
     this.dropIndicator.style.display = "none";
-    if (this.editMode !== "chord") return;
+    if (this.editMode !== "chord" || !this.isEditMode) return;
 
     let range = null;
     if (document.caretRangeFromPoint) {
@@ -1516,20 +1523,20 @@ class StableChordEditor {
     span.appendChild(chordText);
 
     span.addEventListener("click", (e) => {
-      if (this.editMode !== "chord") return;
+      if (this.editMode !== "chord" || !this.isEditMode) return;
       this.clearChordSelection();
       span.classList.add("selected");
     });
 
     span.addEventListener("dblclick", (e) => {
-      if (this.editMode !== "chord") return;
+      if (this.editMode !== "chord" || !this.isEditMode) return;
       e.stopPropagation();
       span.remove();
       this.recordHistoryDebounced();
     });
 
     chordText.addEventListener("dragstart", (e) => {
-      if (this.editMode !== "chord") {
+     if (this.editMode !== "chord" || !this.isEditMode) return;{
         e.preventDefault();
         return;
       }
@@ -2054,11 +2061,11 @@ class StableChordEditor {
     this.titleInput.value = "";
     this.authorInput.value = "";
     this.loadContent(
-      'Öppna sidopanelen, namnge ditt projekt och välj "Save song".. Nu kan du ersätta denna text med dina egna texter och ackord...',
+      'Open the side menu, name your project and chose "Save song".. Nu kan du ersätta denna text med dina egna texter och ackord...',
       true
     );
     this.projectList.selectedIndex = 0;
-    this.currentProjectName.textContent = "Välj projekt...";
+    this.currentProjectName.textContent = "Chose project...";
     localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
     this.editor.style.fontSize = "16px";
     this.titleInput.focus();
@@ -2067,13 +2074,13 @@ class StableChordEditor {
   saveCopy() {
     const currentName = this.titleInput.value.trim();
     if (!currentName) {
-      this.showCustomAlert("Kan inte kopiera en namnlös sång.");
+      this.showCustomAlert("Cannot copy an unnamed song!");
       return;
     }
     const newName = currentName + " - Kopia";
     this.titleInput.value = newName;
     this.saveProject(newName);
-    this.showCustomAlert(`Skapade en kopia: "${newName}"`);
+    this.showCustomAlert(`Created a copy: "${newName}"`);
   }
 
   async saveProject(name) {
@@ -2129,21 +2136,21 @@ class StableChordEditor {
           updatedAt: new Date().toISOString(), // Bra att veta när den sparades senast
         });
 
-        console.log(`Låten "${name}" sparades i molnet!`);
-} catch (error) {
-        console.error("Kunde inte spara till molnet:", error);
+        console.log(`The song "${name}" was saved in the cloud!`);
+      } catch (error) {
+        console.error("Could not save to the cloud:", error);
         this.showCustomAlert(
-          "Låten sparades lokalt, men ett fel uppstod vid molnsparning."
+          "Saved locally, but cloud sync failed."
         );
       }
     }
 
     // --- VISUELL FEEDBACK ATT LÅTEN ÄR SPARAD ---
-    
+
     // 1. Feedback i Hamburgermenyn (för de som sparar manuellt)
     if (this.btnSaveProject) {
       const titleSpan = this.btnSaveProject.querySelector(".menu-grid-title");
-      if (titleSpan) titleSpan.textContent = "Sparad!";
+      if (titleSpan) titleSpan.textContent = "Saved!";
       this.btnSaveProject.disabled = true;
       setTimeout(() => {
         if (titleSpan) titleSpan.textContent = "Save song";
@@ -2154,13 +2161,13 @@ class StableChordEditor {
     // 2. Feedback på EDIT-knappen (för autosparningen)
     if (this.btnMainEditToggle && !this.isEditMode) {
       const originalText = this.btnMainEditToggle.textContent;
-      
+
       // Byt utseende till "Sparat"
       this.btnMainEditToggle.textContent = "✓";
       this.btnMainEditToggle.style.backgroundColor = "var(--success-bg)";
       this.btnMainEditToggle.style.borderColor = "var(--success-bg)";
       this.btnMainEditToggle.style.color = "#ffffff";
-      
+
       // Återställ till "EDIT" efter 1.5 sekunder
       setTimeout(() => {
         this.btnMainEditToggle.textContent = "EDIT";
@@ -2184,7 +2191,7 @@ class StableChordEditor {
       const snapshot = await getDocs(songsRef);
 
       if (snapshot.empty) {
-        console.log("Inga låtar hittades i molnet.");
+        console.log("No songs found in the cloud..");
         return;
       }
 
@@ -2228,10 +2235,10 @@ class StableChordEditor {
       // Uppdatera rullgardinsmenyn så de nya låtarna syns
       this.updateProjectList();
 
-      console.log(`Hämtade ${fetchedCount} låtar från molnet!`);
+      console.log(`Fetched ${fetchedCount} songs from the cloud!`);
       // Frivilligt: this.showCustomAlert(`Hämtade ${fetchedCount} låtar från molnet!`);
     } catch (error) {
-      console.error("Fel vid hämtning av låtar:", error);
+      console.error("Error fetching songs:", error);
     }
   }
 
@@ -2323,7 +2330,7 @@ class StableChordEditor {
     if (last) this.loadProject(last);
     else
       this.loadContent(
-        "Välkommen till ProChorder!\nOm detta är första gången du använder appen, använd hjälp-knappen i menyn för instruktioner.",
+        "Welcome to ProChorder!\nFirst time here? Goto help pages in the right side menu.",
         true
       );
   }
@@ -2360,11 +2367,11 @@ class StableChordEditor {
       this.projectSelectorBtn.style.border = ""; // Återställ utseendet
     }
 
-    list.innerHTML = '<option value="">Ladda projekt...</option>';
+    list.innerHTML = '<option value="">Load song...</option>';
     dropdown.innerHTML = "";
 
     if (order.length === 0) {
-      dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">Inga projekt sparade</div>`;
+      dropdown.innerHTML = `<div class="project-dropdown-item" style="opacity: 0.6; cursor: default;">No projects saved</div>`;
     }
 
     order.forEach((name, index) => {
@@ -2454,7 +2461,7 @@ class StableChordEditor {
       this.currentProjectName.textContent = last;
     } else {
       list.value = "";
-      this.currentProjectName.textContent = "Välj projekt...";
+      this.currentProjectName.textContent = "Chose song...";
     }
   }
 
@@ -2488,13 +2495,13 @@ class StableChordEditor {
     }
 
     this.updateProjectList();
-    this.showCustomAlert(`Projektet "${name}" har tagits bort.`);
+    this.showCustomAlert(`The song "${name}" is removed.`);
   }
 
   async deleteAllProjects() {
     if (
       await this.showCustomConfirm(
-        "Är du säker? Detta raderar ALLA sånger permanent."
+        "Are you sure? This will permanently delete ALL songs."
       )
     ) {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
@@ -2502,7 +2509,7 @@ class StableChordEditor {
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
       this.updateProjectList();
       this.createNewProject();
-      this.showCustomAlert("Alla projekt är borttagna.");
+      this.showCustomAlert("All songs have been deleted.");
     }
   }
 
@@ -2545,9 +2552,9 @@ class StableChordEditor {
 
       this.titleInput.value = newName;
       this.updateProjectList(newName);
-      this.showCustomAlert(`Projektet har döpts om till "${newName}".`);
+      this.showCustomAlert(`The song is now renamed to "${newName}".`);
     } else if (projects[newName]) {
-      this.showCustomAlert(`Ett projekt med namnet "${newName}" finns redan.`);
+      this.showCustomAlert(`The song "${newName}" allready exists.`);
       this.titleInput.value = oldName;
     }
   }
@@ -2667,7 +2674,7 @@ class StableChordEditor {
   }
 
   async exportAllAsZip() {
-    this.btnExportZip.textContent = "Genererar...";
+    this.btnExportZip.textContent = "Generating...";
     this.btnExportZip.disabled = true;
     try {
       const projects =
@@ -2675,7 +2682,7 @@ class StableChordEditor {
           localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
         ) || {};
       if (Object.keys(projects).length === 0)
-        return this.showCustomAlert("Inga projekt att exportera.");
+        return this.showCustomAlert("No ongs to export.");
 
       const zip = new JSZip();
       for (const key in projects) {
@@ -2686,7 +2693,7 @@ class StableChordEditor {
       const content = await zip.generateAsync({ type: "blob" });
       saveAs(content, "alla_sanger.zip");
     } catch (e) {
-      this.showCustomAlert("Fel vid ZIP-export.");
+      this.showCustomAlert("Error during ZIP-export.");
     } finally {
       this.btnExportZip.textContent = "ZIP";
       this.btnExportZip.disabled = false;
@@ -2764,7 +2771,7 @@ class StableChordEditor {
 
     if (order.length === 0) {
       this.setlistAvailableList.innerHTML =
-        "<p style='padding:10px; opacity:0.7;'>Inga låtar sparade.</p>";
+        "<p style='padding:10px; opacity:0.7;'>No saved songs.</p>";
       if (this.selectedCount) this.selectedCount.textContent = "0";
       return;
     }
@@ -2794,8 +2801,10 @@ class StableChordEditor {
         const handle = document.createElement("span");
         handle.innerHTML = "&#9776;";
         handle.className = "drag-handle";
-        handle.addEventListener("mousedown", () => row.draggable = true);
-        handle.addEventListener("touchstart", () => row.draggable = true, { passive: true });
+        handle.addEventListener("mousedown", () => (row.draggable = true));
+        handle.addEventListener("touchstart", () => (row.draggable = true), {
+          passive: true,
+        });
 
         const labelSpan = document.createElement("span");
         labelSpan.textContent = title;
@@ -2904,7 +2913,7 @@ class StableChordEditor {
 
   async generateSetlist() {
     if (!window.fb) {
-      this.showCustomAlert("Firebase är inte anslutet.");
+      this.showCustomAlert("Server not connected.");
       return;
     }
 
@@ -2925,20 +2934,36 @@ class StableChordEditor {
     });
 
     if (sharedSongs.length === 0) {
-      this.showCustomAlert("Välj minst en låt att dela.");
+      this.showCustomAlert("Select at least one song to share.");
       return;
     }
 
     // NYTT: Spara listan som "utkast" så rutan minns detta nästa gång du öppnar den!
-    this.draftSetlist = sharedSongs.map((s) => s.title);
+   this.draftSetlist = sharedSongs.map((s) => s.title);
 
-    this.btnGenerateSetlist.textContent = "Skapar...";
+    // --- NY LOGIK FÖR EGEN KOD ---
+    const codeInput = document.getElementById("custom-setlist-code-input");
+    let shareCode = codeInput ? codeInput.value.trim().toUpperCase() : "";
+
+    // Om användaren lämnar tomt, slumpa en kod som tidigare
+    if (!shareCode) {
+      shareCode = this.generateRandomCode();
+    } else {
+      // Formatera koden: byt ut mellanslag mot understreck och ta bort konstiga tecken
+      shareCode = shareCode.replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "");
+    }
+
+    if (shareCode.length < 3) {
+       this.showCustomAlert("The code must be at least 3 characters long.");
+       return;
+    }
+    // -------------------------------
+
+    this.btnGenerateSetlist.textContent = "Creating...";
     this.btnGenerateSetlist.disabled = true;
 
-    try {
-      const shareCode = this.generateRandomCode();
+   try {
       const { db, doc, setDoc } = window.fb;
-
       const setlistRef = doc(db, "shared_setlists", shareCode);
 
       const timeoutPromise = new Promise((_, reject) =>
@@ -2948,28 +2973,36 @@ class StableChordEditor {
         createdAt: new Date().toISOString(),
         songs: sharedSongs,
         createdBy: window.fb.auth.currentUser
-          ? window.fb.auth.currentUser.displayName || "En musiker"
-          : "Anonym",
+          ? window.fb.auth.currentUser.displayName || "An artist"
+          : "Anonymous",
       });
 
       await Promise.race([uploadPromise, timeoutPromise]);
 
-      this.setlistCodeDisplay.textContent = shareCode;
-      this.setlistCodeDisplay.classList.remove("hidden");
-      this.showCustomAlert(`Setlist delad! Din kod är: ${shareCode}`);
+      // --- NYTT: Stäng Setlist-rutan ---
+      if (this.createSetlistModal) {
+        this.createSetlistModal.classList.remove("visible");
+      }
+
+      // Visa bekräftelsen i en Alert
+      this.showCustomAlert(`Setlist shared! Your code is: ${shareCode}`);
+      
+      // Töm inmatningsfältet för nästa gång
+      if (codeInput) codeInput.value = "";
+      
     } catch (error) {
-      console.error("Fel vid delning:", error);
+    
+      console.error("Error while sharing:", error);
       if (error.message === "TIMEOUT") {
-        this.showCustomAlert(
-          "Firebase svarar inte (Timeout). Har du ställt in säkerhetsreglerna i molnet?"
-        );
+        this.showCustomAlert("Server is not responding (Timeout).");
       } else {
-        this.showCustomAlert("Ett fel uppstod när setlisten skulle delas.");
+        this.showCustomAlert("Error when sharing setlist.");
       }
     } finally {
-      this.btnGenerateSetlist.textContent = "Skapa kod";
+      this.btnGenerateSetlist.textContent = "Share";
       this.btnGenerateSetlist.disabled = false;
     }
+  
   }
 
   // --- SETLIST LOGIK: HÄMTA ---
@@ -2984,11 +3017,11 @@ class StableChordEditor {
     const shareCode = this.setlistCodeInput.value.trim().toUpperCase();
 
     if (!shareCode || shareCode.length !== 6) {
-      this.showCustomAlert("Ange en giltig 6-teckens kod.");
+      this.showCustomAlert("Please enter a valid 6-character code.");
       return;
     }
 
-    this.btnDownloadSetlist.textContent = "Hämtar...";
+    this.btnDownloadSetlist.textContent = "Fetching...";
     this.btnDownloadSetlist.disabled = true;
 
     try {
@@ -2998,7 +3031,7 @@ class StableChordEditor {
 
       if (!docSnap.exists()) {
         this.showCustomAlert(
-          "Koden verkar inte stämma. Kunde inte hitta någon setlist."
+          "Invalid code. Could not find setlist."
         );
         return;
       }
@@ -3007,7 +3040,7 @@ class StableChordEditor {
       const songsArray = setlistData.songs || [];
 
       if (songsArray.length === 0) {
-        this.showCustomAlert("Denna setlist verkar vara tom.");
+        this.showCustomAlert("This setlist appears to be empty");
         return;
       }
 
@@ -3064,7 +3097,7 @@ class StableChordEditor {
       //}
 
       this.showCustomAlert(
-        `Laddade ner ${newCount} nya låtar och uppdaterade ${updateCount} befintliga från setlisten skapad av ${
+        `Downloaded ${newCount} new songs and updated ${updateCount} befintliga från setlisten skapad av ${
           setlistData.createdBy || "okänd"
         }.`
       );
@@ -3078,11 +3111,12 @@ class StableChordEditor {
       // --- NYTT: GÅ IN I GIG LÄGE! ---
       this.activeSetlist = newTitles; // Sätt appen i Gig-läge med de nya låtarna
       if (this.btnExitSetlist) this.btnExitSetlist.classList.remove("hidden"); // Visa Avsluta-knappen
+      this.hamburgerBtn.classList.add("hidden");
 
       this.updateProjectList(); // Ladda om menyn (som nu bara kommer visa setlisten)
 
       this.showCustomAlert(
-        `GIG-LÄGE AKTIVERAT!\nLaddade ner ${newCount} nya låtar och uppdaterade ${updateCount} befintliga.\nDu ser nu bara setlistens låtar i menyn.`
+        `GIG-MODE ACTIVATED!\nDownloaded ${newCount} new songs och updated ${updateCount} current.\nDu ser nu bara setlistens låtar i menyn.`
       );
 
       // Ladda den första låten i setlisten direkt på skärmen
@@ -3091,7 +3125,7 @@ class StableChordEditor {
       }
     } catch (error) {
       console.error("Fel vid hämtning:", error);
-      this.showCustomAlert("Ett fel uppstod vid nedladdningen av setlisten.");
+      this.showCustomAlert("An error occurred while downloading the setlist.");
     } finally {
       this.btnDownloadSetlist.textContent = "Ladda ner";
       this.btnDownloadSetlist.disabled = false;
@@ -3107,7 +3141,7 @@ class StableChordEditor {
         if (Array.isArray(data)) {
           if (
             await this.showCustomConfirm(
-              `${data.length} låtar hittades. Vill du importera? Befintliga låtar med samma namn skrivs över.`
+              `${data.length} songs found. Import? Existing songs with the same name will be overwritten.`
             )
           )
             this.importMultipleProjects(data);
@@ -3115,7 +3149,7 @@ class StableChordEditor {
           this.importSingleProject(data);
         }
       } catch (e) {
-        this.showCustomAlert("Importfel.");
+        this.showCustomAlert("Import error.");
       }
     };
     reader.readAsText(file);
@@ -3129,7 +3163,7 @@ class StableChordEditor {
       if (Array.isArray(data)) this.importMultipleProjects(data);
       else if (data.title) this.importSingleProject(data);
     } catch (e) {
-      this.showCustomAlert("Kunde inte hämta låtar.");
+      this.showCustomAlert("Could not fetch songs.");
     }
   }
 
@@ -3186,7 +3220,7 @@ class StableChordEditor {
             });
           } catch (e) {
             console.error(
-              `Kunde inte ladda upp ${project.title} till molnet:`,
+              `Error loading ${project.title} to the cloud:`,
               e
             );
           }
@@ -3207,8 +3241,8 @@ class StableChordEditor {
 
     this.updateProjectList();
     this.showCustomAlert(
-      `${importedCount} nya låtar importerade. ${overwrittenCount} låtar uppdaterade. ${
-        isCloudConnected ? "Alla har synkats till molnet!" : ""
+      `${importedCount} New songs imported. ${overwrittenCount} songs updated. ${
+        isCloudConnected ? "All synced to the cloud!" : ""
       }`
     );
 

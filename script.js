@@ -630,6 +630,28 @@ class StableChordEditor {
     content.contentEditable = this.isEditMode ? "true" : "false";
     content.innerHTML = contentHTML;
 
+// --- NYTT: VÄCK UPP SPÖK-ACKORD OCH MARKÖRER ---
+    // När vi laddar från minnet eller kopierar ett block förloras event-lyssnarna.
+    // Vi letar upp alla "döda" ackord och byter ut dem mot nya, fungerande!
+    content.querySelectorAll(".chord").forEach((chordEl) => {
+      const chordName = chordEl.dataset.chord;
+      if (chordName) {
+        const liveChord = this.createChordSpan(chordName);
+        chordEl.replaceWith(liveChord);
+      }
+    });
+
+    // Reparera dubbelklick (radera) på sektionsmarkörer också
+    content.querySelectorAll(".section-marker").forEach((markerEl) => {
+      markerEl.addEventListener("dblclick", (e) => {
+        if (this.editMode !== "chord" || !this.isEditMode) return;
+        e.stopPropagation();
+        markerEl.remove();
+        this.recordHistoryDebounced();
+      });
+    });
+    // ------------------------------------------------
+
     block.appendChild(headerRow);
     block.appendChild(content);
 
@@ -1535,7 +1557,7 @@ class StableChordEditor {
       this.recordHistoryDebounced();
     });
 
-        chordText.addEventListener("dragstart", (e) => {
+  chordText.addEventListener("dragstart", (e) => {
       if (this.editMode !== "chord" || !this.isEditMode) {
         e.preventDefault();
         return;
@@ -3013,15 +3035,13 @@ class StableChordEditor {
       return;
     }
 
-      // Hämta koden och gör den till stora bokstäver
+    // Hämta koden och gör den till stora bokstäver
     const shareCode = this.setlistCodeInput.value.trim().toUpperCase();
 
-    // Tillåt alla koder som är 3 tecken eller längre
-    if (!shareCode || shareCode.length < 3) {
-      this.showCustomAlert("Please enter a valid code (at least 3 characters).");
+    if (!shareCode || shareCode.length !== 6) {
+      this.showCustomAlert("Please enter a valid 6-character code.");
       return;
     }
-
 
     this.btnDownloadSetlist.textContent = "Fetching...";
     this.btnDownloadSetlist.disabled = true;

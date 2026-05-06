@@ -1103,12 +1103,31 @@ class StableChordEditor {
     this.btnToggleMetronome.classList.remove("is-active");
   }
 
-  scheduler() {
+scheduler() {
     while (
       this.nextNoteTime <
       this.audioContext.currentTime + this.scheduleAheadTime
     ) {
       this.playMetronomeClick(this.nextNoteTime);
+      
+      // --- NYTT: Visuell puls synkad med ljudet ---
+      // Räkna ut hur många millisekunder det är kvar tills ljudet spelas
+      const timeUntilBeat = (this.nextNoteTime - this.audioContext.currentTime) * 1000;
+      
+      setTimeout(() => {
+        if (this.btnToggleMetronome) {
+          // Ta bort klassen först (om den redan finns från förra slaget)
+          this.btnToggleMetronome.classList.remove("pulse-beat");
+          
+          // Tvinga webbläsaren att registrera att vi tog bort den (reflow)
+          void this.btnToggleMetronome.offsetWidth;
+          
+          // Lägg till klassen igen så animationen startar om!
+          this.btnToggleMetronome.classList.add("pulse-beat");
+        }
+      }, Math.max(0, timeUntilBeat));
+      // ---------------------------------------------
+
       let secondsPerBeat = 60.0 / this.tempo;
       this.nextNoteTime += secondsPerBeat;
     }

@@ -1535,8 +1535,8 @@ class StableChordEditor {
       this.recordHistoryDebounced();
     });
 
-    chordText.addEventListener("dragstart", (e) => {
-     if (this.editMode !== "chord" || !this.isEditMode) return;{
+        chordText.addEventListener("dragstart", (e) => {
+      if (this.editMode !== "chord" || !this.isEditMode) {
         e.preventDefault();
         return;
       }

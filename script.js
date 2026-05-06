@@ -3013,13 +3013,15 @@ class StableChordEditor {
       return;
     }
 
-    // Hämta koden och gör den till stora bokstäver
+      // Hämta koden och gör den till stora bokstäver
     const shareCode = this.setlistCodeInput.value.trim().toUpperCase();
 
-    if (!shareCode || shareCode.length !== 6) {
-      this.showCustomAlert("Please enter a valid 6-character code.");
+    // Tillåt alla koder som är 3 tecken eller längre
+    if (!shareCode || shareCode.length < 3) {
+      this.showCustomAlert("Please enter a valid code (at least 3 characters).");
       return;
     }
+
 
     this.btnDownloadSetlist.textContent = "Fetching...";
     this.btnDownloadSetlist.disabled = true;

@@ -148,6 +148,7 @@ body {
   flex-grow: 1;
   max-width: 450px;
   min-width: 140px;
+  border-radius: 10px;
 }
 .project-selector:hover {
   background-color: var(--bg);
@@ -312,6 +313,7 @@ body {
   gap: 0.5em;
   align-content: start;
   padding: 0.5em;
+  border-radius: 20px 0 0 20px;
 }
 #side-menu:not(.is-closed) {
   transform: translateX(0);
@@ -344,7 +346,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.75em 0.5em;
+  padding: 1em 0.5em;
   gap: 0.75em;
   background-color: var(--surface);
   border: 1px solid transparent;
@@ -354,6 +356,7 @@ body {
   color: var(--text-color);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 45px;
 }
 .menu-grid-btn:hover {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
@@ -362,11 +365,13 @@ body {
   font-size: 0.8em;
   font-weight: 600;
   text-align: center;
+  order: 2;
 }
 .menu-grid-icon {
   width: 32px;
   height: 32px;
   opacity: 0.9;
+  order: 1
 }
 .menu-grid-icon-text {
   font-family: var(--font-sans);
@@ -374,6 +379,7 @@ body {
   font-weight: 300;
   line-height: 1;
   color: var(--primary);
+  order: 1
 }
 .menu-grid-btn.menu-btn-save {
   background-color: var(--success-bg-light);
@@ -422,6 +428,7 @@ body {
   padding: 0 0.7em;
   box-sizing: border-box;
   width: 100%;
+  border-radius: 8px;
 }
 #side-menu input[type="text"]:focus,
 #side-menu select:focus,
@@ -515,8 +522,8 @@ body {
   height: calc(100dvh - 90px);
 }
 #editor {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
+  /*background-color: var(--surface);*/
+  /*border: 1px solid var(--border);*/
   padding: 0.5em;
   padding-bottom: 20vh !important;
   box-shadow: var(--shadow);
@@ -533,10 +540,6 @@ body {
 }
 #editor > div:not(:has(.section-marker)) {
   line-height: 2.5;
-}
-#editor > div {
-  position: relative;
-  white-space: pre-wrap;
 }
 
 /* Ackord i editorn */
@@ -603,6 +606,7 @@ body.scroll-mode-active #editor {
   text-align: center;
   min-width: 300px;
   max-width: 90%;
+  border-radius: 16px;
 }
 .custom-dialog-box .dialog-buttons {
   display: flex;
@@ -838,12 +842,40 @@ body.scroll-mode-active #floating-live-btn {
   z-index: 3000;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 #floating-edit-toolbar.is-hidden {
   right: -80px;
   opacity: 0;
   pointer-events: none;
 }
+#floating-edit-toolbar #font-size-selector {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: 1px solid var(--primary);
+  background: var(--surface);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 12px;
+  text-align: center;
+  text-align-last: center;
+  cursor: pointer;
+  outline: none;
+  
+  /* Dessa rader fixar rundningen i alla webbläsare */
+  appearance: none;
+  -webkit-appearance: none; /* Viktig för Chrome/Safari/Mobil */
+  -moz-appearance: none;    /* För Firefox */
+  padding: 0;               /* Tar bort inre marginaler som gör den oval */
+  display: block;
+  box-sizing: border-box;
+}
 
+/* Fix för mörkt läge så ramen syns */
+body.dark-mode #floating-edit-toolbar #font-size-selector {
+  border-color: #ffffff;
+  color: #ffffff;
+}
 .toolbar-group {
   display: flex;
   flex-direction: column;
@@ -863,7 +895,7 @@ body.scroll-mode-active #floating-live-btn {
   border: 1px solid var(--primary);
   background: var(--surface);
   color: var(--primary);
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1224,7 +1256,10 @@ body.lyrics-only #editor .section-marker {
   border-radius: 12px;
   text-shadow: none;
 }
-
+#tool-toggle-chords {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
 /* --- EDIT-KNAPPEN I TOPPMENYN --- */
 #btn-main-edit-toggle {
   width: 40px; 
@@ -1313,9 +1348,10 @@ body.dark-mode .app-logo span {
   font-size: 1.4rem;      
   color: var(--primary);
   line-height: 1.1; /* Ändrat från 0.1 så att texten inte riskerar att klippas */
- opacity: 0.7;
+ opacity: 0.8;
   font-weight: 800;
   letter-spacing: -0.1px;
+  text-align: center;
 }
 
 body.dark-mode .song-header-title {
@@ -1327,6 +1363,25 @@ body.dark-mode .song-header-title {
   font-size: 0.80rem;     
   opacity: 0.7;
   font-weight: 400;
+}
+/* --- METRONOM PULS ANIMATION --- */
+@keyframes metronome-pulse-anim {
+  0% { 
+    transform: scale(0.9); 
+    filter: brightness(1.5); /* Gör den lite ljusare just på slaget */
+  }
+  50% { 
+    transform: scale(1.1); 
+  }
+  100% { 
+    transform: scale(1); 
+    filter: brightness(1); 
+  }
+}
+
+.pulse-beat {
+  /* En extremt snabb animation på 0.15 sekunder som spelas en gång */
+  animation: metronome-pulse-anim 0.15s ease-out;
 }
 /* --- MEDIA QUERIES (Uppdaterad för mobil) --- */
 @media (max-width: 600px) {
@@ -1376,4 +1431,24 @@ button,
 /* Ta bort "grip-handen" från ackorden när Edit-läge är avstängt */
 body:not(.edit-mode-on) #editor .chord-text {
   cursor: default;
+}
+/* --- LOGIN STATUS DOT --- */
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--danger-bg); /* Offline (Röd) */
+  border: 2px solid var(--surface);
+  margin-right: 5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.status-dot.online {
+  background-color: #2ecc71; /* Online (Ljusgrön) */
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+}
+
+body.dark-mode .status-dot.online {
+  background-color: #27ae60;
 }

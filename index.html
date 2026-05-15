@@ -49,6 +49,11 @@
 
       <!-- HÄR ÄR HÖGRA SIDAN SOM FÖRSVANN -->
       <div class="top-bar-right">
+        <div
+          id="login-status-dot"
+          class="status-dot offline"
+          title="Offline"
+        ></div>
         <!-- Dark Mode-knappen är tillbaka! -->
         <button
           id="btn-toggle-dark-mode"
@@ -58,20 +63,11 @@
 
         <button id="btn-main-edit-toggle" title="Toggle Edit mode">EDIT</button>
 
-        <button id="hamburger-btn" class="icon-btn" title="Menu">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="2"
-            stroke="currentColor"
-            class="icon-medium"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
+<button id="hamburger-btn" class="icon-btn" title="Menu">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" style="width: 26px; height: 26px;">
+            <g transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+              <path fill="currentColor" d="M 52.1 90 H 37.9 c -2.867 0 -5.2 -2.333 -5.2 -5.2 v -2.114 c 0 -0.329 -0.191 -0.634 -0.454 -0.725 c -1.482 -0.511 -2.955 -1.122 -4.375 -1.816 c -0.246 -0.118 -0.576 -0.046 -0.802 0.18 l -1.516 1.516 c -0.981 0.982 -2.288 1.523 -3.677 1.523 c -1.389 0 -2.695 -0.541 -3.677 -1.524 L 8.16 71.799 c -2.027 -2.027 -2.027 -5.326 0 -7.354 l 1.516 -1.516 c 0.223 -0.223 0.299 -0.56 0.181 -0.8 c -0.695 -1.423 -1.307 -2.895 -1.818 -4.377 C 7.947 57.49 7.643 57.3 7.314 57.3 H 5.2 c -2.867 0 -5.2 -2.333 -5.2 -5.2 V 37.9 c 0 -2.867 2.333 -5.2 5.2 -5.2 h 2.115 c 0.329 0 0.633 -0.19 0.724 -0.454 c 0.513 -1.483 1.124 -2.956 1.817 -4.374 c 0.12 -0.246 0.046 -0.576 -0.181 -0.802 L 8.16 25.555 c -2.027 -2.028 -2.027 -5.327 0 -7.354 L 18.201 8.159 c 0.982 -0.982 2.288 -1.522 3.677 -1.522 c 1.389 0 2.695 0.541 3.677 1.522 l 1.516 1.517 c 0.224 0.223 0.559 0.3 0.801 0.18 c 1.418 -0.693 2.891 -1.305 4.375 -1.818 C 32.51 7.947 32.7 7.643 32.7 7.314 V 5.2 c 0 -2.867 2.333 -5.2 5.2 -5.2 h 14.2 c 2.867 0 5.2 2.333 5.2 5.2 v 2.115 c 0 0.329 0.19 0.633 0.453 0.724 c 1.482 0.512 2.954 1.124 4.375 1.818 c 0.247 0.118 0.575 0.045 0.802 -0.181 l 1.516 -1.516 c 2.027 -2.027 5.326 -2.027 7.354 0 L 81.84 18.2 c 2.027 2.028 2.027 5.327 0 7.354 l -1.516 1.516 c -0.227 0.227 -0.301 0.556 -0.181 0.802 c 0.695 1.42 1.307 2.893 1.818 4.376 c 0.09 0.262 0.395 0.452 0.724 0.452 H 84.8 c 2.867 0 5.2 2.333 5.2 5.2 V 52.1 c 0 2.867 -2.333 5.2 -5.2 5.2 h -2.114 c -0.329 0 -0.634 0.19 -0.725 0.454 c -0.51 1.478 -1.121 2.95 -1.815 4.373 c -0.119 0.244 -0.044 0.58 0.179 0.803 l 1.516 1.516 c 2.027 2.027 2.027 5.326 0 7.354 L 71.799 81.84 c -0.982 0.982 -2.288 1.523 -3.677 1.523 c -1.39 0 -2.696 -0.542 -3.678 -1.525 l -1.514 -1.513 c -0.228 -0.226 -0.557 -0.302 -0.803 -0.182 c -1.42 0.695 -2.893 1.307 -4.376 1.818 c -0.262 0.09 -0.452 0.395 -0.452 0.724 V 84.8 C 57.3 87.667 54.967 90 52.1 90 z M 39.7 83 h 10.6 v -0.314 c 0 -3.322 2.076 -6.272 5.167 -7.34 c 1.216 -0.42 2.422 -0.921 3.588 -1.491 c 2.936 -1.434 6.481 -0.822 8.824 1.521 l 0.243 0.242 l 7.495 -7.495 l -0.242 -0.243 c -2.345 -2.344 -2.955 -5.891 -1.519 -8.825 c 0.569 -1.166 1.07 -2.373 1.488 -3.585 c 1.068 -3.093 4.019 -5.169 7.341 -5.169 H 83 V 39.7 h -0.314 c -3.322 0 -6.272 -2.076 -7.34 -5.167 c -0.42 -1.216 -0.921 -2.422 -1.491 -3.588 c -1.434 -2.936 -0.823 -6.482 1.521 -8.825 l 0.242 -0.243 l -7.495 -7.495 l -0.243 0.243 c -2.344 2.344 -5.89 2.953 -8.824 1.52 c -1.166 -0.57 -2.373 -1.071 -3.587 -1.491 c -3.091 -1.067 -5.168 -4.017 -5.168 -7.34 V 7 H 39.7 v 0.314 c 0 3.323 -2.077 6.272 -5.168 7.34 c -1.217 0.42 -2.424 0.922 -3.587 1.491 c -2.936 1.434 -6.481 0.823 -8.825 -1.52 l -0.243 -0.243 l -7.495 7.495 l 0.243 0.243 c 2.343 2.344 2.954 5.89 1.52 8.825 c -0.568 1.163 -1.07 2.37 -1.49 3.587 c -1.068 3.092 -4.018 5.168 -7.34 5.168 H 7 v 10.6 h 0.314 c 3.323 0 6.272 2.077 7.34 5.168 c 0.419 1.214 0.921 2.421 1.491 3.588 c 1.435 2.933 0.824 6.479 -1.52 8.823 l -0.243 0.243 l 7.496 7.495 l 0.242 -0.242 c 2.344 -2.346 5.891 -2.954 8.826 -1.52 c 1.164 0.568 2.37 1.07 3.585 1.489 c 3.092 1.068 5.168 4.019 5.168 7.341 V 83 z M 45.028 70.402 c -6.738 0 -13.204 -2.652 -17.991 -7.439 c -5.265 -5.265 -7.947 -12.561 -7.359 -20.016 c 0.97 -12.296 10.974 -22.3 23.27 -23.27 c 7.457 -0.588 14.751 2.095 20.016 7.359 c 5.265 5.266 7.947 12.561 7.36 20.017 c -0.971 12.297 -10.975 22.3 -23.271 23.27 l 0 0 C 46.376 70.376 45.701 70.402 45.028 70.402 z M 44.969 26.598 c -0.489 0 -0.979 0.02 -1.471 0.058 c -8.899 0.702 -16.14 7.943 -16.842 16.843 c -0.427 5.41 1.516 10.7 5.331 14.515 s 9.1 5.761 14.516 5.331 l 0 0 c 8.899 -0.701 16.141 -7.941 16.843 -16.842 c 0.427 -5.41 -1.517 -10.701 -5.331 -14.516 C 54.546 28.519 49.857 26.598 44.969 26.598 z"/>
+            </g>
           </svg>
         </button>
         <!-- 2. NY AVSLUTA GIG-KNAPP (Litet rött kryss i samma dimensioner) -->
@@ -201,15 +197,6 @@
           class="sidebar-controls horizontal"
           style="gap: 8px"
         >
-          <div class="control-group-half">
-            <span
-              class="menu-grid-title"
-              style="white-space: nowrap; margin-right: 5px"
-              >Size:</span
-            >
-            <select id="font-size-selector" style="width: 100%"></select>
-          </div>
-
           <div class="control-group-half bpm-control-wrapper">
             <button id="btn-bpm-down" class="btn-bpm-control minimal-control">
               -
@@ -291,8 +278,8 @@
           </svg>
         </button>
 
-        <button id="btn-open-export-modal" class="menu-grid-btn">
-          <span class="menu-grid-title">Export/BackUp</span>
+        <button id="btn-open-backup-modal" class="menu-grid-btn">
+          <span class="menu-grid-title">Backup</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -309,8 +296,8 @@
           </svg>
         </button>
 
-        <button id="btn-open-import-modal" class="menu-grid-btn">
-          <span class="menu-grid-title">Import</span>
+        <button id="btn-open-band-modal" class="menu-grid-btn">
+          <span class="menu-grid-title">Band</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -322,7 +309,7 @@
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+              d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
             />
           </svg>
         </button>
@@ -552,13 +539,18 @@
       </div>
     </div>
 
-    <div id="export-modal" class="custom-dialog-overlay">
+    <div id="backup-modal" class="custom-dialog-overlay">
       <div class="custom-dialog-box">
-        <h3 style="margin-top: 0">Export / BackUp</h3>
+        <h3 style="margin-top: 0">Data & Backup</h3>
         <div
           class="sidebar-controls vertical"
           style="gap: 0.8em; min-width: 250px"
         >
+          <h4
+            style="margin: 0; opacity: 0.7; font-size: 0.85em; text-align: left"
+          >
+            Export
+          </h4>
           <div class="sidebar-controls horizontal">
             <button id="btn-export-pdf">PDF</button>
             <button id="btn-export-txt">TXT</button>
@@ -568,20 +560,21 @@
             <button id="btn-export-json">Song->JSON</button>
             <button id="btn-export-all-json">All->JSON</button>
           </div>
-        </div>
-        <div class="dialog-buttons">
-          <button id="export-modal-close" class="btn-primary">Close</button>
-        </div>
-      </div>
-    </div>
 
-    <div id="import-modal" class="custom-dialog-overlay">
-      <div class="custom-dialog-box">
-        <h3 style="margin-top: 0">Import</h3>
-        <div
-          class="sidebar-controls vertical"
-          style="gap: 0.8em; min-width: 250px"
-        >
+          <hr
+            style="
+              width: 100%;
+              border: 0;
+              border-top: 1px solid var(--border-soft);
+              margin: 5px 0;
+            "
+          />
+
+          <h4
+            style="margin: 0; opacity: 0.7; font-size: 0.85em; text-align: left"
+          >
+            Import
+          </h4>
           <div class="sidebar-controls horizontal">
             <button id="btn-import-json">Imp.->JSON</button>
             <button id="btn-import-url" class="btn-primary">Import URL</button>
@@ -591,10 +584,34 @@
             id="file-import"
             accept="application/json"
             class="hidden-file"
+            style="display: none"
           />
         </div>
         <div class="dialog-buttons">
-          <button id="import-modal-close" class="btn-primary">Close</button>
+          <button id="backup-modal-close" class="btn-primary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="band-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box">
+        <h3 style="margin-top: 0">Band Mode</h3>
+        <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1.5em">
+          Create a new band or join an existing one to sync songs in real-time.
+        </p>
+        <div
+          class="sidebar-controls vertical"
+          style="gap: 0.8em; min-width: 250px"
+        >
+          <button id="btn-band-create" class="btn-primary">
+            Skapa nytt band
+          </button>
+          <button id="btn-band-join" class="btn-secondary-style">
+            Gå med i band
+          </button>
+        </div>
+        <div class="dialog-buttons">
+          <button id="band-modal-close" class="btn-primary">Close</button>
         </div>
       </div>
     </div>
@@ -602,7 +619,7 @@
     <div id="create-setlist-modal" class="custom-dialog-overlay">
       <div class="custom-dialog-box" style="max-width: 400px; width: 90%">
         <h3 style="margin-top: 0">Share setlist</h3>
-        
+
         <!-- Uppdaterad förklarande text -->
         <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1em">
           Select songs and choose a code for your setlist.
@@ -655,9 +672,7 @@
         ></div>
 
         <div class="dialog-buttons">
-          <button id="btn-generate-setlist" class="btn-primary">
-            Share
-          </button>
+          <button id="btn-generate-setlist" class="btn-primary">Share</button>
           <button id="create-setlist-close" class="btn-secondary">Close</button>
         </div>
       </div>
@@ -771,9 +786,10 @@
           onclick="app.addBlock('Instruction')"
           title="Add instructions"
         >
-          ✍
+          !
         </button>
       </div>
+
       <div class="toolbar-group">
         <button
           class="tool-btn"
@@ -790,6 +806,7 @@
           ♭
         </button>
       </div>
+
       <div class="toolbar-group">
         <button
           id="tool-toggle-chords"
@@ -799,6 +816,10 @@
         >
           C/T
         </button>
+      </div>
+
+      <div class="toolbar-group" style="border: none">
+        <select id="font-size-selector" title="Text size"></select>
       </div>
     </div>
 

@@ -392,8 +392,8 @@ init() {
     this.updateDurationFromSpeed();
     this.startObserver();
     this.loadLastProject();
+    this.updateBandUI();
 
-    // Endast EN inloggningskontroll behövs
     if (window.fb) {
       window.fb.onAuthStateChanged(window.fb.auth, (user) => {
         if (user) {
@@ -3517,7 +3517,7 @@ try {
 
     return result;
   }
-  // ==========================================
+ // ==========================================
   // --- BAND & GRUPP LOGIK ---
   // ==========================================
 
@@ -3534,13 +3534,23 @@ try {
         this.currentBandId = null;
         this.currentBandName = null;
       }
-      this.updateBandUI();
     } catch (e) {
       console.error("Fel vid hämtning av bandstatus:", e);
+      this.currentBandId = null;
+      this.currentBandName = null;
+    } finally {
+      // NYTT: Se till att UI alltid uppdateras, oavsett om databasen bråkar
+      this.updateBandUI(); 
     }
   }
 
   async createBand() {
+    // NYTT: Säkerhetskoll - Är användaren inloggad?
+    if (!window.fb || !window.fb.auth.currentUser) {
+      this.bandModal.classList.remove("visible");
+      return this.showCustomAlert("Du måste logga in (via sidomenyn) innan du kan skapa ett band!");
+    }
+
     const bandName = prompt("Vad ska bandet heta?");
     if (!bandName) return;
 
@@ -3549,14 +3559,12 @@ try {
     const { db, doc, setDoc } = window.fb;
 
     try {
-      // 1. Skapa bandets delade mapp i molnet
       await setDoc(doc(db, "bands", bandCode), {
         name: bandName,
         members: [uid],
         createdAt: new Date().toISOString()
       });
 
-      // 2. Registrera att din användare tillhör detta band
       await setDoc(doc(db, "users", uid), {
         currentBandId: bandCode,
         bandName: bandName
@@ -3566,7 +3574,6 @@ try {
       this.currentBandName = bandName;
       this.updateBandUI();
       
-      // Töm den privata låtlistan och hämta bandets låtar (som just nu är 0)
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
       this.fetchSongsFromCloud();
@@ -3575,12 +3582,18 @@ try {
       this.showCustomAlert(`Bandet skapades!\nEr inbjudningskod är: ${bandCode}`);
     } catch (e) {
       console.error(e);
-      this.showCustomAlert("Kunde inte skapa bandet i molnet.");
+      this.showCustomAlert("Kunde inte skapa bandet. Kolla dina Firebase-regler!");
     }
   }
 
   async joinBand() {
-    const code = prompt("Skriv in bandets 6-teckens inbjudningskod:")?.toUpperCase();
+    // NYTT: Säkerhetskoll
+    if (!window.fb || !window.fb.auth.currentUser) {
+      this.bandModal.classList.remove("visible");
+      return this.showCustomAlert("Du måste logga in (via sidomenyn) innan du kan gå med i ett band!");
+    }
+
+    const code = prompt("Skriv in bandets inbjudningskod:")?.toUpperCase();
     if (!code || code.length < 3) return;
 
     const uid = window.fb.auth.currentUser.uid;
@@ -3594,13 +3607,11 @@ try {
         const bandData = bandSnap.data();
         const members = bandData.members || [];
         
-        // Lägg till användaren i bandets medlemslista
         if (!members.includes(uid)) {
           members.push(uid);
           await setDoc(bandRef, { members: members }, { merge: true });
         }
 
-        // Koppla användarens profil till bandet
         await setDoc(doc(db, "users", uid), {
           currentBandId: code,
           bandName: bandData.name
@@ -3610,7 +3621,6 @@ try {
         this.currentBandName = bandData.name;
         this.updateBandUI();
 
-        // Töm privata låtar och ladda ner hela bandets repertoar!
         localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
         localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
         this.fetchSongsFromCloud();
@@ -3642,7 +3652,6 @@ try {
       this.currentBandName = null;
       this.updateBandUI();
       
-      // Återgå till personliga låtar
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
       this.fetchSongsFromCloud();
@@ -3659,7 +3668,6 @@ try {
     if (!modalBox) return;
 
     if (this.currentBandId) {
-      // Visa Band-info om man är inloggad i ett band
       modalBox.innerHTML = `
         <h3 style="margin-top: 0">${this.currentBandName}</h3>
         <p style="font-size: 0.85em; opacity: 0.8;">Inbjudningskod (ge till andra medlemmar):</p>
@@ -3673,9 +3681,9 @@ try {
           <button id="band-modal-close-new" class="btn-primary">Stäng</button>
         </div>
       `;
-      document.getElementById("btn-band-leave").addEventListener("click", () => this.leaveBand());
+      // NYTT: Tvinga klick-funktionen med .onclick (mycket säkrare än addEventListener här!)
+      document.getElementById("btn-band-leave").onclick = () => this.leaveBand();
     } else {
-      // Standardmeny: Skapa eller Gå med
       modalBox.innerHTML = `
         <h3 style="margin-top: 0">Band Mode</h3>
         <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1.5em">
@@ -3689,14 +3697,14 @@ try {
           <button id="band-modal-close-new" class="btn-primary">Stäng</button>
         </div>
       `;
-      document.getElementById("btn-band-create").addEventListener("click", () => this.createBand());
-      document.getElementById("btn-band-join").addEventListener("click", () => this.joinBand());
+      // NYTT: Tvinga klick-funktionerna med .onclick!
+      document.getElementById("btn-band-create").onclick = () => this.createBand();
+      document.getElementById("btn-band-join").onclick = () => this.joinBand();
     }
 
-    // Koppla stäng-knappen oavsett vilken meny som visas
-    document.getElementById("band-modal-close-new").addEventListener("click", () => {
+    document.getElementById("band-modal-close-new").onclick = () => {
        this.bandModal.classList.remove("visible");
-    });
+    };
   }
 }
 

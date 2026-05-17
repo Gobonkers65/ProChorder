@@ -1452,3 +1452,7 @@ body:not(.edit-mode-on) #editor .chord-text {
 body.dark-mode .status-dot.online {
   background-color: #27ae60;
 }
+#song-author,
+.song-author-display {
+  text-align: center;
+}

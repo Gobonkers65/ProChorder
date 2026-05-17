@@ -383,7 +383,7 @@ class StableChordEditor {
     this.floatingToolbar = document.getElementById("floating-edit-toolbar");
   }
 
-init() {
+  init() {
     this.populateSelects();
     this.applySavedTheme();
     this.setupEventListeners();
@@ -405,8 +405,8 @@ init() {
           this.btnLoginGoogle.classList.add("hidden");
           this.btnLogout.classList.remove("hidden");
           document.getElementById("user-info").classList.remove("hidden");
-          
-          if(this.loginStatusDot) {
+
+          if (this.loginStatusDot) {
             this.loginStatusDot.classList.remove("offline");
             this.loginStatusDot.classList.add("online");
             this.loginStatusDot.title = "Online (" + user.displayName + ")";
@@ -424,7 +424,7 @@ init() {
           this.btnLogout.classList.add("hidden");
           document.getElementById("user-info").classList.add("hidden");
 
-          if(this.loginStatusDot) {
+          if (this.loginStatusDot) {
             this.loginStatusDot.classList.remove("online");
             this.loginStatusDot.classList.add("offline");
             this.loginStatusDot.title = "Offline";
@@ -503,8 +503,10 @@ init() {
     }
   }
 
-applySavedTheme() {
-    const isDarkMode = localStorage.getItem(StableChordEditor.STORAGE_KEYS.DARK_MODE) === "enabled";
+  applySavedTheme() {
+    const isDarkMode =
+      localStorage.getItem(StableChordEditor.STORAGE_KEYS.DARK_MODE) ===
+      "enabled";
 
     // Moderna och snygga ikoner som matchar resten av appen!
     const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon-medium"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-2.659l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>`;
@@ -734,10 +736,10 @@ applySavedTheme() {
     }
   }
 
-setupEventListeners() {
+  setupEventListeners() {
     const toggleMenu = () => {
       const isOpening = this.sideMenu.classList.contains("is-closed");
-      
+
       this.sideMenu.classList.toggle("is-closed");
       this.menuOverlay.classList.toggle("is-closed");
 
@@ -787,15 +789,13 @@ setupEventListeners() {
 
     this.titleInput.addEventListener("input", () => this.updateEditorHeader());
     this.authorInput.addEventListener("input", () => this.updateEditorHeader());
-    
+
     // ... resten av din kod fortsätter här ...
 
     this.btnShowHelp.addEventListener("click", () => {
       toggleMenu();
       window.open("https://gobonkers65.github.io/ProChorder/help", "_blank");
     });
-
-    
 
     this.scrollSpeedSlider.addEventListener("input", (e) => {
       this.setScrollSpeed(e.target.value);
@@ -929,7 +929,7 @@ setupEventListeners() {
 
     this.tunerBtnClose.addEventListener("click", () => this.closeTunerModal());
 
-this.btnOpenBackupModal.addEventListener("click", () => {
+    this.btnOpenBackupModal.addEventListener("click", () => {
       openModal(this.backupModal);
       toggleMenu();
     });
@@ -1938,10 +1938,10 @@ this.btnOpenBackupModal.addEventListener("click", () => {
     `;
   }
   // LADDAR IN LÅTEN PÅ SKÄRMEN I DOM NYA BLOCKEN
-loadContent(text, recordHistory = false) {
+  loadContent(text, recordHistory = false) {
     this.stopObserver();
     this.editor.innerHTML = "";
-    
+
     // 1. Tvättar bort osynliga \r-tecken från Windows
     const lines = text.replace(/\r/g, "").split("\n");
 
@@ -2200,7 +2200,7 @@ loadContent(text, recordHistory = false) {
     this.updateProjectList(name);
 
     // --- NY FIRESTORE LOGIK (SPARA TILL MOLNET) ---
-   if (window.fb && window.fb.auth.currentUser) {
+    if (window.fb && window.fb.auth.currentUser) {
       try {
         const uid = window.fb.auth.currentUser.uid;
         const { db, doc, setDoc } = window.fb;
@@ -2209,8 +2209,8 @@ loadContent(text, recordHistory = false) {
         const songRef = this.currentBandId
           ? doc(db, "bands", this.currentBandId, "songs", name)
           : doc(db, "users", uid, "songs", name);
-        
-          // Skickar upp datan
+
+        // Skickar upp datan
         await setDoc(songRef, {
           ...projectData,
           updatedAt: new Date().toISOString(), // Bra att veta när den sparades senast
@@ -2256,70 +2256,77 @@ loadContent(text, recordHistory = false) {
     }
   } // <--- Här slutar funktionen saveProject
 
-  async fetchSongsFromCloud() {
-    // Kolla så att vi faktiskt är inloggade
+async fetchSongsFromCloud() {
     if (!window.fb || !window.fb.auth.currentUser) return;
 
-try {
-      const uid = window.fb.auth.currentUser.uid;
-      const { db, collection, getDocs } = window.fb;
+    const uid = window.fb.auth.currentUser.uid;
+    const { db, collection, onSnapshot } = window.fb;
 
-      // NYTT: Välj mapp beroende på om du har ett band eller kör solo
-      const songsRef = this.currentBandId 
-        ? collection(db, "bands", this.currentBandId, "songs") 
-        : collection(db, "users", uid, "songs");
-      const snapshot = await getDocs(songsRef);
+    // Välj mapp beroende på om du har ett band eller kör solo
+    const songsRef = this.currentBandId 
+      ? collection(db, "bands", this.currentBandId, "songs") 
+      : collection(db, "users", uid, "songs");
 
-      if (snapshot.empty) {
-        console.log("No songs found in the cloud..");
-        return;
-      }
+    // Stäng den gamla lyssnaren om vi byter mellan band/solo
+    if (this.cloudListener) {
+      this.cloudListener();
+    }
 
-      // Hämta befintliga lokala låtar (så vi kan slå ihop dem)
-      const localProjects =
-        JSON.parse(
-          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
-        ) || {};
-      let localOrder =
-        JSON.parse(
-          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-        ) || [];
+    // NYTT: onSnapshot sitter och lyssnar i realtid dygnet runt!
+    this.cloudListener = onSnapshot(songsRef, (snapshot) => {
+      const localProjects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+      let localOrder = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+      let needsRefresh = false;
 
-      let fetchedCount = 0;
+      snapshot.docChanges().forEach((change) => {
+        const songData = change.doc.data();
+        const songTitle = change.doc.id;
 
-      // Gå igenom alla låtar vi hittade i molnet
-      snapshot.forEach((doc) => {
-        const songData = doc.data();
-        const songTitle = doc.id; // Namnet på dokumentet (låtens titel)
-
-        // Spara i vårt lokala objekt
-        localProjects[songTitle] = songData;
-
-        // Lägg till i ordningslistan om den inte redan finns där
-        if (!localOrder.includes(songTitle)) {
-          localOrder.push(songTitle);
+        if (change.type === "added" || change.type === "modified") {
+          localProjects[songTitle] = songData;
+          if (!localOrder.includes(songTitle)) {
+            localOrder.push(songTitle);
+          }
+          
+          // Om en låt vi tittar på uppdateras av nån annan (och vi inte editerar den just nu)
+          if (this.titleInput.value === songTitle && !this.isEditMode) {
+            needsRefresh = true;
+          }
         }
-        fetchedCount++;
+        
+        if (change.type === "removed") {
+          delete localProjects[songTitle];
+          localOrder = localOrder.filter(t => t !== songTitle);
+          if (this.titleInput.value === songTitle) {
+            this.createNewProject(); 
+            this.showCustomAlert(`Låten "${songTitle}" raderades i molnet.`);
+          }
+        }
       });
 
-      // Spara ner det sammanslagna resultatet lokalt igen
-      localStorage.setItem(
-        StableChordEditor.STORAGE_KEYS.PROJECTS,
-        JSON.stringify(localProjects)
-      );
-      localStorage.setItem(
-        StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-        JSON.stringify(localOrder)
-      );
+      localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(localProjects));
+      localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(localOrder));
+      
+      this.updateProjectList(this.titleInput.value);
 
-      // Uppdatera rullgardinsmenyn så de nya låtarna syns
-      this.updateProjectList();
-
-      console.log(`Fetched ${fetchedCount} songs from the cloud!`);
-      // Frivilligt: this.showCustomAlert(`Hämtade ${fetchedCount} låtar från molnet!`);
-    } catch (error) {
-      console.error("Error fetching songs:", error);
-    }
+      // Uppdatera skärmen blixtsnabbt om nån annan sparat!
+      if (needsRefresh) {
+         this.loadProject(this.titleInput.value);
+         
+         // Visuell bekräftelse i knappen att en uppdatering skett
+         if (this.btnMainEditToggle) {
+           const origText = this.btnMainEditToggle.textContent;
+           this.btnMainEditToggle.textContent = "SYNCED!";
+           this.btnMainEditToggle.style.backgroundColor = "var(--success-bg)";
+           this.btnMainEditToggle.style.color = "#ffffff";
+           setTimeout(() => {
+             this.btnMainEditToggle.textContent = origText;
+             this.btnMainEditToggle.style.backgroundColor = "";
+             this.btnMainEditToggle.style.color = "";
+           }, 2000);
+         }
+      }
+    });
   }
 
   loadProject(name) {
@@ -3290,9 +3297,14 @@ try {
         projects[project.title] = project;
 
         // SPARA TILL MOLNET DIREKT VID IMPORT
+        // SPARA TILL MOLNET DIREKT VID IMPORT
         if (isCloudConnected) {
           try {
-            const songRef = doc(db, "users", uid, "songs", project.title);
+            // NYTT: Nu kollar appen om du är i ett band innan den laddar upp!
+            const songRef = this.currentBandId
+              ? doc(db, "bands", this.currentBandId, "songs", project.title)
+              : doc(db, "users", uid, "songs", project.title);
+
             await setDoc(songRef, {
               ...project,
               updatedAt: new Date().toISOString(),
@@ -3517,7 +3529,7 @@ try {
 
     return result;
   }
- // ==========================================
+  // ==========================================
   // --- BAND & GRUPP LOGIK ---
   // ==========================================
 
@@ -3540,7 +3552,7 @@ try {
       this.currentBandName = null;
     } finally {
       // NYTT: Se till att UI alltid uppdateras, oavsett om databasen bråkar
-      this.updateBandUI(); 
+      this.updateBandUI();
     }
   }
 
@@ -3548,7 +3560,9 @@ try {
     // NYTT: Säkerhetskoll - Är användaren inloggad?
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
-      return this.showCustomAlert("Du måste logga in (via sidomenyn) innan du kan skapa ett band!");
+      return this.showCustomAlert(
+        "Du måste logga in (via sidomenyn) innan du kan skapa ett band!"
+      );
     }
 
     const bandName = prompt("Vad ska bandet heta?");
@@ -3562,27 +3576,35 @@ try {
       await setDoc(doc(db, "bands", bandCode), {
         name: bandName,
         members: [uid],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       });
 
-      await setDoc(doc(db, "users", uid), {
-        currentBandId: bandCode,
-        bandName: bandName
-      }, { merge: true });
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          currentBandId: bandCode,
+          bandName: bandName,
+        },
+        { merge: true }
+      );
 
       this.currentBandId = bandCode;
       this.currentBandName = bandName;
       this.updateBandUI();
-      
+
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
       this.fetchSongsFromCloud();
       this.createNewProject();
-      
-      this.showCustomAlert(`Bandet skapades!\nEr inbjudningskod är: ${bandCode}`);
+
+      this.showCustomAlert(
+        `Bandet skapades!\nEr inbjudningskod är: ${bandCode}`
+      );
     } catch (e) {
       console.error(e);
-      this.showCustomAlert("Kunde inte skapa bandet. Kolla dina Firebase-regler!");
+      this.showCustomAlert(
+        "Kunde inte skapa bandet. Kolla dina Firebase-regler!"
+      );
     }
   }
 
@@ -3590,7 +3612,9 @@ try {
     // NYTT: Säkerhetskoll
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
-      return this.showCustomAlert("Du måste logga in (via sidomenyn) innan du kan gå med i ett band!");
+      return this.showCustomAlert(
+        "Du måste logga in (via sidomenyn) innan du kan gå med i ett band!"
+      );
     }
 
     const code = prompt("Skriv in bandets inbjudningskod:")?.toUpperCase();
@@ -3606,16 +3630,20 @@ try {
       if (bandSnap.exists()) {
         const bandData = bandSnap.data();
         const members = bandData.members || [];
-        
+
         if (!members.includes(uid)) {
           members.push(uid);
           await setDoc(bandRef, { members: members }, { merge: true });
         }
 
-        await setDoc(doc(db, "users", uid), {
-          currentBandId: code,
-          bandName: bandData.name
-        }, { merge: true });
+        await setDoc(
+          doc(db, "users", uid),
+          {
+            currentBandId: code,
+            bandName: bandData.name,
+          },
+          { merge: true }
+        );
 
         this.currentBandId = code;
         this.currentBandName = bandData.name;
@@ -3624,39 +3652,45 @@ try {
         localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
         localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
         this.fetchSongsFromCloud();
-        
+
         this.showCustomAlert(`Du har gått med i: ${bandData.name}!`);
       } else {
         this.showCustomAlert("Hittade inget band med den koden.");
       }
     } catch (e) {
-       console.error(e);
-       this.showCustomAlert("Ett fel uppstod när du försökte gå med.");
+      console.error(e);
+      this.showCustomAlert("Ett fel uppstod när du försökte gå med.");
     }
   }
 
   async leaveBand() {
-    const confirmed = await this.showCustomConfirm("Är du säker på att du vill lämna bandet och gå tillbaka till dina privata låtar?");
+    const confirmed = await this.showCustomConfirm(
+      "Är du säker på att du vill lämna bandet och gå tillbaka till dina privata låtar?"
+    );
     if (!confirmed) return;
 
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, setDoc } = window.fb;
 
     try {
-      await setDoc(doc(db, "users", uid), {
-        currentBandId: null,
-        bandName: null
-      }, { merge: true });
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          currentBandId: null,
+          bandName: null,
+        },
+        { merge: true }
+      );
 
       this.currentBandId = null;
       this.currentBandName = null;
       this.updateBandUI();
-      
+
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
       this.fetchSongsFromCloud();
       this.createNewProject();
-      
+
       this.showCustomAlert("Du kör nu solo igen!");
     } catch (e) {
       console.error(e);
@@ -3682,7 +3716,8 @@ try {
         </div>
       `;
       // NYTT: Tvinga klick-funktionen med .onclick (mycket säkrare än addEventListener här!)
-      document.getElementById("btn-band-leave").onclick = () => this.leaveBand();
+      document.getElementById("btn-band-leave").onclick = () =>
+        this.leaveBand();
     } else {
       modalBox.innerHTML = `
         <h3 style="margin-top: 0">Band Mode</h3>
@@ -3698,12 +3733,13 @@ try {
         </div>
       `;
       // NYTT: Tvinga klick-funktionerna med .onclick!
-      document.getElementById("btn-band-create").onclick = () => this.createBand();
+      document.getElementById("btn-band-create").onclick = () =>
+        this.createBand();
       document.getElementById("btn-band-join").onclick = () => this.joinBand();
     }
 
     document.getElementById("band-modal-close-new").onclick = () => {
-       this.bandModal.classList.remove("visible");
+      this.bandModal.classList.remove("visible");
     };
   }
 }

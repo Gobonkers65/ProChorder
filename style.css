@@ -1363,6 +1363,7 @@ body.dark-mode .song-header-title {
   font-size: 0.80rem;     
   opacity: 0.7;
   font-weight: 400;
+  text-align: center;
 }
 /* --- METRONOM PULS ANIMATION --- */
 @keyframes metronome-pulse-anim {
@@ -1451,8 +1452,4 @@ body:not(.edit-mode-on) #editor .chord-text {
 
 body.dark-mode .status-dot.online {
   background-color: #27ae60;
-}
-#song-author,
-.song-author-display {
-  text-align: center;
 }

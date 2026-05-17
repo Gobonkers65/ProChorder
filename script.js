@@ -2288,8 +2288,11 @@ async fetchSongsFromCloud() {
             localOrder.push(songTitle);
           }
           
-          // Om en låt vi tittar på uppdateras av nån annan (och vi inte editerar den just nu)
-          if (this.titleInput.value === songTitle && !this.isEditMode) {
+          // NYTT: Skottsäker matchning som ignorerar osynliga mellanslag och stora/små bokstäver!
+          const currentViewTitle = (this.titleInput.value || "").trim().toLowerCase();
+          const incomingTitle = (songTitle || "").trim().toLowerCase();
+
+          if (currentViewTitle === incomingTitle && !this.isEditMode) {
             needsRefresh = true;
           }
         }
@@ -2297,9 +2300,9 @@ async fetchSongsFromCloud() {
         if (change.type === "removed") {
           delete localProjects[songTitle];
           localOrder = localOrder.filter(t => t !== songTitle);
-          if (this.titleInput.value === songTitle) {
+          // NY FIX: Kolla säkert innan skärmen töms
+          if ((this.titleInput.value || "").trim().toLowerCase() === (songTitle || "").trim().toLowerCase()) {
             this.createNewProject(); 
-            this.showCustomAlert(`Låten "${songTitle}" raderades i molnet.`);
           }
         }
       });

@@ -1488,10 +1488,13 @@ body.dark-mode.edit-mode-on .song-header-author {
   content: "Artist / Composer"; /* <-- Ändrad till engelska */
   opacity: 0.3;
 }
-/* --- LÅS UPP RUBRIKEN I EDIT-LÄGE --- */
+/* --- LÅS UPP RUBRIKEN I EDIT-LÄGE (MOBIL-FIX) --- */
 body.edit-mode-on .song-header-block,
 body.edit-mode-on .song-header-title,
 body.edit-mode-on .song-header-author {
   pointer-events: auto !important;
   user-select: text !important;
+  -webkit-user-select: text !important; /* <-- SUPERVIKTIG FÖR MOBILER! */
+  -webkit-user-modify: read-write !important; /* Tvingar fram tangentbordet */
+  outline: none; /* Tar bort fula blå ramar på mobilen */
 }

@@ -2136,18 +2136,33 @@ class StableChordEditor {
     this.applySavedTheme();
   }
 
-  createNewProject() {
+    createNewProject() {
     this.titleInput.value = "";
     this.authorInput.value = "";
+    
+    // NYTT: Ren, engelsk start-text
     this.loadContent(
-      'Open the side menu, name your project and chose "Save song".. Nu kan du ersätta denna text med dina egna texter och ackord...',
+      'Replace this text with your own lyrics and chords...',
       true
     );
+    
     this.projectList.selectedIndex = 0;
     this.currentProjectName.textContent = "Chose project...";
     localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
     this.editor.style.fontSize = "16px";
-    this.titleInput.focus();
+    
+    // NYTT: Slå på Edit-läget automatiskt om det inte redan är igång
+    if (!this.isEditMode) {
+      this.toggleEditMode();
+    }
+    
+    // NYTT: Sätt markören direkt i titeln så man kan börja skriva direkt!
+    setTimeout(() => {
+      const titleEl = this.editor.querySelector('.song-header-title');
+      if (titleEl) {
+        titleEl.focus();
+      }
+    }, 50);
   }
 
   saveCopy() {

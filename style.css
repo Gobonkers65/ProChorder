@@ -1488,3 +1488,10 @@ body.dark-mode.edit-mode-on .song-header-author {
   content: "Artist / Composer"; /* <-- Ändrad till engelska */
   opacity: 0.3;
 }
+/* --- LÅS UPP RUBRIKEN I EDIT-LÄGE --- */
+body.edit-mode-on .song-header-block,
+body.edit-mode-on .song-header-title,
+body.edit-mode-on .song-header-author {
+  pointer-events: auto !important;
+  user-select: text !important;
+}

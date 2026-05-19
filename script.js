@@ -3,9 +3,6 @@
  * =========================================
  */
 
-const SHARED_SONG_LIST_URL =
-  "https://raw.githubusercontent.com/Gobonkers65/ProChorder/main/songs-backup.json";
-
 class StableChordEditor {
   static STORAGE_KEYS = {
     PROJECTS: "stableProjects",
@@ -349,7 +346,6 @@ class StableChordEditor {
     this.importModal = document.getElementById("import-modal");
     this.importModalClose = document.getElementById("import-modal-close");
     this.btnImportJson = document.getElementById("btn-import-json");
-    this.btnImportUrl = document.getElementById("btn-import-url");
     this.fileImport = document.getElementById("file-import");
 
     // Ackord-byggare (Radial)
@@ -542,8 +538,6 @@ class StableChordEditor {
     if (menu) menu.classList.toggle("is-hidden");
   }
 
-  // --- VÄXLA TILL EDIT MODE ---
-  // --- VÄXLA TILL EDIT MODE ---
   toggleEditMode() {
     // NYTT: Om Live-läget (scroll) är igång, stäng av det först!
     if (
@@ -555,26 +549,31 @@ class StableChordEditor {
 
     this.isEditMode = !this.isEditMode;
 
-    if (this.isEditMode) {
+if (this.isEditMode) {
       document.body.classList.add("edit-mode-on");
       this.floatingToolbar.classList.remove("is-hidden");
 
-      // Tillåt redigering i alla containrar
+      // Tillåt redigering i alla containrar OCH rubrikerna
       this.editor
-        .querySelectorAll(".block-content, .block-badge")
+        .querySelectorAll(".block-content, .block-badge, .song-header-title, .song-header-author")
         .forEach((el) => (el.contentEditable = "true"));
     } else {
       document.body.classList.remove("edit-mode-on");
       this.floatingToolbar.classList.add("is-hidden");
 
-      // Stäng sektionsmenyn om den är öppen
       const secMenu = document.getElementById("section-type-toolbar");
       if (secMenu) secMenu.classList.add("is-hidden");
 
-      // Lås redigeringen i alla containrar
+      // Lås redigeringen
       this.editor
-        .querySelectorAll(".block-content, .block-badge")
+        .querySelectorAll(".block-content, .block-badge, .song-header-title, .song-header-author")
         .forEach((el) => (el.contentEditable = "false"));
+
+      // Synka titel och artist från DOM till de dolda fälten innan vi sparar
+      const titleEl = this.editor.querySelector(".song-header-title");
+      const authorEl = this.editor.querySelector(".song-header-author");
+      if (titleEl) this.titleInput.value = titleEl.textContent.trim();
+      if (authorEl) this.authorInput.value = authorEl.textContent.trim();
 
       if (this.titleInput.value) {
         this.saveProject(this.titleInput.value);
@@ -899,6 +898,12 @@ class StableChordEditor {
     });
 
     this.btnSaveProject.addEventListener("click", () => {
+      // Synka alltid från DOM först — titleInput kan vara tomt om användaren skrivit direkt i editorn
+      const titleEl = this.editor.querySelector(".song-header-title");
+      const authorEl = this.editor.querySelector(".song-header-author");
+      if (titleEl) this.titleInput.value = titleEl.textContent.trim();
+      if (authorEl) this.authorInput.value = authorEl.textContent.trim();
+
       const name = this.titleInput.value.trim();
       if (!name) return this.showCustomAlert("Please name your song first.");
       this.saveProject(name);
@@ -956,12 +961,6 @@ class StableChordEditor {
     this.fileImport.addEventListener("change", (e) =>
       this.importJsonFromFile(e.target.files[0])
     );
-    this.btnImportUrl.addEventListener("click", async () => {
-      const confirmed = await this.showCustomConfirm(
-        "Load songs from GitHub? Local songs with the same title will be overwritten."
-      );
-      if (confirmed) this.importJsonFromUrl(SHARED_SONG_LIST_URL);
-    });
 
     this.fontSizeSelector.addEventListener("change", (e) => {
       this.editor.style.fontSize = e.target.value + "px";
@@ -1028,7 +1027,44 @@ class StableChordEditor {
       document.execCommand("insertText", false, processedText);
     });
 
-    this.editor.addEventListener("input", () => this.recordHistoryDebounced());
+   this.editor.addEventListener("input", (e) => {
+      // Synka rubrikerna i realtid
+      if (e.target.classList.contains("song-header-title")) {
+        this.titleInput.value = e.target.textContent;
+      }
+      if (e.target.classList.contains("song-header-author")) {
+        this.authorInput.value = e.target.textContent;
+      }
+      this.recordHistoryDebounced();
+    });
+
+    // Fråga om namnbyte när man klickar bort från titeln
+    this.editor.addEventListener("focusout", async (e) => {
+      if (e.target.classList.contains("song-header-title")) {
+        const oldName = this.projectList.value;
+        const newName = e.target.textContent.trim();
+
+        // Synka alltid titleInput från DOM
+        this.titleInput.value = newName;
+
+        if (oldName && newName && oldName !== newName) {
+          const confirmed = await this.showCustomConfirm(
+            `Do you want to rename the song to "${newName}"?`
+          );
+          if (confirmed) {
+            this.renameProject(oldName, newName);
+          } else {
+            // Ångrade sig, återställ texten
+            e.target.textContent = oldName;
+            this.titleInput.value = oldName;
+          }
+        }
+      }
+      if (e.target.classList.contains("song-header-author")) {
+        // Synka alltid authorInput från DOM
+        this.authorInput.value = e.target.textContent.trim();
+      }
+    });
     this.editor.addEventListener("keyup", this.handleAutoLinking.bind(this));
 
     this.editor.addEventListener("dragover", this.handleDragOver.bind(this));
@@ -1134,31 +1170,29 @@ class StableChordEditor {
     this.btnToggleMetronome.classList.remove("is-active");
   }
 
-  scheduler() {
+ scheduler() {
     while (
       this.nextNoteTime <
       this.audioContext.currentTime + this.scheduleAheadTime
     ) {
       this.playMetronomeClick(this.nextNoteTime);
 
-      // --- NYTT: Visuell puls synkad med ljudet ---
-      // Räkna ut hur många millisekunder det är kvar tills ljudet spelas
       const timeUntilBeat =
         (this.nextNoteTime - this.audioContext.currentTime) * 1000;
 
       setTimeout(() => {
         if (this.btnToggleMetronome) {
-          // Ta bort klassen först (om den redan finns från förra slaget)
-          this.btnToggleMetronome.classList.remove("pulse-beat");
-
-          // Tvinga webbläsaren att registrera att vi tog bort den (reflow)
-          void this.btnToggleMetronome.offsetWidth;
-
-          // Lägg till klassen igen så animationen startar om!
-          this.btnToggleMetronome.classList.add("pulse-beat");
+          // JS Animation istället för CSS
+          this.btnToggleMetronome.animate([
+            { transform: 'scale(0.9)', filter: 'brightness(1.5)' },
+            { transform: 'scale(1.1)', offset: 0.5 },
+            { transform: 'scale(1)', filter: 'brightness(1)' }
+          ], {
+            duration: 150,
+            easing: 'ease-out'
+          });
         }
       }, Math.max(0, timeUntilBeat));
-      // ---------------------------------------------
 
       let secondsPerBeat = 60.0 / this.tempo;
       this.nextNoteTime += secondsPerBeat;
@@ -1719,7 +1753,14 @@ class StableChordEditor {
   // --- SÄKER REDIGERING & ENTER-FIX ---
   handleKeyDown(e) {
     if (this.editMode !== "chord") return;
-
+// Förhindra radbrytningar i titel och artist
+    if (e.key === "Enter") {
+      if (e.target.classList.contains("song-header-title") || e.target.classList.contains("song-header-author")) {
+        e.preventDefault();
+        e.target.blur(); // Klickar ur markören så att 'focusout' triggas
+        return;
+      }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       const sel = window.getSelection();
       if (!sel.rangeCount) return;
@@ -1923,20 +1964,36 @@ class StableChordEditor {
     });
     return result.join("\n");
   }
-  // Ritar ut Låtnamn och Artist högst upp på pappret
+// Ritar ut Låtnamn och Artist högst upp på pappret
   updateEditorHeader() {
     let header = this.editor.querySelector("#song-header");
     if (!header) {
       header = document.createElement("div");
       header.id = "song-header";
-      header.contentEditable = "false";
       header.className = "song-header-block";
       this.editor.prepend(header);
     }
+
+    // Sätt aldrig contentEditable på containern — det stör barnens redigering
+    header.removeAttribute("contenteditable");
+
+    // Kollar om edit-läget är igång just nu
+    const isEditable = this.isEditMode ? "true" : "false";
+
+    // Spara befintliga värden från DOM om de redan finns (undvik att skriva över pågående redigering)
+    const existingTitle = this.editor.querySelector(".song-header-title");
+    const existingAuthor = this.editor.querySelector(".song-header-author");
+    const currentTitle = existingTitle ? existingTitle.textContent : this.titleInput.value;
+    const currentAuthor = existingAuthor ? existingAuthor.textContent : this.authorInput.value;
+
     header.innerHTML = `
-      <h1 class="song-header-title">${this.titleInput.value || "Ny låt"}</h1>
-      <h3 class="song-header-author">${this.authorInput.value || ""}</h3>
+      <h1 class="song-header-title" contenteditable="${isEditable}" spellcheck="false">${currentTitle || ""}</h1>
+      <h3 class="song-header-author" contenteditable="${isEditable}" spellcheck="false">${currentAuthor || ""}</h3>
     `;
+
+    // Synka tillbaka till de dolda inputfälten
+    this.titleInput.value = currentTitle || "";
+    this.authorInput.value = currentAuthor || "";
   }
   // LADDAR IN LÅTEN PÅ SKÄRMEN I DOM NYA BLOCKEN
   loadContent(text, recordHistory = false) {
@@ -3268,18 +3325,6 @@ async fetchSongsFromCloud() {
       }
     };
     reader.readAsText(file);
-  }
-
-  async importJsonFromUrl(url) {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Nätverksfel");
-      const data = await response.json();
-      if (Array.isArray(data)) this.importMultipleProjects(data);
-      else if (data.title) this.importSingleProject(data);
-    } catch (e) {
-      this.showCustomAlert("Could not fetch songs.");
-    }
   }
 
   importSingleProject(data) {

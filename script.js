@@ -2571,37 +2571,47 @@ async fetchSongsFromCloud() {
     }
   }
 
-  deleteProject(name) {
-    const projects =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
-      ) || {};
-    delete projects[name];
-    localStorage.setItem(
-      StableChordEditor.STORAGE_KEYS.PROJECTS,
-      JSON.stringify(projects)
-    );
+  async deleteProject(projectName = null) {
+    // Kollar om vi raderar från en lista eller den aktiva låten
+    const nameToDelete = projectName || this.titleInput.value;
+    if (!nameToDelete) return;
 
-    let order =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-      ) || [];
-    order = order.filter((item) => item !== name);
-    localStorage.setItem(
-      StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-      JSON.stringify(order)
+    const confirmed = await this.showCustomConfirm(
+      `Are you sure you want to delete "${nameToDelete}"?`
     );
+    if (!confirmed) return;
 
-    const last = localStorage.getItem(
-      StableChordEditor.STORAGE_KEYS.LAST_PROJECT
-    );
-    if (last === name) {
-      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-      this.createNewProject();
+    // 1. Radera från det lokala minnet i webbläsaren
+    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    delete projects[nameToDelete];
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+
+    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    order = order.filter((title) => title !== nameToDelete);
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+
+    // 2. Radera från Firebase (kollar automatiskt om du är i ett band eller solo)
+    if (window.fb && window.fb.auth.currentUser) {
+      const uid = window.fb.auth.currentUser.uid;
+      const { db, doc, deleteDoc } = window.fb;
+      try {
+        const songRef = this.currentBandId
+          ? doc(db, "bands", this.currentBandId, "songs", nameToDelete)
+          : doc(db, "users", uid, "songs", nameToDelete);
+        
+        await deleteDoc(songRef); // Nu dör låten i molnet också!
+      } catch (e) {
+        console.error("Kunde inte radera från molnet:", e);
+      }
     }
 
+    // 3. Uppdatera skärmen
     this.updateProjectList();
-    this.showCustomAlert(`The song "${name}" is removed.`);
+    
+    // Om vi precis raderade den låten vi hade öppen, rensa pappret
+    if (this.titleInput.value === nameToDelete) {
+      this.createNewProject();
+    }
   }
 
   async deleteAllProjects() {

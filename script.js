@@ -434,7 +434,7 @@ class StableChordEditor {
     }
   }
 
-  // --- SWIPE NAVIGERING ---
+   // --- SWIPE NAVIGERING ---
   setupSwipeGestures() {
     let touchStartX = 0;
     let touchStartY = 0;
@@ -451,7 +451,8 @@ class StableChordEditor {
     this.editor.addEventListener(
       "touchend",
       (e) => {
-        if (document.body.classList.contains("is-dragging")) return;
+        // NYTT: Stoppa swipen direkt om Edit-läget är på, eller om vi drar och släpper!
+        if (this.isEditMode || document.body.classList.contains("is-dragging")) return;
 
         const touchEndX = e.changedTouches[0].screenX;
         const touchEndY = e.changedTouches[0].screenY;

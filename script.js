@@ -129,6 +129,7 @@ class StableChordEditor {
     this.historyIndex = -1;
     this.debounceTimer = null;
     this.currentlyEditing = null;
+    this.loadedProjectName = null;
 
     this.btnExitSetlist = document.getElementById("btn-exit-setlist");
     // Avsluta Gig-läge
@@ -868,6 +869,7 @@ if (this.isEditMode) {
       this.toggleProjectMenu();
     });
 
+
     this.btnNewProject.addEventListener("click", async () => {
       toggleMenu();
       if (
@@ -1025,13 +1027,12 @@ if (this.isEditMode) {
       this.recordHistoryDebounced();
     });
 
-    // Fråga om namnbyte när man klickar bort från titeln
+    // Synka titel/artist från editorn + fråga om namnbyte
     this.editor.addEventListener("focusout", async (e) => {
       if (e.target.classList.contains("song-header-title")) {
-        const oldName = this.projectList.value;
+        const oldName = this.loadedProjectName; // Säkert: vad låten heter i Firebase/localStorage
         const newName = e.target.textContent.trim();
 
-        // Synka alltid titleInput från DOM
         this.titleInput.value = newName;
 
         if (oldName && newName && oldName !== newName) {
@@ -1040,15 +1041,14 @@ if (this.isEditMode) {
           );
           if (confirmed) {
             this.renameProject(oldName, newName);
+            this.loadedProjectName = newName; // Uppdatera minnet!
           } else {
-            // Ångrade sig, återställ texten
             e.target.textContent = oldName;
             this.titleInput.value = oldName;
           }
         }
       }
       if (e.target.classList.contains("song-header-author")) {
-        // Synka alltid authorInput från DOM
         this.authorInput.value = e.target.textContent.trim();
       }
     });
@@ -2181,6 +2181,7 @@ if (this.isEditMode) {
   }
 
     createNewProject() {
+    this.loadedProjectName = null;
     this.titleInput.value = "";
     this.authorInput.value = "";
     
@@ -2217,6 +2218,7 @@ if (this.isEditMode) {
     }
     const newName = currentName + " - Kopia";
     this.titleInput.value = newName;
+    this.loadedProjectName = null; // Tvinga kopian att bli en ny fil
     this.saveProject(newName);
     this.showCustomAlert(`Created a copy: "${newName}"`);
   }
@@ -2398,6 +2400,7 @@ async fetchSongsFromCloud() {
         localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
       ) || {};
     if (projects[name]) {
+      this.loadedProjectName = name;
       const data = projects[name];
       this.titleInput.value = data.title || "";
       this.authorInput.value = data.author || "";
@@ -2694,8 +2697,11 @@ async fetchSongsFromCloud() {
       return;
     }
 
+    // Spara datan i en lokal variabel innan vi muterar projects-objektet
+    const renamedData = { ...projects[oldName], title: newName };
+
     // 1. Uppdatera localStorage
-    projects[newName] = { ...projects[oldName], title: newName };
+    projects[newName] = renamedData;
     delete projects[oldName];
     localStorage.setItem(
       StableChordEditor.STORAGE_KEYS.PROJECTS,
@@ -2733,20 +2739,21 @@ async fetchSongsFromCloud() {
           ? doc(db, "bands", this.currentBandId, "songs", newName)
           : doc(db, "users", uid, "songs", newName);
 
-        // Skriv nytt dokument med uppdaterat title-fält
-        await setDoc(newRef, {
-          ...projects[newName],
-          updatedAt: new Date().toISOString(),
-        });
-        // Radera det gamla
+        console.log(`Renaming in Firebase: "${oldName}" to "${newName}"`);
+        await setDoc(newRef, { ...renamedData, updatedAt: new Date().toISOString() });
+        console.log(`Created new Firebase doc: "${newName}"`);
         await deleteDoc(oldRef);
+        console.log(`Deleted old Firebase doc: "${oldName}"`);
       } catch (e) {
         console.error("Kunde inte döpa om i molnet:", e);
         this.showCustomAlert("Renamed locally, but cloud sync failed.");
       }
+    } else {
+      console.warn("renameProject: Firebase ej tillgänglig eller ej inloggad.");
     }
 
     // 5. Uppdatera UI
+    this.loadedProjectName = newName;
     this.titleInput.value = newName;
     this.updateProjectList(newName);
     this.showCustomAlert(`The song is now renamed to "${newName}".`);

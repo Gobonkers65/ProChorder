@@ -868,21 +868,6 @@ if (this.isEditMode) {
       this.toggleProjectMenu();
     });
 
-    this.titleInput.addEventListener("blur", async () => {
-      const oldName = this.projectList.value;
-      const newName = this.titleInput.value.trim();
-      if (oldName && newName && oldName !== newName) {
-        const confirmed = await this.showCustomConfirm(
-          `Rename "${oldName}" to "${newName}"?`
-        );
-        if (confirmed) {
-          this.renameProject(oldName, newName);
-        } else {
-          this.titleInput.value = oldName;
-        }
-      }
-    });
-
     this.btnNewProject.addEventListener("click", async () => {
       toggleMenu();
       if (

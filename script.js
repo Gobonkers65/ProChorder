@@ -3,6 +3,7 @@
  * =========================================
  */
 
+
 class StableChordEditor {
   static STORAGE_KEYS = {
     PROJECTS: "stableProjects",
@@ -346,6 +347,7 @@ class StableChordEditor {
     this.importModal = document.getElementById("import-modal");
     this.importModalClose = document.getElementById("import-modal-close");
     this.btnImportJson = document.getElementById("btn-import-json");
+
     this.fileImport = document.getElementById("file-import");
 
     // Ackord-byggare (Radial)
@@ -2691,45 +2693,78 @@ async fetchSongsFromCloud() {
       JSON.parse(
         localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
       ) || {};
-    if (projects[oldName] && !projects[newName]) {
-      projects[newName] = projects[oldName];
-      projects[newName].title = newName;
-      delete projects[oldName];
 
-      localStorage.setItem(
-        StableChordEditor.STORAGE_KEYS.PROJECTS,
-        JSON.stringify(projects)
-      );
-
-      let order =
-        JSON.parse(
-          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-        ) || [];
-      const index = order.indexOf(oldName);
-      if (index !== -1) {
-        order[index] = newName;
-        localStorage.setItem(
-          StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-          JSON.stringify(order)
-        );
-      }
-
-      const lastProject = localStorage.getItem(
-        StableChordEditor.STORAGE_KEYS.LAST_PROJECT
-      );
-      if (lastProject === oldName)
-        localStorage.setItem(
-          StableChordEditor.STORAGE_KEYS.LAST_PROJECT,
-          newName
-        );
-
-      this.titleInput.value = newName;
-      this.updateProjectList(newName);
-      this.showCustomAlert(`The song is now renamed to "${newName}".`);
-    } else if (projects[newName]) {
-      this.showCustomAlert(`The song "${newName}" allready exists.`);
+    if (projects[newName]) {
+      this.showCustomAlert(`A song named "${newName}" already exists.`);
+      // Återställ titeln i editorn
+      const titleEl = this.editor.querySelector(".song-header-title");
+      if (titleEl) titleEl.textContent = oldName;
       this.titleInput.value = oldName;
+      return;
     }
+
+    if (!projects[oldName]) {
+      // Låten finns inte sparad än — uppdatera bara titleInput så att nästa spara använder rätt namn
+      this.titleInput.value = newName;
+      return;
+    }
+
+    // 1. Uppdatera localStorage
+    projects[newName] = { ...projects[oldName], title: newName };
+    delete projects[oldName];
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECTS,
+      JSON.stringify(projects)
+    );
+
+    // 2. Uppdatera ordningslistan
+    let order =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
+    const index = order.indexOf(oldName);
+    if (index !== -1) {
+      order[index] = newName;
+      localStorage.setItem(
+        StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+        JSON.stringify(order)
+      );
+    }
+
+    // 3. Uppdatera LAST_PROJECT
+    if (localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT) === oldName) {
+      localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);
+    }
+
+    // 4. Uppdatera Firebase — radera gamla, spara nya
+    if (window.fb && window.fb.auth.currentUser) {
+      const uid = window.fb.auth.currentUser.uid;
+      const { db, doc, setDoc, deleteDoc } = window.fb;
+      try {
+        const oldRef = this.currentBandId
+          ? doc(db, "bands", this.currentBandId, "songs", oldName)
+          : doc(db, "users", uid, "songs", oldName);
+        const newRef = this.currentBandId
+          ? doc(db, "bands", this.currentBandId, "songs", newName)
+          : doc(db, "users", uid, "songs", newName);
+
+        // Skriv nytt dokument med uppdaterat title-fält
+        await setDoc(newRef, {
+          ...projects[newName],
+          updatedAt: new Date().toISOString(),
+        });
+        // Radera det gamla
+        await deleteDoc(oldRef);
+      } catch (e) {
+        console.error("Kunde inte döpa om i molnet:", e);
+        this.showCustomAlert("Renamed locally, but cloud sync failed.");
+      }
+    }
+
+    // 5. Uppdatera UI
+    this.titleInput.value = newName;
+    this.updateProjectList(newName);
+    this.showCustomAlert(`The song is now renamed to "${newName}".`);
   }
 
   generatePdfForProject(projectData) {
@@ -3326,6 +3361,7 @@ async fetchSongsFromCloud() {
     };
     reader.readAsText(file);
   }
+
 
   importSingleProject(data) {
     this.titleInput.value = data.title || "";

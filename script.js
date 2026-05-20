@@ -2184,6 +2184,12 @@ if (this.isEditMode) {
     this.loadedProjectName = null;
     this.titleInput.value = "";
     this.authorInput.value = "";
+
+    // Återställ till textläge (inte ackordsläge) för ny låt
+    if (this.editMode === "chord") {
+      this.editMode = "text";
+      this.updateModeUI();
+    }
     
     // NYTT: Ren, engelsk start-text
     this.loadContent(
@@ -2634,6 +2640,7 @@ async fetchSongsFromCloud() {
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
 
     let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    const deletedIndex = order.indexOf(nameToDelete); // Spara index INNAN filter
     order = order.filter((title) => title !== nameToDelete);
     localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
 
@@ -2654,10 +2661,16 @@ async fetchSongsFromCloud() {
 
     // 3. Uppdatera skärmen
     this.updateProjectList();
-    
-    // Om vi precis raderade den låten vi hade öppen, rensa pappret
-    if (this.titleInput.value === nameToDelete) {
-      this.createNewProject();
+
+    // Om vi precis raderade den aktiva låten, hoppa till närmaste granne
+    if (this.titleInput.value === nameToDelete || this.loadedProjectName === nameToDelete) {
+      if (order.length > 0) {
+        // Välj samma position, eller ett steg bakåt om vi raderade sista
+        const nextIndex = Math.min(deletedIndex, order.length - 1);
+        this.loadProject(order[nextIndex]);
+      } else {
+        this.createNewProject();
+      }
     }
   }
 

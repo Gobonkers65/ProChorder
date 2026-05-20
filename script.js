@@ -2483,15 +2483,19 @@ async fetchSongsFromCloud() {
 
   loadLastProject() {
     this.updateProjectList();
-    const last = localStorage.getItem(
-      StableChordEditor.STORAGE_KEYS.LAST_PROJECT
-    );
-    if (last) this.loadProject(last);
-    else
-      this.loadContent(
-        "Welcome to ProChorder!\nFirst time here? Goto help pages in the right side menu.",
-        true
-      );
+
+    const order = JSON.parse(
+      localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+    ) || [];
+
+    if (order.length > 0) {
+      // Ladda alltid första låten vid start, aldrig i edit-läge
+      this.loadProject(order[0]);
+      if (this.isEditMode) this.toggleEditMode();
+    } else {
+      // Inga låtar — visa ny tom låt
+      this.createNewProject();
+    }
   }
 
   updateProjectList(selectedValue) {

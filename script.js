@@ -1028,25 +1028,10 @@ if (this.isEditMode) {
     });
 
     // Synka titel/artist från editorn + fråga om namnbyte
-    this.editor.addEventListener("focusout", async (e) => {
+    // Synka title/author från editorn till de dolda inputfälten
+    this.editor.addEventListener("focusout", (e) => {
       if (e.target.classList.contains("song-header-title")) {
-        const oldName = this.loadedProjectName; // Säkert: vad låten heter i Firebase/localStorage
-        const newName = e.target.textContent.trim();
-
-        this.titleInput.value = newName;
-
-        if (oldName && newName && oldName !== newName) {
-          const confirmed = await this.showCustomConfirm(
-            `Do you want to rename the song to "${newName}"?`
-          );
-          if (confirmed) {
-            this.renameProject(oldName, newName);
-            this.loadedProjectName = newName; // Uppdatera minnet!
-          } else {
-            e.target.textContent = oldName;
-            this.titleInput.value = oldName;
-          }
-        }
+        this.titleInput.value = e.target.textContent.trim();
       }
       if (e.target.classList.contains("song-header-author")) {
         this.authorInput.value = e.target.textContent.trim();
@@ -2236,6 +2221,19 @@ if (this.isEditMode) {
         localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
       ) || {};
 
+    // --- SMART NAMNBYTE ---
+    const oldName = this.loadedProjectName;
+    const isRenaming = oldName && oldName !== name;
+
+    // Förhindra att man skriver över en ANNAN befintlig låt när man byter namn
+    if (isRenaming && projects[name]) {
+      this.showCustomAlert(`En låt med namnet "${name}" finns redan.`);
+      const titleEl = this.editor.querySelector(".song-header-title");
+      if (titleEl) titleEl.textContent = oldName;
+      this.titleInput.value = oldName;
+      return;
+    }
+
     const projectData = {
       title: this.titleInput.value,
       author: this.authorInput.value,
@@ -2246,54 +2244,59 @@ if (this.isEditMode) {
       tempo: this.tempo,
     };
 
-    projects[name] = projectData;
-
     let order =
       JSON.parse(
         localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
       ) || [];
-    if (!order.includes(name)) {
-      order.push(name);
-      localStorage.setItem(
-        StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-        JSON.stringify(order)
-      );
-    }
 
-    localStorage.setItem(
-      StableChordEditor.STORAGE_KEYS.PROJECTS,
-      JSON.stringify(projects)
-    );
-    localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
-    this.updateProjectList(name);
-
-    // --- NY FIRESTORE LOGIK (SPARA TILL MOLNET) ---
-    if (window.fb && window.fb.auth.currentUser) {
-      try {
-        const uid = window.fb.auth.currentUser.uid;
-        const { db, doc, setDoc } = window.fb;
-
-        // NYTT: Spara i band-mappen om vi är med i ett band, annars i privata
-        const songRef = this.currentBandId
-          ? doc(db, "bands", this.currentBandId, "songs", name)
-          : doc(db, "users", uid, "songs", name);
-
-        // Skickar upp datan
-        await setDoc(songRef, {
-          ...projectData,
-          updatedAt: new Date().toISOString(), // Bra att veta när den sparades senast
-        });
-
-        console.log(`The song "${name}" was saved in the cloud!`);
-      } catch (error) {
-        console.error("Could not save to the cloud:", error);
-        this.showCustomAlert("Saved locally, but cloud sync failed.");
+    if (isRenaming) {
+      delete projects[oldName];
+      const index = order.indexOf(oldName);
+      if (index !== -1) {
+        order[index] = name;
+      } else {
+        order.push(name);
+      }
+    } else {
+      if (!order.includes(name)) {
+        order.push(name);
       }
     }
 
-    // --- VISUELL FEEDBACK ATT LÅTEN ÄR SPARAD ---
+    projects[name] = projectData;
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, name);
 
-    // 1. Feedback i Hamburgermenyn (för de som sparar manuellt)
+    this.loadedProjectName = name;
+    this.updateProjectList(name);
+
+    // --- FIRESTORE LOGIK (Spara och städa) ---
+    if (window.fb && window.fb.auth.currentUser) {
+      try {
+        const uid = window.fb.auth.currentUser.uid;
+        const { db, doc, setDoc, deleteDoc } = window.fb;
+        const songRef = this.currentBandId
+          ? doc(db, "bands", this.currentBandId, "songs", name)
+          : doc(db, "users", uid, "songs", name);
+        await setDoc(songRef, {
+          ...projectData,
+          updatedAt: new Date().toISOString(),
+        });
+        if (isRenaming) {
+          const oldRef = this.currentBandId
+            ? doc(db, "bands", this.currentBandId, "songs", oldName)
+            : doc(db, "users", uid, "songs", oldName);
+          await deleteDoc(oldRef);
+        }
+        console.log(`Låten "${name}" sparades i molnet!`);
+      } catch (error) {
+        console.error("Kunde inte spara till molnet:", error);
+        this.showCustomAlert("Sparades lokalt, men molnsynken misslyckades.");
+      }
+    }
+
+    // --- VISUELL FEEDBACK ---
     if (this.btnSaveProject) {
       const titleSpan = this.btnSaveProject.querySelector(".menu-grid-title");
       if (titleSpan) titleSpan.textContent = "Saved!";
@@ -2303,18 +2306,11 @@ if (this.isEditMode) {
         this.btnSaveProject.disabled = false;
       }, 1500);
     }
-
-    // 2. Feedback på EDIT-knappen (för autosparningen)
     if (this.btnMainEditToggle && !this.isEditMode) {
-      const originalText = this.btnMainEditToggle.textContent;
-
-      // Byt utseende till "Sparat"
       this.btnMainEditToggle.textContent = "✓";
       this.btnMainEditToggle.style.backgroundColor = "var(--success-bg)";
       this.btnMainEditToggle.style.borderColor = "var(--success-bg)";
       this.btnMainEditToggle.style.color = "#ffffff";
-
-      // Återställ till "EDIT" efter 1.5 sekunder
       setTimeout(() => {
         this.btnMainEditToggle.textContent = "EDIT";
         this.btnMainEditToggle.style.backgroundColor = "";
@@ -2339,6 +2335,25 @@ async fetchSongsFromCloud() {
     if (this.cloudListener) {
       this.cloudListener();
     }
+
+    // Hämta sparad låtordning från molnet och applicera den lokalt
+    const { doc: docFn, getDoc } = window.fb;
+    const metaRef = this.currentBandId
+      ? docFn(db, "bands", this.currentBandId, "meta", "songOrder")
+      : docFn(db, "users", uid, "meta", "songOrder");
+    getDoc(metaRef).then((snap) => {
+      if (snap.exists()) {
+        const cloudOrder = snap.data().order;
+        if (Array.isArray(cloudOrder) && cloudOrder.length > 0) {
+          localStorage.setItem(
+            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+            JSON.stringify(cloudOrder)
+          );
+          this.updateProjectList(this.titleInput.value);
+          console.log("Låtordning återställd från molnet.");
+        }
+      }
+    }).catch((e) => console.error("Kunde inte läsa låtordning:", e));
 
     // NYTT: onSnapshot sitter och lyssnar i realtid dygnet runt!
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {
@@ -2498,6 +2513,20 @@ async fetchSongsFromCloud() {
     }
   }
 
+  async syncOrderToCloud(order) {
+    if (!window.fb || !window.fb.auth.currentUser) return;
+    const uid = window.fb.auth.currentUser.uid;
+    const { db, doc, setDoc } = window.fb;
+    try {
+      const metaRef = this.currentBandId
+        ? doc(db, "bands", this.currentBandId, "meta", "songOrder")
+        : doc(db, "users", uid, "meta", "songOrder");
+      await setDoc(metaRef, { order, updatedAt: new Date().toISOString() });
+    } catch (e) {
+      console.error("Kunde inte synka låtordningen:", e);
+    }
+  }
+
   updateProjectList(selectedValue) {
     const list = this.projectList;
     const dropdown = this.projectDropdownMenu;
@@ -2604,6 +2633,7 @@ async fetchSongsFromCloud() {
               StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
               JSON.stringify(order)
             );
+            this.syncOrderToCloud(order);
           }
           this.updateProjectList(selectedValue);
         }
@@ -2689,89 +2719,6 @@ async fetchSongsFromCloud() {
       this.createNewProject();
       this.showCustomAlert("All songs have been deleted.");
     }
-  }
-
-  async renameProject(oldName, newName) {
-    const projects =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
-      ) || {};
-
-    if (projects[newName]) {
-      this.showCustomAlert(`A song named "${newName}" already exists.`);
-      // Återställ titeln i editorn
-      const titleEl = this.editor.querySelector(".song-header-title");
-      if (titleEl) titleEl.textContent = oldName;
-      this.titleInput.value = oldName;
-      return;
-    }
-
-    if (!projects[oldName]) {
-      // Låten finns inte sparad än — uppdatera bara titleInput så att nästa spara använder rätt namn
-      this.titleInput.value = newName;
-      return;
-    }
-
-    // Spara datan i en lokal variabel innan vi muterar projects-objektet
-    const renamedData = { ...projects[oldName], title: newName };
-
-    // 1. Uppdatera localStorage
-    projects[newName] = renamedData;
-    delete projects[oldName];
-    localStorage.setItem(
-      StableChordEditor.STORAGE_KEYS.PROJECTS,
-      JSON.stringify(projects)
-    );
-
-    // 2. Uppdatera ordningslistan
-    let order =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-      ) || [];
-    const index = order.indexOf(oldName);
-    if (index !== -1) {
-      order[index] = newName;
-      localStorage.setItem(
-        StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-        JSON.stringify(order)
-      );
-    }
-
-    // 3. Uppdatera LAST_PROJECT
-    if (localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT) === oldName) {
-      localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT, newName);
-    }
-
-    // 4. Uppdatera Firebase — radera gamla, spara nya
-    if (window.fb && window.fb.auth.currentUser) {
-      const uid = window.fb.auth.currentUser.uid;
-      const { db, doc, setDoc, deleteDoc } = window.fb;
-      try {
-        const oldRef = this.currentBandId
-          ? doc(db, "bands", this.currentBandId, "songs", oldName)
-          : doc(db, "users", uid, "songs", oldName);
-        const newRef = this.currentBandId
-          ? doc(db, "bands", this.currentBandId, "songs", newName)
-          : doc(db, "users", uid, "songs", newName);
-
-        console.log(`Renaming in Firebase: "${oldName}" to "${newName}"`);
-        await setDoc(newRef, { ...renamedData, updatedAt: new Date().toISOString() });
-        console.log(`Created new Firebase doc: "${newName}"`);
-        await deleteDoc(oldRef);
-        console.log(`Deleted old Firebase doc: "${oldName}"`);
-      } catch (e) {
-        console.error("Kunde inte döpa om i molnet:", e);
-        this.showCustomAlert("Renamed locally, but cloud sync failed.");
-      }
-    } else {
-      console.warn("renameProject: Firebase ej tillgänglig eller ej inloggad.");
-    }
-
-    // 5. Uppdatera UI
-    this.loadedProjectName = newName;
-    this.titleInput.value = newName;
-    this.updateProjectList(newName);
-    this.showCustomAlert(`The song is now renamed to "${newName}".`);
   }
 
   generatePdfForProject(projectData) {

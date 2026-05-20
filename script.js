@@ -2666,15 +2666,13 @@ async fetchSongsFromCloud() {
     // 3. Uppdatera skärmen
     this.updateProjectList();
 
-    // Om vi precis raderade den aktiva låten, hoppa till närmaste granne
-    if (this.titleInput.value === nameToDelete || this.loadedProjectName === nameToDelete) {
-      if (order.length > 0) {
-        // Välj samma position, eller ett steg bakåt om vi raderade sista
-        const nextIndex = Math.min(deletedIndex, order.length - 1);
-        this.loadProject(order[nextIndex]);
-      } else {
-        this.createNewProject();
-      }
+    // Navigera alltid till närmaste låt efter radering — oavsett vilken låt var aktiv
+    if (order.length > 0) {
+      const nextIndex = Math.min(deletedIndex, order.length - 1);
+      this.loadProject(order[nextIndex]);
+      if (this.isEditMode) this.toggleEditMode();
+    } else {
+      this.createNewProject();
     }
   }
 

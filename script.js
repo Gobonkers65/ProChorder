@@ -2331,29 +2331,44 @@ async fetchSongsFromCloud() {
       ? collection(db, "bands", this.currentBandId, "songs") 
       : collection(db, "users", uid, "songs");
 
-    // Stäng den gamla lyssnaren om vi byter mellan band/solo
+    // Stäng gamla lyssnare om vi byter mellan band/solo
     if (this.cloudListener) {
       this.cloudListener();
     }
+    if (this.orderListener) {
+      this.orderListener();
+      this.orderListener = null;
+    }
 
-    // Hämta sparad låtordning från molnet och applicera den lokalt
-    const { doc: docFn, getDoc } = window.fb;
+    // Lyssna på låtordningen i realtid (tidigare var detta en engångshämtning med getDoc)
+    const { doc: docFn } = window.fb;
     const metaRef = this.currentBandId
       ? docFn(db, "bands", this.currentBandId, "meta", "songOrder")
       : docFn(db, "users", uid, "meta", "songOrder");
-    getDoc(metaRef).then((snap) => {
+
+    if (this.orderListener) {
+      this.orderListener(); // Stäng eventuell gammal lyssnare
+    }
+
+    this.orderListener = onSnapshot(metaRef, (snap) => {
       if (snap.exists()) {
         const cloudOrder = snap.data().order;
         if (Array.isArray(cloudOrder) && cloudOrder.length > 0) {
-          localStorage.setItem(
-            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-            JSON.stringify(cloudOrder)
-          );
-          this.updateProjectList(this.titleInput.value);
-          console.log("Låtordning återställd från molnet.");
+          const localOrder = JSON.parse(
+            localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+          ) || [];
+          // Uppdatera bara om ordningen faktiskt har ändrats
+          if (JSON.stringify(cloudOrder) !== JSON.stringify(localOrder)) {
+            localStorage.setItem(
+              StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+              JSON.stringify(cloudOrder)
+            );
+            this.updateProjectList(this.titleInput.value);
+            console.log("Låtordning synkad från molnet i realtid.");
+          }
         }
       }
-    }).catch((e) => console.error("Kunde inte läsa låtordning:", e));
+    }, (e) => console.error("Kunde inte lyssna på låtordning:", e));
 
     // NYTT: onSnapshot sitter och lyssnar i realtid dygnet runt!
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {

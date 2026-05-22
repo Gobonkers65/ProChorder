@@ -1498,3 +1498,11 @@ body.edit-mode-on .song-header-author {
   -webkit-user-modify: read-write !important; /* Tvingar fram tangentbordet */
   outline: none; /* Tar bort fula blå ramar på mobilen */
 }
+/* --- STÄNG AV "HOVER" PÅ TOUCHSKÄRMAR SÅ ATT FÄRGEN INTE FASTNAR --- */
+@media (hover: none) {
+  .project-dropdown-item:hover,
+  .song-transfer-item:hover {
+    background: var(--surface) !important;
+    color: var(--text-color) !important;
+  }
+}

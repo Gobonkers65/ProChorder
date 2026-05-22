@@ -2402,8 +2402,7 @@ class StableChordEditor {
     }
 
     // --- 1. DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN (TILLBAKA IGEN!) ---
-    // Eftersom du nu skickar uppdateringen först när menyn stängs,
-    // kommer denna aldrig mer att störa medan nån drar i en låt.
+// --- DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
     const metaRef = this.currentBandId
       ? doc(db, "bands", this.currentBandId, "meta", "songOrder")
       : doc(db, "users", uid, "meta", "songOrder");
@@ -2411,17 +2410,11 @@ class StableChordEditor {
     this.orderListener = onSnapshot(metaRef, (snap) => {
       if (snap.exists() && snap.data().order) {
         const cloudOrder = snap.data().order;
-        const localOrder =
-          JSON.parse(
-            localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-          ) || [];
-
-        // Uppdatera bara skärmen om molnets ordning skiljer sig från den man redan har
+        const localOrder = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+        
+        // Uppdatera skärmen automatiskt i bakgrunden om ordningen ändrats!
         if (JSON.stringify(cloudOrder) !== JSON.stringify(localOrder)) {
-          localStorage.setItem(
-            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-            JSON.stringify(cloudOrder)
-          );
+          localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(cloudOrder));
           this.updateProjectList(this.titleInput.value);
         }
       }
@@ -2606,31 +2599,22 @@ class StableChordEditor {
     }
   }
 
-  async syncOrderToCloud(order) {
+async syncOrderToCloud(order) {
     if (!window.fb || !window.fb.auth.currentUser) return;
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, setDoc } = window.fb;
+    
+    // Peka på exakt rätt meta-dokument
+    const metaRef = this.currentBandId
+      ? doc(db, "bands", this.currentBandId, "meta", "songOrder")
+      : doc(db, "users", uid, "meta", "songOrder");
+      
     try {
-
-// --- DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
-    const targetRef = this.currentBandId
-      ? doc(db, "bands", this.currentBandId)
-      : doc(db, "users", uid);
-
-    this.orderListener = onSnapshot(targetRef, (snap) => {
-      if (snap.exists() && snap.data().songOrder) {
-        const cloudOrder = snap.data().songOrder;
-        const localOrder = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
-        
-        // Uppdatera skärmen automatiskt i bakgrunden om ordningen ändrats!
-        if (JSON.stringify(cloudOrder) !== JSON.stringify(localOrder)) {
-          localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(cloudOrder));
-          this.updateProjectList(this.titleInput.value);
-        }
-      }
-    });
+      await setDoc(metaRef, { order: order });
+      console.log("Låtordning synkad till molnet!");
     } catch (e) {
       console.error("Kunde inte synka låtordningen:", e);
+      this.showCustomAlert("Kunde inte synka ordningen till molnet.");
     }
   }
 

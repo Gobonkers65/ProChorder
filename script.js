@@ -2401,15 +2401,16 @@ class StableChordEditor {
       this.orderListener();
     }
 
-    // --- 1. DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN (TILLBAKA IGEN!) ---
-// --- DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
-    const metaRef = this.currentBandId
-      ? doc(db, "bands", this.currentBandId, "meta", "songOrder")
-      : doc(db, "users", uid, "meta", "songOrder");
+// --- 1. DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
+    // Peka på exakt samma rot-dokument som syncOrderToCloud använder!
+    const targetRef = this.currentBandId
+      ? doc(db, "bands", this.currentBandId)
+      : doc(db, "users", uid);
 
-    this.orderListener = onSnapshot(metaRef, (snap) => {
-      if (snap.exists() && snap.data().order) {
-        const cloudOrder = snap.data().order;
+    this.orderListener = onSnapshot(targetRef, (snap) => {
+      // Kolla efter "songOrder" istället för "order"
+      if (snap.exists() && snap.data().songOrder) {
+        const cloudOrder = snap.data().songOrder;
         const localOrder = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
         
         // Uppdatera skärmen automatiskt i bakgrunden om ordningen ändrats!
@@ -2603,14 +2604,20 @@ async syncOrderToCloud(order) {
     if (!window.fb || !window.fb.auth.currentUser) return;
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, setDoc } = window.fb;
-    
-    // Peka på exakt rätt meta-dokument
-    const metaRef = this.currentBandId
-      ? doc(db, "bands", this.currentBandId, "meta", "songOrder")
-      : doc(db, "users", uid, "meta", "songOrder");
-      
+
+    // 1. Peka direkt på rot-dokumentet för Bandet (eller dig själv om du kör solo)
+    const targetRef = this.currentBandId
+      ? doc(db, "bands", this.currentBandId)
+      : doc(db, "users", uid);
+
     try {
-      await setDoc(metaRef, { order: order });
+      // 2. Använd { merge: true } så att vi bara uppdaterar låtlistan 
+      // och inte råkar skriva över bandets namn eller medlemmar!
+      await setDoc(targetRef, { 
+        songOrder: order, 
+        updatedAt: new Date().toISOString() 
+      }, { merge: true });
+      
       console.log("Låtordning synkad till molnet!");
     } catch (e) {
       console.error("Kunde inte synka låtordningen:", e);

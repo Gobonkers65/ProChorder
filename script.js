@@ -2491,6 +2491,13 @@ class StableChordEditor {
           this.btnMainEditToggle.textContent = "SYNCED!";
           this.btnMainEditToggle.style.backgroundColor = "var(--success-bg)";
           this.btnMainEditToggle.style.color = "#ffffff";
+
+          // --- NYTT: Göm ringen och ge plats åt texten ---
+           this.btnMainEditToggle.style.borderColor = "transparent"; 
+           this.btnMainEditToggle.style.width = "auto"; 
+           this.btnMainEditToggle.style.padding = "0 12px"; 
+           this.btnMainEditToggle.style.borderRadius = "20px";
+
           setTimeout(() => {
             this.btnMainEditToggle.textContent = origText;
             this.btnMainEditToggle.style.backgroundColor = "";

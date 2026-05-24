@@ -17,10 +17,10 @@ class StableChordEditor {
     try {
       const { auth, googleProvider, signInWithPopup } = window.fb;
       const result = await signInWithPopup(auth, googleProvider);
-      console.log("Inloggad användare:", result.user.displayName);
+      console.log("Logged in user:", result.user.displayName);
       this.showCustomAlert(`Welcome ${result.user.displayName}!`);
     } catch (error) {
-      console.error("Inloggningsfel:", error);
+      console.error("Login error:", error);
       this.showCustomAlert("Could not sign in: " + error.message);
     }
   }
@@ -30,7 +30,7 @@ class StableChordEditor {
       await window.fb.signOut(window.fb.auth);
       this.showCustomAlert("You have signed out.");
     } catch (error) {
-      console.error("Utloggningsfel:", error);
+      console.error("Logout error:", error);
     }
   }
 
@@ -1715,7 +1715,7 @@ class StableChordEditor {
     const sel = window.getSelection();
     if (!sel.rangeCount || !this.editor.contains(sel.anchorNode))
       return this.showCustomAlert(
-        "Placera markören på raden där du vill infoga sektionsmarkören."
+        "Place the cursor on the line where you want to insert the section marker."
       );
 
     let node = sel.anchorNode;
@@ -1837,7 +1837,7 @@ class StableChordEditor {
           ) {
             e.preventDefault();
             this.showCustomAlert(
-              "Använd dubbelklick eller menyn för att ta bort ackord/sektioner."
+              "Use double-click or the menu to remove chords/sections."
             );
             return;
           }
@@ -2240,7 +2240,7 @@ class StableChordEditor {
     );
 
     this.projectList.selectedIndex = 0;
-    this.currentProjectName.textContent = "Chose project...";
+    this.currentProjectName.textContent = "Choose project...";
     localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
     this.editor.style.fontSize = "16px";
 
@@ -2264,7 +2264,7 @@ class StableChordEditor {
       this.showCustomAlert("Cannot copy an unnamed song!");
       return;
     }
-    const newName = currentName + " - Kopia";
+    const newName = currentName + " - Copy";
     this.titleInput.value = newName;
     this.loadedProjectName = null; // Tvinga kopian att bli en ny fil
     this.saveProject(newName);
@@ -2284,7 +2284,7 @@ class StableChordEditor {
 
     // Förhindra att man skriver över en ANNAN befintlig låt när man byter namn
     if (isRenaming && projects[name]) {
-      this.showCustomAlert(`En låt med namnet "${name}" finns redan.`);
+      this.showCustomAlert(`A song named \"${name}\" already exists.`);
       const titleEl = this.editor.querySelector(".song-header-title");
       if (titleEl) titleEl.textContent = oldName;
       this.titleInput.value = oldName;
@@ -2352,9 +2352,9 @@ class StableChordEditor {
             : doc(db, "users", uid, "songs", oldName);
           await deleteDoc(oldRef);
         }
-        console.log(`Låten "${name}" sparades i molnet!`);
+        console.log(`The song "${name}" was saved to the cloudt!`);
       } catch (error) {
-        console.error("Kunde inte spara till molnet:", error);
+        console.error("Could not save to the cloud:", error);
         this.showCustomAlert("Sparades lokalt, men molnsynken misslyckades.");
       }
     }
@@ -2625,10 +2625,10 @@ async syncOrderToCloud(order) {
         updatedAt: new Date().toISOString() 
       }, { merge: true });
       
-      console.log("Låtordning synkad till molnet!");
+      console.log("Song order synced to the cloud!");
     } catch (e) {
-      console.error("Kunde inte synka låtordningen:", e);
-      this.showCustomAlert("Kunde inte synka ordningen till molnet.");
+      console.error("Could not sync the song order:", e);
+      this.showCustomAlert("Could not sync order to the cloud.");
     }
   }
 
@@ -2805,7 +2805,7 @@ async syncOrderToCloud(order) {
 
         await deleteDoc(songRef); // Nu dör låten i molnet också!
       } catch (e) {
-        console.error("Kunde inte radera från molnet:", e);
+        console.error("Could not delete from cloud:", e);
       }
     }
 
@@ -2960,7 +2960,7 @@ async syncOrderToCloud(order) {
           localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
         ) || {};
       if (Object.keys(projects).length === 0)
-        return this.showCustomAlert("No ongs to export.");
+        return this.showCustomAlert("No songs to export.");
 
       const zip = new JSZip();
       for (const key in projects) {
@@ -2969,7 +2969,7 @@ async syncOrderToCloud(order) {
         zip.file(`${this.sanitizeFilename(project.title)}.pdf`, pdfBlob);
       }
       const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, "alla_sanger.zip");
+      saveAs(content, "all_songs.zip");
     } catch (e) {
       this.showCustomAlert("Error during ZIP-export.");
     } finally {
@@ -3284,7 +3284,7 @@ async syncOrderToCloud(order) {
 
   async fetchSharedSetlist() {
     if (!window.fb) {
-      this.showCustomAlert("Firebase är inte anslutet.");
+      this.showCustomAlert("Firebase is not connected.");
       return;
     }
 
@@ -3374,8 +3374,8 @@ async syncOrderToCloud(order) {
       //}
 
       this.showCustomAlert(
-        `Downloaded ${newCount} new songs and updated ${updateCount} befintliga från setlisten skapad av ${
-          setlistData.createdBy || "okänd"
+        `Downloaded ${newCount} new songs and updated ${updateCount} existing ones from the setlist created by ${
+          setlistData.createdBy || "unknown"
         }.`
       );
 
@@ -3393,7 +3393,7 @@ async syncOrderToCloud(order) {
       this.updateProjectList(); // Ladda om menyn (som nu bara kommer visa setlisten)
 
       this.showCustomAlert(
-        `GIG-MODE ACTIVATED!\nDownloaded ${newCount} new songs och updated ${updateCount} current.\nDu ser nu bara setlistens låtar i menyn.`
+        `GIG-MODE ACTIVATED!\nDownloaded ${newCount} new songs och updated ${updateCount} current.\nYou now only see the setlist songs in the menu.`
       );
 
       // Ladda den första låten i setlisten direkt på skärmen
@@ -3517,7 +3517,7 @@ async syncOrderToCloud(order) {
   }
 
   sanitizeFilename(name) {
-    return name.replace(/[\/\\?%*:|"<>]/g, "-") || "låt";
+    return name.replace(/[\/\\?%*:|"<>]/g, "-") || "song";
   }
 
   // --- SCROLL FUNKTIONALITET ---
@@ -3720,7 +3720,7 @@ async syncOrderToCloud(order) {
 
       if (userSnap.exists() && userSnap.data().currentBandId) {
         this.currentBandId = userSnap.data().currentBandId;
-        this.currentBandName = userSnap.data().bandName || "Mitt Band";
+        this.currentBandName = userSnap.data().bandName || "My Band";
       } else {
         this.currentBandId = null;
         this.currentBandName = null;
@@ -3740,11 +3740,11 @@ async syncOrderToCloud(order) {
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
       return this.showCustomAlert(
-        "Du måste logga in (via sidomenyn) innan du kan skapa ett band!"
+        "You must log in (via the side menu) before you can create a band"
       );
     }
 
-    const bandName = prompt("Vad ska bandet heta?");
+    const bandName = prompt("What should the band be called?");
     if (!bandName) return;
 
     const bandCode = this.generateRandomCode();
@@ -3777,7 +3777,7 @@ async syncOrderToCloud(order) {
       this.createNewProject();
 
       this.showCustomAlert(
-        `Bandet skapades!\nEr inbjudningskod är: ${bandCode}`
+        `Band created!\nYour invite code is: ${bandCode}`
       );
     } catch (e) {
       console.error(e);
@@ -3792,11 +3792,11 @@ async syncOrderToCloud(order) {
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
       return this.showCustomAlert(
-        "Du måste logga in (via sidomenyn) innan du kan gå med i ett band!"
+        "You must log in (via the side menu) before you can join a band!"
       );
     }
 
-    const code = prompt("Skriv in bandets inbjudningskod:")?.toUpperCase();
+    const code = prompt("Enter the band's invite code:")?.toUpperCase();
     if (!code || code.length < 3) return;
 
     const uid = window.fb.auth.currentUser.uid;
@@ -3832,19 +3832,19 @@ async syncOrderToCloud(order) {
         localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
         this.fetchSongsFromCloud();
 
-        this.showCustomAlert(`Du har gått med i: ${bandData.name}!`);
+        this.showCustomAlert(`You have joined: ${bandData.name}!`);
       } else {
-        this.showCustomAlert("Hittade inget band med den koden.");
+        this.showCustomAlert("ould not find a band with that code.");
       }
     } catch (e) {
       console.error(e);
-      this.showCustomAlert("Ett fel uppstod när du försökte gå med.");
+      this.showCustomAlert("n error occurred when trying to join.");
     }
   }
 
   async leaveBand() {
     const confirmed = await this.showCustomConfirm(
-      "Är du säker på att du vill lämna bandet och gå tillbaka till dina privata låtar?"
+      "Are you sure you want to leave the band and return to your private songs?"
     );
     if (!confirmed) return;
 
@@ -3870,7 +3870,7 @@ async syncOrderToCloud(order) {
       this.fetchSongsFromCloud();
       this.createNewProject();
 
-      this.showCustomAlert("Du kör nu solo igen!");
+      this.showCustomAlert("You are playing solo again!");
     } catch (e) {
       console.error(e);
     }
@@ -3883,15 +3883,15 @@ async syncOrderToCloud(order) {
     if (this.currentBandId) {
       modalBox.innerHTML = `
         <h3 style="margin-top: 0">${this.currentBandName}</h3>
-        <p style="font-size: 0.85em; opacity: 0.8;">Inbjudningskod (ge till andra medlemmar):</p>
+        <p style="font-size: 0.85em; opacity: 0.8;">Invite code (give to other members):</p>
         <p style="font-size: 1.8em; font-weight: bold; color: var(--primary); margin: 0.2em 0 1em 0; letter-spacing: 2px;">
           ${this.currentBandId}
         </p>
         <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
-            <button id="btn-band-leave" class="btn-danger">Lämna Bandet</button>
+            <button id="btn-band-leave" class="btn-danger">Leave Band</button>
         </div>
         <div class="dialog-buttons">
-          <button id="band-modal-close-new" class="btn-primary">Stäng</button>
+          <button id="band-modal-close-new" class="btn-primary">Close</button>
         </div>
       `;
       // NYTT: Tvinga klick-funktionen med .onclick (mycket säkrare än addEventListener här!)
@@ -3901,14 +3901,14 @@ async syncOrderToCloud(order) {
       modalBox.innerHTML = `
         <h3 style="margin-top: 0">Band Mode</h3>
         <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1.5em">
-          Skapa ett nytt band eller gå med i ett för att synka era låtar i realtid.
+          Create a new band or join one to sync your songs in real-time.
         </p>
         <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
-            <button id="btn-band-create" class="btn-primary">Skapa nytt band</button>
-            <button id="btn-band-join" class="btn-secondary-style">Gå med i band</button>
+            <button id="btn-band-create" class="btn-primary">Create new band</button>
+            <button id="btn-band-join" class="btn-secondary-style">Join band</button>
         </div>
         <div class="dialog-buttons">
-          <button id="band-modal-close-new" class="btn-primary">Stäng</button>
+          <button id="band-modal-close-new" class="btn-primary">Close</button>
         </div>
       `;
       // NYTT: Tvinga klick-funktionerna med .onclick!

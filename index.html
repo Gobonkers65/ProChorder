@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -608,10 +608,10 @@
           style="gap: 0.8em; min-width: 250px"
         >
           <button id="btn-band-create" class="btn-primary">
-            Skapa nytt band
+            Create new band
           </button>
           <button id="btn-band-join" class="btn-secondary-style">
-            Gå med i band
+            Join band
           </button>
         </div>
         <div class="dialog-buttons">
@@ -847,8 +847,8 @@
         window.addEventListener("load", function() {
           navigator.serviceWorker
             .register("sw.js")
-            .then(res => console.log("Service Worker är igång!"))
-            .catch(err => console.log("Service Worker misslyckades", err));
+            .then(res => console.log("Service Worker is running!"))
+            .catch(err => console.log("Service Worker failed", err));
         });
       }
     </script>

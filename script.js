@@ -2955,7 +2955,8 @@ class StableChordEditor {
     return doc.output("blob");
   }
 
-  exportPdf() {
+exportPdf() {
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     this.syncChordData();
     const projectData = {
       title: this.titleInput.value,
@@ -2968,6 +2969,7 @@ class StableChordEditor {
   }
 
   exportTxt() {
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     this.syncChordData();
     const title = this.titleInput.value;
     const author = this.authorInput.value;
@@ -2978,8 +2980,7 @@ class StableChordEditor {
   }
 
   async exportAllAsZip() {
-    this.btnExportZip.textContent = "Generating...";
-    this.btnExportZip.disabled = true;
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     try {
       const projects =
         JSON.parse(
@@ -2987,6 +2988,9 @@ class StableChordEditor {
         ) || {};
       if (Object.keys(projects).length === 0)
         return this.showCustomAlert("No songs to export.");
+
+      // Låter användaren veta att appen jobbar i bakgrunden
+      this.showCustomAlert("Generating ZIP file. Please wait...");
 
       const zip = new JSZip();
       for (const key in projects) {
@@ -2998,13 +3002,85 @@ class StableChordEditor {
       saveAs(content, "all_songs.zip");
     } catch (e) {
       this.showCustomAlert("Error during ZIP-export.");
-    } finally {
-      this.btnExportZip.textContent = "ZIP";
-      this.btnExportZip.disabled = false;
     }
   }
 
   exportJson() {
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
+    this.syncChordData();
+    const projectData = {
+      title: this.titleInput.value,
+      author: this.authorInput.value,
+      content: this.getContentAsText(),
+      fontSize: this.editor.style.fontSize,
+      scrollSpeed: this.scrollSpeed,
+      duration: this.getTotalDurationSeconds(),
+    };
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], {
+      type: "application/json",
+    });
+    saveAs(blob, `${this.sanitizeFilename(projectData.title)}.json`);
+  }
+
+  exportAllJson() {
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
+    const order =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
+
+    const projectsArray = [];
+
+    order.forEach((title) => {
+      if (projects[title]) {
+        projectsArray.push(projects[title]);
+      }
+    });
+
+    Object.keys(projects).forEach((title) => {
+      if (!order.includes(title)) {
+        projectsArray.push(projects[title]);
+      }
+    });
+
+    const blob = new Blob([JSON.stringify(projectsArray, null, 2)], {
+      type: "application/json",
+    });
+    saveAs(blob, `songs_backup.json`);
+  }
+
+ async exportAllAsZip() {
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
+    try {
+      const projects =
+        JSON.parse(
+          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+        ) || {};
+      if (Object.keys(projects).length === 0)
+        return this.showCustomAlert("No songs to export.");
+
+      // Låter användaren veta att appen jobbar i bakgrunden
+      this.showCustomAlert("Generating ZIP file. Please wait...");
+
+      const zip = new JSZip();
+      for (const key in projects) {
+        const project = projects[key];
+        const pdfBlob = this.generatePdfForProject(project);
+        zip.file(`${this.sanitizeFilename(project.title)}.pdf`, pdfBlob);
+      }
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, "all_songs.zip");
+    } catch (e) {
+      this.showCustomAlert("Error during ZIP-export.");
+    }
+  }
+
+exportJson() {
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     this.syncChordData();
     const projectData = {
       title: this.titleInput.value,
@@ -3021,7 +3097,8 @@ class StableChordEditor {
   }
 
   // --- UPPDATERAD EXPORT: Använd sorteringen ---
-  exportAllJson() {
+exportAllJson() {
+    this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     const projects =
       JSON.parse(
         localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
@@ -3031,17 +3108,14 @@ class StableChordEditor {
         localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
       ) || [];
 
-    // Skapa listan baserat på SORTERINGEN
     const projectsArray = [];
 
-    // 1. Lägg till i rätt ordning
     order.forEach((title) => {
       if (projects[title]) {
         projectsArray.push(projects[title]);
       }
     });
 
-    // 2. Fånga upp ev. missade
     Object.keys(projects).forEach((title) => {
       if (!order.includes(title)) {
         projectsArray.push(projects[title]);
@@ -3051,7 +3125,7 @@ class StableChordEditor {
     const blob = new Blob([JSON.stringify(projectsArray, null, 2)], {
       type: "application/json",
     });
-    saveAs(blob, `songs-backup.json`);
+    saveAs(blob, `songs_backup.json`);
   }
   // --- SETLIST LOGIK: DELA ---
 
@@ -3435,8 +3509,12 @@ class StableChordEditor {
     }
   }
 
-  importJsonFromFile(file) {
+importJsonFromFile(file) {
     if (!file) return;
+    
+    // --- NYTT: Stäng Backup-menyn direkt när en fil har valts! ---
+    this.backupModal.classList.remove("visible");
+
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {

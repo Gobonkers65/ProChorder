@@ -2222,10 +2222,23 @@ class StableChordEditor {
     this.applySavedTheme();
   }
 
-  createNewProject() {
+  async createNewProject() {
+    // 1. Skapa ett unikt namn (som Google Drive: Untitled song, Untitled song (1) etc.)
+    let baseName = "Untitled song";
+    let newName = baseName;
+    let counter = 1;
+    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+
+    while (projects[newName]) {
+      newName = `${baseName} (${counter})`;
+      counter++;
+    }
+
+    // 2. Sätt de nya standardvärdena
     this.loadedProjectName = null;
-    this.titleInput.value = "";
-    this.authorInput.value = "";
+    this.titleInput.value = newName;
+    this.authorInput.value = "Unknown artist"; 
+    this.editor.style.fontSize = "16px";
 
     // Återställ till textläge (inte ackordsläge) för ny låt
     if (this.editMode === "chord") {
@@ -2233,26 +2246,29 @@ class StableChordEditor {
       this.updateModeUI();
     }
 
-    // NYTT: Ren, engelsk start-text
+    // Ladda in start-texten
     this.loadContent(
       "Replace this text with your own lyrics and chords...",
       true
     );
 
-    this.projectList.selectedIndex = 0;
-    this.currentProjectName.textContent = "Choose project...";
-    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.LAST_PROJECT);
-    this.editor.style.fontSize = "16px";
+    // 3. SPARA DIREKT (Låten skapas i biblioteket och molnet i bakgrunden)
+    await this.saveProject(newName);
 
-    // NYTT: Slå på Edit-läget automatiskt om det inte redan är igång
+    // Slå på Edit-läget automatiskt om det inte redan är igång
     if (!this.isEditMode) {
       this.toggleEditMode();
     }
 
-    // NYTT: Sätt markören direkt i titeln så man kan börja skriva direkt!
+    // 4. UX-MAGI: Markera hela titeln så man bara kan börja skriva direkt!
     setTimeout(() => {
       const titleEl = this.editor.querySelector(".song-header-title");
       if (titleEl) {
+        const range = document.createRange();
+        range.selectNodeContents(titleEl);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
         titleEl.focus();
       }
     }, 50);
@@ -2401,7 +2417,7 @@ class StableChordEditor {
       this.orderListener();
     }
 
-// --- 1. DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
+    // --- 1. DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
     // Peka på exakt samma rot-dokument som syncOrderToCloud använder!
     const targetRef = this.currentBandId
       ? doc(db, "bands", this.currentBandId)
@@ -2411,11 +2427,17 @@ class StableChordEditor {
       // Kolla efter "songOrder" istället för "order"
       if (snap.exists() && snap.data().songOrder) {
         const cloudOrder = snap.data().songOrder;
-        const localOrder = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
-        
+        const localOrder =
+          JSON.parse(
+            localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+          ) || [];
+
         // Uppdatera skärmen automatiskt i bakgrunden om ordningen ändrats!
         if (JSON.stringify(cloudOrder) !== JSON.stringify(localOrder)) {
-          localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(cloudOrder));
+          localStorage.setItem(
+            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+            JSON.stringify(cloudOrder)
+          );
           this.updateProjectList(this.titleInput.value);
         }
       }
@@ -2493,10 +2515,10 @@ class StableChordEditor {
           this.btnMainEditToggle.style.color = "#ffffff";
 
           // --- NYTT: Göm ringen och ge plats åt texten ---
-           this.btnMainEditToggle.style.borderColor = "transparent"; 
-           this.btnMainEditToggle.style.width = "auto"; 
-           this.btnMainEditToggle.style.padding = "0 12px"; 
-           this.btnMainEditToggle.style.borderRadius = "20px";
+          this.btnMainEditToggle.style.borderColor = "transparent";
+          this.btnMainEditToggle.style.width = "auto";
+          this.btnMainEditToggle.style.padding = "0 12px";
+          this.btnMainEditToggle.style.borderRadius = "20px";
 
           setTimeout(() => {
             this.btnMainEditToggle.textContent = origText;
@@ -2607,7 +2629,7 @@ class StableChordEditor {
     }
   }
 
-async syncOrderToCloud(order) {
+  async syncOrderToCloud(order) {
     if (!window.fb || !window.fb.auth.currentUser) return;
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, setDoc } = window.fb;
@@ -2618,13 +2640,17 @@ async syncOrderToCloud(order) {
       : doc(db, "users", uid);
 
     try {
-      // 2. Använd { merge: true } så att vi bara uppdaterar låtlistan 
+      // 2. Använd { merge: true } så att vi bara uppdaterar låtlistan
       // och inte råkar skriva över bandets namn eller medlemmar!
-      await setDoc(targetRef, { 
-        songOrder: order, 
-        updatedAt: new Date().toISOString() 
-      }, { merge: true });
-      
+      await setDoc(
+        targetRef,
+        {
+          songOrder: order,
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true }
+      );
+
       console.log("Song order synced to the cloud!");
     } catch (e) {
       console.error("Could not sync the song order:", e);
@@ -3736,13 +3762,13 @@ async syncOrderToCloud(order) {
   }
 
   async createBand() {
-    // NYTT: Säkerhetskoll - Är användaren inloggad?
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
-      return this.showCustomAlert(
-        "You must log in (via the side menu) before you can create a band"
-      );
+      return this.showCustomAlert("You must log in (via the side menu) before you can create a band!");
     }
+
+    // --- NYTT: Stäng modalen omedelbart så den inte ligger i bakgrunden! ---
+    this.bandModal.classList.remove("visible");
 
     const bandName = prompt("What should the band be called?");
     if (!bandName) return;
@@ -3776,25 +3802,21 @@ async syncOrderToCloud(order) {
       this.fetchSongsFromCloud();
       this.createNewProject();
 
-      this.showCustomAlert(
-        `Band created!\nYour invite code is: ${bandCode}`
-      );
+      this.showCustomAlert(`Band created!\nYour invite code is: ${bandCode}`);
     } catch (e) {
       console.error(e);
-      this.showCustomAlert(
-        "Kunde inte skapa bandet. Kolla dina Firebase-regler!"
-      );
+      this.showCustomAlert("Could not create the band. Check your Firebase rules!");
     }
   }
 
-  async joinBand() {
-    // NYTT: Säkerhetskoll
+async joinBand() {
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
-      return this.showCustomAlert(
-        "You must log in (via the side menu) before you can join a band!"
-      );
+      return this.showCustomAlert("You must log in (via the side menu) before you can join a band!");
     }
+
+    // --- NYTT: Stäng modalen omedelbart! ---
+    this.bandModal.classList.remove("visible");
 
     const code = prompt("Enter the band's invite code:")?.toUpperCase();
     if (!code || code.length < 3) return;
@@ -3834,18 +3856,19 @@ async syncOrderToCloud(order) {
 
         this.showCustomAlert(`You have joined: ${bandData.name}!`);
       } else {
-        this.showCustomAlert("ould not find a band with that code.");
+        this.showCustomAlert("Could not find a band with that code.");
       }
     } catch (e) {
       console.error(e);
-      this.showCustomAlert("n error occurred when trying to join.");
+      this.showCustomAlert("An error occurred when trying to join.");
     }
   }
 
   async leaveBand() {
-    const confirmed = await this.showCustomConfirm(
-      "Are you sure you want to leave the band and return to your private songs?"
-    );
+    // --- NYTT: Stäng modalen direkt så dialogrutorna inte krockar! ---
+    this.bandModal.classList.remove("visible");
+
+    const confirmed = await this.showCustomConfirm("Are you sure you want to leave the band and return to your private songs?");
     if (!confirmed) return;
 
     const uid = window.fb.auth.currentUser.uid;
@@ -3875,7 +3898,6 @@ async syncOrderToCloud(order) {
       console.error(e);
     }
   }
-
   updateBandUI() {
     const modalBox = document.querySelector("#band-modal .custom-dialog-box");
     if (!modalBox) return;

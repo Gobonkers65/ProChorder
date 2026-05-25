@@ -1481,11 +1481,11 @@ body.dark-mode.edit-mode-on .song-header-author {
 }
 /* 2. Spök-text (Placeholders) när fälten är tomma */
 .song-header-title:empty::before {
-  content: "Untitled song"; /* <-- Ändrad till engelska */
+  content: "Song title"; /* Ändrad från Untitled song för att inte förvirra */
   opacity: 0.3;
 }
 .song-header-author:empty::before {
-  content: "Artist / Composer"; /* <-- Ändrad till engelska */
+  content: "Artist / Composer"; 
   opacity: 0.3;
 }
 /* --- LÅS UPP RUBRIKEN I EDIT-LÄGE (MOBIL-FIX) --- */

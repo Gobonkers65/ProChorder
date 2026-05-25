@@ -1,4 +1,4 @@
-const CACHE_NAME = "prochorder-v1";
+const CACHE_NAME = "prochorder-v2"; // <-- BYT DENNA SIFFRA VID VARJE UPPDATERING PÅ GITHUB
 const assets = [
   "./",
   "./index.html",
@@ -6,20 +6,34 @@ const assets = [
   "./script.js"
 ];
 
-// Sparar filerna i telefonens minne första gången appen startas
+// Installera och spara filerna
 self.addEventListener("install", installEvent => {
   installEvent.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      cache.addAll(assets);
+      return cache.addAll(assets);
     })
   );
+  self.skipWaiting(); // Tvingar den nya versionen att ta över direkt
 });
 
-// Laddar filerna från telefonens minne istället för nätet nästa gång
+// STÄDAR BORT GAMLA VERSIONER
+self.addEventListener("activate", activateEvent => {
+  activateEvent.waitUntil(
+    caches.keys().then(keys => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Hämta filer (Network First-strategi under utveckling är smidigast)
 self.addEventListener("fetch", fetchEvent => {
   fetchEvent.respondWith(
-    caches.match(fetchEvent.request).then(res => {
-      return res || fetch(fetchEvent.request);
+    fetch(fetchEvent.request).catch(() => {
+      return caches.match(fetchEvent.request);
     })
   );
 });

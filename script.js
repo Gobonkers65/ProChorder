@@ -1574,7 +1574,7 @@ class StableChordEditor {
       wordRange.setEnd(range.startContainer, endIndex);
       return wordRange;
     } catch (e) {
-      console.error("Fel vid getWordAtCursor:", e);
+      console.error("Error getWordAtCursor:", e);
       return null;
     }
   }
@@ -1817,7 +1817,11 @@ handleKeyDown(e) {
     // --- 2. Avbryt om vi är i text-läge (men EFTER rubrik-skyddet!) ---
     if (this.editMode !== "chord") return;
 
-    if (e.key === "Enter" && !e.shiftKey) {
+if (e.key === "Enter" && !e.shiftKey) {
+      // LÄGG TILL DESSA TRE RADER: Hämtar markörens position!
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
 
       let div = range.startContainer;
       while (div && div.nodeName !== "DIV" && div.id !== "editor") {
@@ -3553,7 +3557,7 @@ handleKeyDown(e) {
         this.loadProject(songsArray[0].title);
       }
     } catch (error) {
-      console.error("Fel vid hämtning:", error);
+      console.error("Error fetching:", error);
       this.showCustomAlert("An error occurred while downloading the setlist.");
     } finally {
       this.btnDownloadSetlist.textContent = "Download";
@@ -3882,7 +3886,7 @@ handleKeyDown(e) {
         this.currentBandName = null;
       }
     } catch (e) {
-      console.error("Fel vid hämtning av bandstatus:", e);
+      console.error("Error loading band status:", e);
       this.currentBandId = null;
       this.currentBandName = null;
     } finally {

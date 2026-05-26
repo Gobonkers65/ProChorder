@@ -927,11 +927,7 @@ class StableChordEditor {
       toggleMenu();
       const name = this.projectList.value;
       if (!name) return this.showCustomAlert("Select a song to delete.");
-      if (
-        await this.showCustomConfirm(`Delete "${name}"? This cannot be undone!`)
-      ) {
-        this.deleteProject(name);
-      }
+      this.deleteProject(name);
     });
 
     this.btnDeleteAllProjects.addEventListener("click", () => {
@@ -2524,6 +2520,7 @@ handleKeyDown(e) {
         }
 
         if (change.type === "removed") {
+          const deletedIndex = localOrder.indexOf(songTitle);
           delete localProjects[songTitle];
           localOrder = localOrder.filter((t) => t !== songTitle);
 
@@ -2533,7 +2530,16 @@ handleKeyDown(e) {
           const incomingTitle = (songTitle || "").trim().toLowerCase();
 
           if (currentViewTitle !== "" && currentViewTitle === incomingTitle) {
-            this.createNewProject();
+            // Stäng edit-läget om det är på
+            if (this.isEditMode) this.toggleEditMode();
+
+            // Navigera till närmaste låt, eller skapa ny om listan är tom
+            if (localOrder.length > 0) {
+              const nextIndex = Math.min(deletedIndex, localOrder.length - 1);
+              this.loadProject(localOrder[nextIndex]);
+            } else {
+              this.createNewProject();
+            }
           }
         }
       });
@@ -2886,10 +2892,12 @@ handleKeyDown(e) {
     if (order.length > 0) {
       const nextIndex = Math.min(deletedIndex, order.length - 1);
       this.loadProject(order[nextIndex]);
-      if (this.isEditMode) this.toggleEditMode();
     } else {
       this.createNewProject();
     }
+
+    // Stäng alltid edit-läget efter radering (oavsett om det var på eller inte)
+    if (this.isEditMode) this.toggleEditMode();
   }
 
   async deleteAllProjects() {

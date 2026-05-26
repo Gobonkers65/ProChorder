@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProChorder — User Manual</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0b0f1a;
+    --bg2:       #111827;
+    --bg3:       #1a2236;
+    --border:    #1e2d4a;
+    --accent:    #3b9eff;
+    --accent2:   #7c5ce8;
+    --glow:      rgba(59,158,255,0.18);
+    --text:      #e8edf5;
+    --muted:     #6b7d99;
+    --danger:    #ff4f6b;
+    --success:   #2edfa3;
+    --warn:      #f5a623;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ─── LAYOUT ─── */
+  .page-wrap {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ─── SIDEBAR ─── */
+  aside {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 0 0 3rem;
+  }
+
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-logo img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .sidebar-logo-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
+  .sidebar-logo-text span {
+    color: var(--accent);
+  }
+
+  .sidebar-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 20px 24px 8px;
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 24px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    transition: all 0.18s;
+  }
+
+  nav a:hover, nav a.active {
+    color: var(--text);
+    border-left-color: var(--accent);
+    background: rgba(59,158,255,0.06);
+  }
+
+  nav a .nav-icon { font-size: 0.9rem; width: 18px; text-align: center; }
+
+  .version-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-left: auto;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  main {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    background:
+      radial-gradient(ellipse 80% 60% at 70% -20%, rgba(59,158,255,0.14) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 10% 110%, rgba(124,92,232,0.12) 0%, transparent 60%),
+      var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 64px 64px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(59,158,255,0.04) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(59,158,255,0.04) 40px);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.8rem, 5vw, 4.4rem);
+    line-height: 0.95;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .hero h1 .highlight {
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 540px;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 32px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero-stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .hero-stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  /* ─── CONTENT AREA ─── */
+  .content {
+    padding: 56px 64px;
+    max-width: 900px;
+  }
+
+  /* ─── SECTION HEADERS ─── */
+  .section-anchor {
+    display: block;
+    padding-top: 80px;
+    margin-top: -40px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(59,158,255,0.2), rgba(124,92,232,0.2));
+    border: 1px solid rgba(59,158,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .section-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .section-header p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 3px;
+  }
+
+  /* ─── CARDS ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: rgba(59,158,255,0.4);
+    transform: translateY(-2px);
+  }
+
+  .card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+
+  .card h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .card p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  /* ─── STEP LIST ─── */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 40px;
+    bottom: 40px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 20px 0;
+    position: relative;
+  }
+
+  .step-num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #fff;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 20px rgba(59,158,255,0.3);
+  }
+
+  .step-body h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .step-body p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ─── KEYBOARD SHORTCUTS TABLE ─── */
+  .shortcuts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px;
+    font-size: 0.88rem;
+  }
+
+  .shortcuts-table thead tr {
+    background: var(--bg3);
+    border-bottom: 2px solid var(--border);
+  }
+
+  .shortcuts-table th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 20px;
+    text-align: left;
+  }
+
+  .shortcuts-table td {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    vertical-align: top;
+  }
+
+  .shortcuts-table tr:hover td {
+    background: rgba(59,158,255,0.04);
+  }
+
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  kbd {
+    display: inline-block;
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-bottom: 2px solid rgba(255,255,255,0.06);
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 0.78rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+
+  /* ─── CALLOUT BOXES ─── */
+  .callout {
+    display: flex;
+    gap: 14px;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 24px 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .callout-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .callout p { color: var(--text); }
+  .callout p strong { color: inherit; }
+
+  .callout.tip {
+    background: rgba(46,223,163,0.08);
+    border: 1px solid rgba(46,223,163,0.25);
+  }
+  .callout.tip .callout-icon { color: var(--success); }
+
+  .callout.note {
+    background: rgba(59,158,255,0.08);
+    border: 1px solid rgba(59,158,255,0.25);
+  }
+  .callout.note .callout-icon { color: var(--accent); }
+
+  .callout.warn {
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.25);
+  }
+  .callout.warn .callout-icon { color: var(--warn); }
+
+  /* ─── FEATURE ROWS ─── */
+  .feature-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .feature-block {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .feature-block h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .feature-block ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .feature-block ul li {
+    font-size: 0.85rem;
+    color: var(--muted);
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    line-height: 1.5;
+  }
+
+  .feature-block ul li::before {
+    content: '›';
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ─── CHORD DISPLAY ─── */
+  .chord-demo {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    margin: 20px 0 32px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .chord-demo .chord-name {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .chord-demo .lyric-line {
+    color: var(--text);
+  }
+
+  .chord-demo .section-tag {
+    color: var(--accent2);
+    font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ─── BAND FLOW DIAGRAM ─── */
+  .band-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 32px 0;
+    flex-wrap: wrap;
+  }
+
+  .band-node {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 20px;
+    text-align: center;
+    min-width: 120px;
+  }
+
+  .band-node .band-node-icon { font-size: 1.4rem; margin-bottom: 6px; }
+  .band-node .band-node-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  .band-arrow {
+    font-size: 1.2rem;
+    color: var(--accent);
+    padding: 0 8px;
+    font-weight: 300;
+  }
+
+  .band-flow .band-node.center {
+    border-color: rgba(59,158,255,0.5);
+    background: linear-gradient(135deg, rgba(59,158,255,0.1), rgba(124,92,232,0.1));
+    box-shadow: 0 0 30px rgba(59,158,255,0.15);
+    padding: 18px 28px;
+    min-width: 150px;
+  }
+
+  .band-node.center .band-node-label { color: var(--accent); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+    gap: 16px;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .footer-logo img { width: 28px; border-radius: 6px; }
+
+  .footer-logo-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--muted);
+  }
+
+  footer p {
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+
+  /* ─── INLINE TAGS ─── */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .tag.new { background: rgba(46,223,163,0.15); color: var(--success); border: 1px solid rgba(46,223,163,0.3); }
+  .tag.beta { background: rgba(245,166,35,0.15); color: var(--warn); border: 1px solid rgba(245,166,35,0.3); }
+  .tag.pro { background: rgba(59,158,255,0.15); color: var(--accent); border: 1px solid rgba(59,158,255,0.3); }
+
+  p { color: var(--muted); margin-bottom: 16px; font-size: 0.92rem; }
+  h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    margin: 28px 0 10px;
+  }
+
+  strong { color: var(--text); }
+
+  @media (max-width: 768px) {
+    .page-wrap { grid-template-columns: 1fr; }
+    aside { position: relative; height: auto; }
+    .hero, .content, footer { padding: 32px 24px; }
+    .feature-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="sidebar-logo">
+      <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADAAMADASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAEHAggDBAUG/8QATBAAAQMCAgUHBwcJBQkAAAAAAQACAwQFBhEHEiExURMiQWFxkbEIMjNTcoGhFEJSY5LCwxcjYnN0k6LS4RUkJkVkJTY3Q1WCwdPw/8QAGwEBAAIDAQEAAAAAAAAAAAAAAAUGAQIDBAf/xAAyEQACAQMBAwoGAwEBAAAAAAAAAQIDBBEFBhIxIUFRYXGBkbHB0RMUIjRyoRYj4SWy/9oADAMBAAIRAxEAPwDTJEXapafWAfINnQOKzGLbwjDeDhihkk2gZDiV2WUjB5xLvguzlsyRd1TSObkzjEEQ+Y1TyUfq2dyzRbYRjJhyUXq29yclF6tncs0TCGTDko/Vt7k5KP1bO5ZoEwhkw5KL1be5RyUXq29yzRZwhkw5KL1bPspyUfq2dyzRMIZMOSi9W3uTkovVs7lkpTCGTAxRerb3KDBCd7B7ti5EWMIZOs+kYfMcR27V1pYnxnnDZxG5ekhAIyIzBWrppmykzyUXYqqfk+ezzPBddcGmnhm6eTnpIuUkzI5rd6764qRupA3i7aVyleiEcI5yeWAhRFsYIREQBSoRASiBEARFCAlERAEREARQpQAqFKhASihSEAO0ZEZg715tRHyUhb0bwvSXXr260Qd0tPwWlRZRmLwzmaMmgcApRFuYCKUQEIpUIAiL6/RbhI4rxByM+sygpgJKpzd5GexgPE5H3ArrQozr1FTgstnGvXhQpupN8iPKw1ha/Yikc20W6Woa05Ok2Njb1FxyGfVvX2cWhbFT2Bz620xk/NM0hI7mK97fS0tBRxUdFBHBTxN1WRsGQaF2NZXOhs1bxj/AGtt+CKRcbS3c5f1JRXiygxoTxQf8xs/72T+RPyI4oP+Y2f97J/Ir9DtqyDl1ez1n0PxPP8AyLUOleBQQ0IYpy2XKzfvZf8A1rp3DQ1jOmYXQMoK0/RhqMj/ABhq2LDlkHrSWz1o1yZXeYW0moReW0+41BvuHL7Yn6t2tVXRjPIPkjOoT1OGw+4ry1ulMyKeJ0M8bJYnjVex7QWuHAgqsMfaH7Xc45K3Depbq3f8n/5Eh4D6B7NnUN6iLzZ6pTW9Re91c5M2O1NOo1C5ju9a4e6/Zr5kTnkNyLuXSguFor57dXwS0tTGdWWN+w/1HSDuO9dNV6ScXh8S1xkpJOLymERFqbEKURAQsJxnA8dWa5FhN6F/snwR8AjJSoCkoAihEBKIiAhX95PlIyDBc1UAOUqatxLunVaAAO/PvVBLYbQT/wAP4f2iXxU/s2k7zPQmQmv5dpjrRYIK8nFeI7Xhm2fL7rK5sZdqMYwaz5HcAP8A4L1AVTnlKuOvYW5nLKoOX7tW7UrqVrbSqwXKvV4KpYWcbi4jTlwftk9g6asO57LbdfsR/wA6kaa8O/8ATLr9iP8AnVCIqd/Ib3pXgWv+P2XQ/Ev1mmvDZdzrbdgOOpGfvr3LHpOwhdJGxi4milcdjKtnJ/xbW/FazJmt6e0V3F5lhrsOdTZyzksRyu83Njla9oe1wc0jMEHMFckbzkM9/StXcA4+u+FqhkQkdV20n85SvdsA4sPzT8D0rY2w3eivVqgudvmEtPM3Np6QekEdBB2FWfTtSpX0fp5JLiir6jo1S0fLyxfBnk6UME0eMbOSxrIbrA0mlny3/oO4tPwO3iDq/WU09HVy0lVE6KeF5jkY4bWuByIK3IbJsVJeUZhtkNVTYopYwG1BEFXl9MDmO94BB7BxUTr+nJw+YguVcetdJJbO306VT5Wo/pfDqfR3+faU8iIqeXUIihASsJvQv9k+CzWE3oX+yfBHwCMkREAUomSAhERAFsLoKOWAIR/qJfFa9LYLQacsBQ/tEvirBs194+x+hEa1Het0utepYId1qnPKTOcti7Kj8NW8DsVP+UftksXZP+GrLr32E+7zRCaTT3buD7fJlRIiL50XIIvbwzhe63+T+6RCOnByfPJsYOocT1D4Kz8OYAs1r1Zqhn9oVI268w5gPUzd35qXsNEur36orEel+nSbxpuRVtnwxe7rTvqKOheYWsLuUfzQ7IHY3PzicstnwX22gHEMtHfpLBM8mmrWl8TTubK0Z7O1oPcFZIZsyyVOVcTLTpfhbTc1jblC8AdGuWuI7OcQpi50uOkSo16cm/qw+/o7s9J57+3hUoSgbJMfuXjaQ7Y284Ju1CWl7jTukiA367Oc34gL043ZrmBBaQdxGStFamqkJQfBrBQfhunNTXFcppyiymbqTPbwcQsV8pZ9CBREWDJCxm9C/wBkrNYTehf7JR8AjJFKIAiKEBKFEQBX9oPP+A4f2iXxVAq+9CZ/wLCP9RJ4qw7NfeP8X6EfqUd6jjrPv2uVQeUYc5bH2T/hq2Q5VJ5RBzksfZP+GrLr32E+7zRF2FPFxF9vkVMvt9HOCnXxwuVxa5lua7JrdxnI6AehvE+4dXi4HsD8RYghoec2Bv5yoePmsG/3nYB2rYKmpoqeCOngjbHFG0MYxoyDQNwCr+gaTG5l8esvpXBdL9kWPeSfKcEFLFBEyGCJkUbBqtYxoAaOAAXMGbFzauW1Vlj3SMaeZ9tw89rnsOrJVkBwB6QwHYe07OHFXG8v6NlT36jwuZdPYZ+M3yI+zxJfLbYKJ1TXztDsiY4gefIeAH/ncFTuE3VOItJNDUSjOWeuFQ8Z7A1p1yB1ANyC+bq6moq6h1RVTyzzPObpJHFzj2kq2tBWHXwsmxFVM1TI0xUoI+bnzn/DIe9VF3tXWbynTUcQi8/6/LvONxU3abbLdYsppmQU8k0hyZGwvcT0ADMrhY5fNaVLu204FuD9YCWpZ8mjHEv2HubrH3K3XNVUaUqj5lkrPy+/JR6TW6R2tI53SSSoTpRfKC1goiIZBWE3oX+yVmsJvQv9k+CPgEZKVClAERQgJREQBXvoVOWBof18niqIV6aGHZYIiH18nirFsz94/wAX6HmuY70MH3Qcqm8oR2clk7J/w1agdsVU6fznJZeyf8NWXX1/z6nd5o8tvS3aiZ7mhCztpMLPub2jla+UkH6thLQO/WPvC+8MeS6mEqX5JhW1U2qGmOjiDgPpaoz+Oa9BwXtsKKoW0Ka5kv8Af2YncZkyu9MeI32m0stdHJqVVc067gdrItxPUTu9zlSjWuc4NaCXE5AAZkrYK+4UsV9uj6+5QTTyj80AZnNDQ0kZADLpzPvXds+H7Hacjb7ZTwPG6TV1n/aOZ+KhL/Rbq/uXUnNKHNxbx2dfae6nlQRWeA9HFXXzR11+jfS0YOsKc7JJeo/RHx7N6uinjjhiZFExscbGhrGtGQaBuAHBcIcuRj1M2Om0bGG7TXK+L52cKsJT4naaVRemnErbxfW2ykkDqOgJaSDsfKfOPYMsu/ivrNKWO2Wumls1omDrhINWaVh9ADvAP0vDtVJkklVvaLU4yXytN/l7e5i3t92W+wiIqie4IiIAsJvQv9krNYTehf7J8EfAIzRQiAlERAEQogCu/Q67LBUQ+vk8VSCuvQ+7LBkX6+TxVj2X+9f4vzRhx3uQ+4DtiqzT2c32bsm+4rNDiqv06nN9n7JvuKz7QL/n1O7zRhUt15LitD2z2ijmj2skp43N7C0Fc7mLwdFtey5YBtUrctaGEU7wDuMfN29oAPvX0jmr221VVKUZrnSKvOo4TcXzM+ednHJK1wIPKPOXUXEhS2RfE6Z63EVhrqa42ysdDRVLdR45JrtWUdZB3tyyH6JVZVeKcRVWfK3irAO8Rv1Afs5KNu9oKFpN0ZQk5Lsx5lotq0KlGMl0F7Xe+2q0xcpca6GDZmGl2bndjRtPcq1xdpMqqyN9HYmPpITsdUO9K4fo/R7d/Yq7e9z3Fz3FzjvJOZKhVu+2juLhOFNbi6uPj7GzwyXEucXEkknMk9KhEVeATPZl0IUAOWeRyQBERAFhN6F/snwWawm9C/2Sj4BGSlQpQEKVCICUUKUBCubRIcsHxfrpPFU10q4dFLssIxj65/irLsqs3r/F+aO9vHeng+1DutVlpxOb7R2TfcVjB2xVtprdnJahnuEv3FadoljTqnd/6R3rUt2DZ6Pk9X9tPcKnDlQ/JlVnPTZ+sA5w97QD/wBvWrtLFqDRVU9FWQ1dLK6KeF4kje3e1wOYK2e0dYtpMXWNtSwsjroQGVcAPmO4gfRPR3dChNntQUqfy03yrh2f55FK1q3lSl8ePB8ep/6dzEllor9Z6i2V7C6GZuWY85juhw6wVrZjPC1zwtc3UldGXROJMFQ1vMlb1cDxHR2ZE7WGMHoXVuVtorlRvo6+liqaeTzo5GhwP9etSWqaVTvop5xJcH6Mj7LV3bPD5YvmNQCivq96F7HVSOktdfVW4k+Y4ctGBwAJDu9xXj/kNn1v95I9Xj8jOfdrqpz0G+i8KOexr1wWCOu2Ullzx3P0KdRX3ZtCthgAdc7jXVzwdzMomEdY2n+JexU6JsEzU7oo7bNTvIyEsdVIXDrGsSPgusNnbyUcvC7/AGyeee0llF4WX3e+DWxScujML7LSZgKtwdURzNlNVbZ3asU+rkWu36jhxyz29OR3bl8YoevQqUJunUWGiZoXFO4pqpTeUyQRkQRt6DnuUIi4nUhYzehf7JWawm9C/wBk+CPgZRkpUA5gFSgCIiAIiIArc0WuywpGPrn+KqNfa4Pxdb7NZm0c8FU+QPc7NjWlu3tKsGzdzRtrtzrSwsP0PXZSjGpmTxyFpB6qPSddY7jiDkYX60VIzk8xuL883ZfAe5djEGPKusgfTW6E0jHbDIXZyEdXD4r4xSG0OuUbqn8vbvK576I6XdxCa3IBehh29XGwXWK5WuoMM8f2Xt6WuHSDwXnoqjGUoNSi8NEdKMZxcZLKZsvo+0lWXE8cdLVPZbrqcgYJHZNlP1bjv9k7e3LNfeFi0sX2GGNJeL7AxkMFyNXTM2CCsHKtA4A+cB1AgK0We0bSUbhZ616oqV9s1JtytZdz9H7+JtDqJqKl7fp3kEbW3DDbHvy5z4KotB7Glp8V35NOtpEebLBWl/AytA7/AOil463ZNZ3/ANP2IGei6lF4+H+17ltaiwmdHDE+WaRkcbAXOe45BoG8kncqOu2nS6Ss1bXYqSlPS6eV03cAG5fFV7iXFuIsRu/2vdZ6iPPMQjJkQ4cxuQz68s15bjaK3gv605PwX79j122zN5Vf9rUF4v8AXJ+yydOOOrFdbKLBaZmV0vLtfLO1ucbA3PY13STnvGYyz2qmkRVO8vJ3dX4k+JdbCxp2NFUqfKusIiheQ9pKwm9C/wBk+CzWE5ygf7JR8AjGmdrwNPAZFcq6NFLqP1Dudu7V3lrB5RmSwwiKVsYIRFCAlFClAEREAQoiAIiIAihEBKInQgCIiAIiIAuCtdqwavS4rnXn1UnKS7PNGwLSo8IzFZZwrvUtQHAMecndB4roouMZOLOjWT1kzXRhqns2O5w+K7LKiJ3ztXqK7qaZzcWjlRQ1zTucD2FFsYCJmiAKVCnNAETYiAImYUZoApTNRsQBSoTNAFKLFzmt3uA7SgMkyXC+pib06x6l1Zqh8gyHNbwC0c0jKi2ctXUAgxsOfErqIi4Sk5M6JYP/2Q==" alt="ProChorder Logo">
+      <div class="sidebar-logo-text">Pro<span>Chorder</span></div>
+    </div>
+
+    <div class="sidebar-label">Getting Started</div>
+    <nav>
+      <a href="#overview" class="active"><span class="nav-icon">🏠</span> Overview</a>
+      <a href="#getting-started"><span class="nav-icon">🚀</span> Quick Start</a>
+      <a href="#interface"><span class="nav-icon">🖥</span> The Interface</a>
+    </nav>
+
+    <div class="sidebar-label">Core Features</div>
+    <nav>
+      <a href="#songs"><span class="nav-icon">🎵</span> Songs & Library</a>
+      <a href="#chords"><span class="nav-icon">🎸</span> Chord Editor</a>
+      <a href="#sections"><span class="nav-icon">📋</span> Sections</a>
+      <a href="#transpose"><span class="nav-icon">🎼</span> Transpose</a>
+    </nav>
+
+    <div class="sidebar-label">Performing</div>
+    <nav>
+      <a href="#livemode"><span class="nav-icon">🎤</span> Live Mode <span class="version-badge">NEW</span></a>
+      <a href="#setlists"><span class="nav-icon">📝</span> Setlists</a>
+      <a href="#metronome"><span class="nav-icon">🥁</span> Metronome</a>
+      <a href="#tuner"><span class="nav-icon">🎻</span> Tuner</a>
+    </nav>
+
+    <div class="sidebar-label">Collaboration</div>
+    <nav>
+      <a href="#band"><span class="nav-icon">👥</span> Band Mode</a>
+      <a href="#sync"><span class="nav-icon">☁️</span> Cloud Sync</a>
+      <a href="#export"><span class="nav-icon">📤</span> Export & Import</a>
+    </nav>
+
+    <div class="sidebar-label">Reference</div>
+    <nav>
+      <a href="#shortcuts"><span class="nav-icon">⌨️</span> Shortcuts</a>
+      <a href="#tips"><span class="nav-icon">💡</span> Tips & Tricks</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">User Manual — Complete Guide</div>
+      <h1>Play Better.<br><span class="highlight">Together.</span></h1>
+      <p class="hero-sub">Everything you need to get the most out of ProChorder — from creating your first song to performing live with your band in perfect sync.</p>
+      <div class="hero-meta">
+        <div class="hero-stat">
+          <div class="hero-stat-num">∞</div>
+          <div class="hero-stat-label">Songs</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">Real-time</div>
+          <div class="hero-stat-label">Band sync</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">PWA</div>
+          <div class="hero-stat-label">Works offline</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">Free</div>
+          <div class="hero-stat-label">To use</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ─── OVERVIEW ─── -->
+      <span class="section-anchor" id="overview"></span>
+      <div class="section-header">
+        <div class="section-icon">🏠</div>
+        <div>
+          <h2>What is ProChorder?</h2>
+          <p>Your complete on-stage music tool</p>
+        </div>
+      </div>
+
+      <p>ProChorder is a web-based application for musicians that lets you write, organize, and perform songs with chords and lyrics — all in one place. It works on any device with a browser, and can be installed as a <strong>Progressive Web App (PWA)</strong> so it works even without an internet connection.</p>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📄</div>
+          <h3>Create & Share Setlists</h3>
+          <p>Build setlists in minutes and share them with your band using a unique code.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <h3>Real-Time Updates</h3>
+          <p>Instant sync of chords, lyrics and settings — everyone in the band stays in sync.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎸</div>
+          <h3>Songs, Chords & Lyrics</h3>
+          <p>Everything you need on stage. Clear, flexible and easy to use with a visual chord builder.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📱</div>
+          <h3>Built for Live</h3>
+          <p>Big, clear display. Dark mode. Auto-scroll. No distractions during your performance.</p>
+        </div>
+      </div>
+
+      <!-- ─── GETTING STARTED ─── -->
+      <span class="section-anchor" id="getting-started"></span>
+      <div class="section-header">
+        <div class="section-icon">🚀</div>
+        <div>
+          <h2>Quick Start</h2>
+          <p>Up and running in under 5 minutes</p>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Open ProChorder</h4>
+            <p>Visit the app in your browser or install it to your home screen via your browser's "Add to Home Screen" option for the best offline experience.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Sign In with Google</h4>
+            <p>Tap the hamburger menu (☰) → Sign in with Google. This enables cloud sync and band collaboration. You can use the app without signing in, but your songs will only be saved locally.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Create Your First Song</h4>
+            <p>Tap <strong>+ New Song</strong> from the song selector. Give your song a title, then tap <strong>EDIT</strong> to enter edit mode and start adding chords and lyrics.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Save Your Song</h4>
+            <p>Open the side menu → <strong>Save Song</strong>. Your song is saved locally and synced to the cloud if you're signed in.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <h4>Invite Your Band</h4>
+            <p>Open the menu → <strong>Band</strong> → <strong>Create new band</strong>. Share the invite code with your bandmates so they can join and see all songs in real-time.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── INTERFACE ─── -->
+      <span class="section-anchor" id="interface"></span>
+      <div class="section-header">
+        <div class="section-icon">🖥</div>
+        <div>
+          <h2>The Interface</h2>
+          <p>Getting familiar with the layout</p>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-block">
+          <h4>🔝 Top Bar</h4>
+          <ul>
+            <li><strong>☰ Menu</strong> — Opens the full side menu with all tools</li>
+            <li><strong>Song selector</strong> — Switch between songs in your library</li>
+            <li><strong>EDIT button</strong> — Toggle edit mode on/off</li>
+            <li><strong>☀️ / 🌙</strong> — Toggle dark/light mode</li>
+          </ul>
+        </div>
+        <div class="feature-block">
+          <h4>📋 Side Menu</h4>
+          <ul>
+            <li><strong>Save Song</strong> — Save current song to cloud</li>
+            <li><strong>New Song</strong> — Create a blank song</li>
+            <li><strong>Transpose</strong> — Shift all chords up or down</li>
+            <li><strong>Sections</strong> — Insert section labels</li>
+            <li><strong>Band</strong> — Manage band/collaboration</li>
+            <li><strong>Export / Import</strong> — Backup your library</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feature-block">
+          <h4>🎵 Song Header</h4>
+          <ul>
+            <li>Tap the <strong>title</strong> or <strong>artist</strong> fields to edit them directly in the song view</li>
+            <li>Changes are saved when you save the song</li>
+          </ul>
+        </div>
+        <div class="feature-block">
+          <h4>🎛 Floating Toolbar</h4>
+          <ul>
+            <li>Appears when Edit mode is active</li>
+            <li>Quick access to chord builder, undo/redo, and section tools</li>
+            <li>Toggle between <strong>Chord mode</strong> and <strong>Text mode</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ─── SONGS ─── -->
+      <span class="section-anchor" id="songs"></span>
+      <div class="section-header">
+        <div class="section-icon">🎵</div>
+        <div>
+          <h2>Songs & Library</h2>
+          <p>Managing your song collection</p>
+        </div>
+      </div>
+
+      <h3>Creating a New Song</h3>
+      <p>Open the side menu and tap <strong>New Song</strong>. ProChorder will generate a unique name automatically (e.g. "Untitled song", "Untitled song 1") to prevent overwriting existing songs. You can rename it at any time by tapping the title field and saving.</p>
+
+      <h3>Renaming a Song</h3>
+      <p>Enter Edit mode → tap the song title at the top of the editor and type a new name → Save the song. ProChorder checks that no other song has the same name before saving.</p>
+
+      <h3>Deleting a Song</h3>
+      <p>Open the side menu → select the song in the dropdown → tap <strong>Delete Song</strong>. You'll be asked to confirm once. The song is deleted from both your device and the cloud (including for all band members).</p>
+
+      <div class="callout warn">
+        <div class="callout-icon">⚠️</div>
+        <p><strong>Heads up:</strong> Deleting a song in Band Mode removes it for every member of the band immediately. There is no undo.</p>
+      </div>
+
+      <h3>Navigating Between Songs</h3>
+      <p>Use the <strong>song selector dropdown</strong> in the top bar, or swipe left/right on the song area (swiping is disabled in Edit mode). You can also reorder songs in the library by dragging the <strong>≡</strong> handle in the dropdown list.</p>
+
+      <!-- ─── CHORDS ─── -->
+      <span class="section-anchor" id="chords"></span>
+      <div class="section-header">
+        <div class="section-icon">🎸</div>
+        <div>
+          <h2>Chord Editor</h2>
+          <p>Building and editing chords</p>
+        </div>
+      </div>
+
+      <p>ProChorder uses an inline chord-over-lyric format. Chords appear directly above the word or syllable they belong to.</p>
+
+      <div class="chord-demo">
+        <div class="section-tag">— Verse —</div>
+        <div><span class="chord-name">D &nbsp;&nbsp;&nbsp;&nbsp; D/C &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; A</span></div>
+        <div class="lyric-line">Oh Father high in Heaven</div>
+        <div><span class="chord-name">D &nbsp;&nbsp;&nbsp;&nbsp; D/C &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; G</span></div>
+        <div class="lyric-line">smile down upon your son, yeah!</div>
+      </div>
+
+      <h3>Adding a Chord</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Enter Edit Mode</h4>
+            <p>Tap the <strong>EDIT</strong> button in the top-right corner. The editor becomes interactive.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Select Chord Mode</h4>
+            <p>Make sure <strong>Chord mode</strong> is active in the floating toolbar (not Text mode).</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Click on a Chord Line</h4>
+            <p>Tap the chord row above a lyric line. The <strong>Chord Builder</strong> opens with a radial selector for root note, chord type, and bass note.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h4>Build Your Chord</h4>
+            <p>Select root (A–G#), type (maj, min, 7, maj7, sus4, dim, aug…) and optional bass note for slash chords like D/C. Tap <strong>Insert</strong> to place the chord.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>Editing or Removing a Chord</h3>
+      <p>In Edit mode, tap any existing chord to open the Chord Builder with the chord pre-filled. Change the values and tap <strong>Update</strong>, or tap <strong>Remove</strong> to delete the chord.</p>
+
+      <h3>Chord Types Available</h3>
+      <div class="feature-row">
+        <div class="feature-block">
+          <h4>🎵 Standard</h4>
+          <ul>
+            <li>Major (no suffix) — <strong>C, D, G</strong></li>
+            <li>Minor — <strong>Cm, Dm, Gm</strong></li>
+            <li>Dominant 7th — <strong>C7, G7</strong></li>
+            <li>Minor 7th — <strong>Cm7</strong></li>
+            <li>Major 7th — <strong>Cmaj7</strong></li>
+          </ul>
+        </div>
+        <div class="feature-block">
+          <h4>🎵 Extended & Altered</h4>
+          <ul>
+            <li>6th, m6 — <strong>C6, Cm6</strong></li>
+            <li>9th, m9 — <strong>C9, Cm9</strong></li>
+            <li>11th, m11 — <strong>C11, Cm11</strong></li>
+            <li>Sus4, dim, aug</li>
+            <li>Slash chords — <strong>D/C, G/B</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <p><strong>Tip:</strong> You can type links directly in text mode using the format <code>[[https://youtube.com|Watch video]]</code> or just paste a URL and press Space — it auto-converts to a clickable link.</p>
+      </div>
+
+      <!-- ─── SECTIONS ─── -->
+      <span class="section-anchor" id="sections"></span>
+      <div class="section-header">
+        <div class="section-icon">📋</div>
+        <div>
+          <h2>Sections</h2>
+          <p>Organizing your song structure</p>
+        </div>
+      </div>
+
+      <p>Sections divide your song into labeled blocks — Intro, Verse, Chorus, Bridge, Solo, etc. They make it easy to navigate during rehearsal and performance.</p>
+
+      <h3>Inserting a Section</h3>
+      <p>Open the side menu → <strong>Sections</strong> → choose a section type from the dropdown → tap <strong>Insert Section</strong>. The section label is inserted at the current cursor position in the editor.</p>
+
+      <p>Available section types: <strong>Intro · Verse · Chorus · Stick · Bridge · Solo · Outro · Dig</strong></p>
+
+      <h3>Moving Sections</h3>
+      <p>In Edit mode, each section block has <strong>↑ ↓</strong> buttons to move the entire section (including its content) up or down. Use the copy button to duplicate a section.</p>
+
+      <!-- ─── TRANSPOSE ─── -->
+      <span class="section-anchor" id="transpose"></span>
+      <div class="section-header">
+        <div class="section-icon">🎼</div>
+        <div>
+          <h2>Transpose</h2>
+          <p>Shift all chords up or down</p>
+        </div>
+      </div>
+
+      <p>Transpose lets you shift every chord in the song up or down by one semitone at a time, without needing to edit each chord individually.</p>
+
+      <p>Open the side menu → <strong>Transpose</strong>. Use the <strong>▲ Up</strong> and <strong>▼ Down</strong> buttons. Changes are applied live. Save the song to keep the new key.</p>
+
+      <div class="callout note">
+        <div class="callout-icon">ℹ️</div>
+        <p><strong>Note:</strong> Transposing uses sharps (C#, D#…) by default. If you prefer flats (Db, Eb…), you can manually edit the individual chords after transposing.</p>
+      </div>
+
+      <!-- ─── LIVE MODE ─── -->
+      <span class="section-anchor" id="livemode"></span>
+      <div class="section-header">
+        <div class="section-icon">🎤</div>
+        <div>
+          <h2>Live Mode</h2>
+          <p>Auto-scroll for hands-free performance</p>
+        </div>
+      </div>
+
+      <p>Live Mode scrolls the song automatically so you can keep your eyes on the audience — not your fingers. Set the scroll speed to match your song's tempo and duration.</p>
+
+      <h3>Starting Live Mode</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h4>Set Duration & Speed</h4>
+            <p>Use the <strong>duration inputs</strong> (minutes:seconds) or the <strong>speed slider</strong> to control how fast the song scrolls. They're linked — changing one updates the other.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h4>Tap the Live Button</h4>
+            <p>Tap the floating <strong>▶ Live</strong> button at the bottom of the screen to show the scroll controls bar.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h4>Play / Pause</h4>
+            <p>Tap the <strong>▶ / ⏸</strong> button to start or pause scrolling. Use <strong>◀ ▶</strong> to jump to the previous or next song in your setlist.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <p><strong>Screen Stay-Awake:</strong> Live Mode activates a Wake Lock to prevent your screen from turning off mid-performance (supported on most modern mobile browsers).</p>
+      </div>
+
+      <!-- ─── SETLISTS ─── -->
+      <span class="section-anchor" id="setlists"></span>
+      <div class="section-header">
+        <div class="section-icon">📝</div>
+        <div>
+          <h2>Setlists (Gig Mode)</h2>
+          <p>Build and share your set for the night</p>
+        </div>
+      </div>
+
+      <h3>Creating a Setlist</h3>
+      <p>Open the side menu → <strong>Create Setlist</strong>. Check the songs you want to include (in the order you want to play them), then tap <strong>Generate Setlist Code</strong>. Share the code with your bandmates.</p>
+
+      <h3>Loading a Setlist (Gig Mode)</h3>
+      <p>Open the side menu → <strong>Load Setlist</strong> → enter the code. The app enters <strong>Gig Mode</strong> — your library is filtered to show only the setlist songs in order, and the song selector turns red to indicate you're in Gig Mode.</p>
+
+      <p>Tap <strong>Exit Gig Mode</strong> in the top bar to return to your full library.</p>
+
+      <!-- ─── METRONOME ─── -->
+      <span class="section-anchor" id="metronome"></span>
+      <div class="section-header">
+        <div class="section-icon">🥁</div>
+        <div>
+          <h2>Metronome</h2>
+          <p>Keep perfect time</p>
+        </div>
+      </div>
+
+      <p>Each song stores its own BPM setting. The metronome uses the Web Audio API for precise, low-latency timing.</p>
+
+      <p>Find the <strong>BPM input</strong> and <strong>▲ ▼ buttons</strong> in the Live controls bar at the bottom. Tap the <strong>metronome icon</strong> to start/stop. The BPM is saved with the song.</p>
+
+      <!-- ─── TUNER ─── -->
+      <span class="section-anchor" id="tuner"></span>
+      <div class="section-header">
+        <div class="section-icon">🎻</div>
+        <div>
+          <h2>Tuner</h2>
+          <p>Built-in chromatic tuner</p>
+        </div>
+      </div>
+
+      <p>Open the side menu → <strong>Tuner</strong>. The tuner uses your device's microphone to detect pitch in real time. Grant microphone permission when prompted.</p>
+
+      <div class="callout note">
+        <div class="callout-icon">ℹ️</div>
+        <p><strong>Note:</strong> Microphone access is required. The tuner works best in a quiet environment and with the device held close to your instrument.</p>
+      </div>
+
+      <!-- ─── BAND MODE ─── -->
+      <span class="section-anchor" id="band"></span>
+      <div class="section-header">
+        <div class="section-icon">👥</div>
+        <div>
+          <h2>Band Mode</h2>
+          <p>Real-time collaboration with your band</p>
+        </div>
+      </div>
+
+      <div class="band-flow">
+        <div class="band-node">
+          <div class="band-node-icon">👤</div>
+          <div class="band-node-label">Member 1</div>
+        </div>
+        <div class="band-arrow">⟶</div>
+        <div class="band-node center">
+          <div class="band-node-icon">☁️</div>
+          <div class="band-node-label">ProChorder Cloud</div>
+        </div>
+        <div class="band-arrow">⟶</div>
+        <div class="band-node">
+          <div class="band-node-icon">👤</div>
+          <div class="band-node-label">Member 2</div>
+        </div>
+        <div class="band-arrow" style="transform: rotate(0deg); display:none;">⟶</div>
+        <div class="band-node" style="margin-top:0">
+          <div class="band-node-icon">👤</div>
+          <div class="band-node-label">Member 3…</div>
+        </div>
+      </div>
+
+      <h3>Creating a Band</h3>
+      <p>Sign in with Google first. Open the menu → <strong>Band</strong> → <strong>Create new band</strong>. Enter a band name and you'll receive a unique <strong>invite code</strong>. Share this code with your bandmates.</p>
+
+      <h3>Joining a Band</h3>
+      <p>Open the menu → <strong>Band</strong> → <strong>Join band</strong> → enter the invite code. All band songs become instantly available.</p>
+
+      <h3>Leaving a Band</h3>
+      <p>Open the menu → <strong>Band</strong> → <strong>Leave Band</strong>. You'll return to your personal song library. Band songs are not deleted from the band's shared library.</p>
+
+      <div class="callout warn">
+        <div class="callout-icon">⚠️</div>
+        <p><strong>Important:</strong> Songs and changes made in Band Mode are shared with all members in real-time. Deleting a song removes it for everyone in the band.</p>
+      </div>
+
+      <!-- ─── CLOUD SYNC ─── -->
+      <span class="section-anchor" id="sync"></span>
+      <div class="section-header">
+        <div class="section-icon">☁️</div>
+        <div>
+          <h2>Cloud Sync</h2>
+          <p>Your songs, everywhere</p>
+        </div>
+      </div>
+
+      <p>When signed in with Google, all your songs are automatically synced to Firebase. Changes made on one device appear on all others within seconds.</p>
+
+      <div class="feature-row">
+        <div class="feature-block">
+          <h4>✅ What syncs</h4>
+          <ul>
+            <li>Song content (chords & lyrics)</li>
+            <li>Song order in the library</li>
+            <li>Title, artist, BPM, font size</li>
+            <li>Scroll speed and duration</li>
+            <li>Band song deletions and renames</li>
+          </ul>
+        </div>
+        <div class="feature-block">
+          <h4>❌ What doesn't sync</h4>
+          <ul>
+            <li>Dark/light mode preference</li>
+            <li>Font size display setting</li>
+            <li>Setlist codes (share manually)</li>
+            <li>Unsaved changes (save first!)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ─── EXPORT & IMPORT ─── -->
+      <span class="section-anchor" id="export"></span>
+      <div class="section-header">
+        <div class="section-icon">📤</div>
+        <div>
+          <h2>Export & Import</h2>
+          <p>Backup, share, and migrate your library</p>
+        </div>
+      </div>
+
+      <h3>Export Options</h3>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">📄</div>
+          <h3>PDF</h3>
+          <p>Export the current song as a clean, printable PDF with chords and lyrics.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📝</div>
+          <h3>TXT</h3>
+          <p>Plain text export — useful for sharing with people who don't use ProChorder.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">📦</div>
+          <h3>ZIP</h3>
+          <p>Export all songs as individual text files in a single ZIP archive.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🗄</div>
+          <h3>JSON</h3>
+          <p>Full backup of one or all songs in JSON format — perfect for restoring later.</p>
+        </div>
+      </div>
+
+      <h3>Importing Songs</h3>
+      <p>Open the side menu → <strong>Import</strong> → tap <strong>Choose File</strong> and select a <code>.json</code> file previously exported from ProChorder. The songs are merged into your existing library.</p>
+
+      <!-- ─── SHORTCUTS ─── -->
+      <span class="section-anchor" id="shortcuts"></span>
+      <div class="section-header">
+        <div class="section-icon">⌨️</div>
+        <div>
+          <h2>Keyboard Shortcuts</h2>
+          <p>For power users on desktop</p>
+        </div>
+      </div>
+
+      <table class="shortcuts-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Shortcut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Undo</td>
+            <td><span class="kbd"><kbd>Ctrl</kbd>+<kbd>Z</kbd></span></td>
+          </tr>
+          <tr>
+            <td>Redo</td>
+            <td><span class="kbd"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></span></td>
+          </tr>
+          <tr>
+            <td>Toggle Edit Mode</td>
+            <td><span class="kbd"><kbd>EDIT</kbd> button</span></td>
+          </tr>
+          <tr>
+            <td>Auto-convert URL to link</td>
+            <td>Paste URL → press <kbd>Space</kbd></td>
+          </tr>
+          <tr>
+            <td>Custom link syntax</td>
+            <td><kbd>[[URL|Label]]</kbd> → press <kbd>Space</kbd></td>
+          </tr>
+          <tr>
+            <td>Navigate to previous song</td>
+            <td>Swipe <kbd>Right</kbd> (mobile)</td>
+          </tr>
+          <tr>
+            <td>Navigate to next song</td>
+            <td>Swipe <kbd>Left</kbd> (mobile)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ─── TIPS ─── -->
+      <span class="section-anchor" id="tips"></span>
+      <div class="section-header">
+        <div class="section-icon">💡</div>
+        <div>
+          <h2>Tips & Tricks</h2>
+          <p>Get more out of ProChorder</p>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <p><strong>Install as App:</strong> In Chrome or Safari, use "Add to Home Screen" to install ProChorder as a PWA. It loads faster, works offline, and feels like a native app.</p>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <p><strong>Reorder your library:</strong> Drag the <strong>≡</strong> handle next to any song name in the dropdown to reorder your library. The order syncs to the cloud for all band members.</p>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <p><strong>Quick save while editing:</strong> Save often! ProChorder doesn't auto-save. Get into the habit of saving after every significant change, especially before a gig.</p>
+      </div>
+
+      <div class="callout note">
+        <div class="callout-icon">ℹ️</div>
+        <p><strong>Service Worker updates:</strong> When a new version of ProChorder is deployed, the app will update automatically in the background. Refresh the page once after an update to get the latest features.</p>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-icon">💡</div>
+        <p><strong>C/T toggle:</strong> Use the <strong>C/T</strong> button in the chord panel to switch between Chord and Text input mode without leaving the editor.</p>
+      </div>
+
+    </div><!-- /content -->
+
+    <footer>
+      <div class="footer-logo">
+        <img src="data:image/jpeg;base64,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" alt="ProChorder Logo">
+        <div class="footer-logo-text">ProChorder</div>
+      </div>
+      <p>Your Music. Your Stage. Your Way. &nbsp;·&nbsp; Made by musicians, for musicians.</p>
+      <p style="text-align: right; opacity: 0.5;">Version 11</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Highlight active nav link on scroll
+  const anchors = document.querySelectorAll('.section-anchor');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id;
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  anchors.forEach(anchor => observer.observe(anchor));
+</script>
+
+</body>
+</html>

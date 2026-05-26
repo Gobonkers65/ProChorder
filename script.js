@@ -1212,21 +1212,16 @@ class StableChordEditor {
 
   // --- PROJEKT MENY ---
   // --- PROJEKT MENY ---
-  toggleProjectMenu() {
+toggleProjectMenu() {
     const isOpen = this.projectDropdownMenu.classList.toggle("is-open");
     this.projectSelectorBtn.classList.toggle("is-active", isOpen);
 
     if (isOpen) {
       this.editor.classList.add("scroll-locked");
-      // NYTT: Ta ett snapshot av ordningen när menyn ÖPPNAS
-      const currentOrder =
-        JSON.parse(
-          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-        ) || [];
-      this.initialOrderSnapshot = JSON.stringify(currentOrder);
+      // (Snapshot-koden är borttagen härifrån för att stoppa falska larm)
     } else {
       this.editor.classList.remove("scroll-locked");
-      // NYTT: Kolla om något ändrats när menyn STÄNGS via knappen
+      // Kolla om något ändrats manuellt när menyn STÄNGS
       this.checkAndSyncOrderChanges();
     }
   }
@@ -1244,31 +1239,27 @@ class StableChordEditor {
   }
 
   // NYTT: Kollar om listan ändrats sedan vi öppnade menyn
-  async checkAndSyncOrderChanges() {
+async checkAndSyncOrderChanges() {
     // Kör bara om vi är i ett band och inte i ett tillfälligt setlist-läge
     if (!this.currentBandId || this.activeSetlist) return;
 
-    const newOrder =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-      ) || [];
-    const newOrderString = JSON.stringify(newOrder);
+    // Har användaren MANUELLT dragit och släppt en låt?
+    if (this.hasManuallyReordered) {
+      const newOrder =
+        JSON.parse(
+          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+        ) || [];
 
-    // Har listan ändrats?
-    if (
-      this.initialOrderSnapshot &&
-      this.initialOrderSnapshot !== newOrderString
-    ) {
       const confirmed = await this.showCustomConfirm(
         "Change song order for all?"
       );
       if (confirmed) {
         this.syncOrderToCloud(newOrder);
       }
-    }
 
-    // Nollställ minnet inför nästa gång menyn öppnas
-    this.initialOrderSnapshot = null;
+      // Nollställ flaggan inför nästa gång
+      this.hasManuallyReordered = false;
+    }
   }
 
   handleOutsideClick(e) {
@@ -2800,7 +2791,7 @@ if (e.key === "Enter" && !e.shiftKey) {
         item.classList.remove("drag-over");
       });
 
-      item.addEventListener("drop", (e) => {
+item.addEventListener("drop", (e) => {
         e.preventDefault();
         const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
         const toIndex = index;
@@ -2818,6 +2809,8 @@ if (e.key === "Enter" && !e.shiftKey) {
               StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
               JSON.stringify(order)
             );
+            // --- NYTT: Aktivera flaggan för att användaren har bytt ordning! ---
+            this.hasManuallyReordered = true;
           }
           this.updateProjectList(selectedValue);
         }

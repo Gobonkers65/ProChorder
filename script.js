@@ -571,15 +571,37 @@ class StableChordEditor {
 
       // Lås redigeringen
       this.editor
+// Lås redigeringen
+      this.editor
         .querySelectorAll(
           ".block-content, .block-badge, .song-header-title, .song-header-author"
         )
         .forEach((el) => (el.contentEditable = "false"));
 
-      // Synka titel och artist från DOM till de dolda fälten innan vi sparar
-      const titleEl = this.editor.querySelector(".song-header-title");
-      const authorEl = this.editor.querySelector(".song-header-author");
-      if (titleEl) this.titleInput.value = titleEl.textContent.trim();
+      // --- OFÖRSTÖRBAR SÖKNING AV TITEL OCH ARTIST ---
+      const headerBlock = this.editor.querySelector(".song-header-block");
+      let titleEl = this.editor.querySelector(".song-header-title");
+      let authorEl = this.editor.querySelector(".song-header-author");
+
+      // Failsafe: Om webbläsaren raderat klasserna, ta barn 1 och 2 i blocket!
+      if (!titleEl && headerBlock && headerBlock.children.length > 0) {
+        titleEl = headerBlock.children[0];
+      }
+      if (!authorEl && headerBlock && headerBlock.children.length > 1) {
+        authorEl = headerBlock.children[1];
+      }
+
+      if (titleEl) {
+        const trimmedTitle = titleEl.textContent.trim();
+        if (!trimmedTitle) {
+          this.showCustomAlert("Song title cannot be empty!");
+          titleEl.textContent = this.loadedProjectName || "Untitled song";
+          this.titleInput.value = titleEl.textContent;
+        } else {
+          this.titleInput.value = trimmedTitle;
+        }
+      }
+
       if (authorEl) this.authorInput.value = authorEl.textContent.trim();
 
       if (this.titleInput.value) {
@@ -1292,8 +1314,8 @@ class StableChordEditor {
       );
       this.mainToggleEditModeBtn.title =
         this.editMode === "chord"
-          ? "Ackordläge PÅ (Redigera ackord)"
-          : "Ackordläge AV (Sångarläge - Bara text)";
+          ? "Chord Mode ON (Edit chords)"
+          : "Chord Mode OFF (Singer mode - Text only)";
     }
 
     if (this.editMode === "chord") {
@@ -1769,23 +1791,37 @@ class StableChordEditor {
   }
 
   // --- SÄKER REDIGERING & ENTER-FIX ---
-  handleKeyDown(e) {
-    if (this.editMode !== "chord") return;
-    // Förhindra radbrytningar i titel och artist
-    if (e.key === "Enter") {
-      if (
-        e.target.classList.contains("song-header-title") ||
-        e.target.classList.contains("song-header-author")
-      ) {
+handleKeyDown(e) {
+    // --- 1. SÄKERHET FÖR RUBRIKERNA (Körs ALLTID, oavsett läge!) ---
+    if (
+      e.target.classList.contains("song-header-title") ||
+      e.target.classList.contains("song-header-author")
+    ) {
+      // Förhindra Enter (radbrytningar)
+      if (e.key === "Enter") {
         e.preventDefault();
-        e.target.blur(); // Klickar ur markören så att 'focusout' triggas
+        e.target.blur(); // Triggar sparningen
         return;
       }
+
+      // Förhindra webbläsaren från att radera själva HTML-elementet och sabba formateringen
+      if (e.key === "Backspace" || e.key === "Delete") {
+        const sel = window.getSelection();
+        const text = e.target.textContent;
+
+        // Om all text är markerad, ELLER om det bara är ett tecken kvar
+        if (sel.toString() === text || (text.length === 1 && e.key === "Backspace")) {
+          e.preventDefault(); // Stoppa webbläsarens destruktiva beteende
+          e.target.textContent = ""; // Töm texten manuellt istället
+          return;
+        }
+      }
     }
+
+    // --- 2. Avbryt om vi är i text-läge (men EFTER rubrik-skyddet!) ---
+    if (this.editMode !== "chord") return;
+
     if (e.key === "Enter" && !e.shiftKey) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const range = sel.getRangeAt(0);
 
       let div = range.startContainer;
       while (div && div.nodeName !== "DIV" && div.id !== "editor") {
@@ -2227,7 +2263,10 @@ class StableChordEditor {
     let baseName = "Untitled song";
     let newName = baseName;
     let counter = 1;
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
 
     while (projects[newName]) {
       newName = `${baseName} (${counter})`;
@@ -2237,7 +2276,7 @@ class StableChordEditor {
     // 2. Sätt de nya standardvärdena
     this.loadedProjectName = null;
     this.titleInput.value = newName;
-    this.authorInput.value = "Unknown artist"; 
+    this.authorInput.value = "Unknown artist";
     this.editor.style.fontSize = "16px";
 
     // Återställ till textläge (inte ackordsläge) för ny låt
@@ -2300,7 +2339,7 @@ class StableChordEditor {
 
     // Förhindra att man skriver över en ANNAN befintlig låt när man byter namn
     if (isRenaming && projects[name]) {
-      this.showCustomAlert(`A song named \"${name}\" already exists.`);
+      this.showCustomAlert(`A song named "${name}" already exists.`); // Översatt till engelska!
       const titleEl = this.editor.querySelector(".song-header-title");
       if (titleEl) titleEl.textContent = oldName;
       this.titleInput.value = oldName;
@@ -2350,6 +2389,11 @@ class StableChordEditor {
     this.loadedProjectName = name;
     this.updateProjectList(name);
 
+    // --- NYTT: Synka ordningen till molnet omedelbart så bandet får det nya namnet! ---
+    if (this.currentBandId || (window.fb && window.fb.auth.currentUser)) {
+      this.syncOrderToCloud(order);
+    }
+
     // --- FIRESTORE LOGIK (Spara och städa) ---
     if (window.fb && window.fb.auth.currentUser) {
       try {
@@ -2368,10 +2412,10 @@ class StableChordEditor {
             : doc(db, "users", uid, "songs", oldName);
           await deleteDoc(oldRef);
         }
-        console.log(`The song "${name}" was saved to the cloudt!`);
+        console.log(`The song "${name}" was saved to the cloud!`); // Översatt!
       } catch (error) {
-        console.error("Could not save to the cloud:", error);
-        this.showCustomAlert("Sparades lokalt, men molnsynken misslyckades.");
+        console.error("Could not save to the cloud:", error); // Översatt!
+        this.showCustomAlert("Saved locally, but cloud sync failed."); // Översatt!
       }
     }
 
@@ -2955,7 +2999,7 @@ class StableChordEditor {
     return doc.output("blob");
   }
 
-exportPdf() {
+  exportPdf() {
     this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     this.syncChordData();
     const projectData = {
@@ -3053,7 +3097,7 @@ exportPdf() {
     saveAs(blob, `songs_backup.json`);
   }
 
- async exportAllAsZip() {
+  async exportAllAsZip() {
     this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     try {
       const projects =
@@ -3079,7 +3123,7 @@ exportPdf() {
     }
   }
 
-exportJson() {
+  exportJson() {
     this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     this.syncChordData();
     const projectData = {
@@ -3097,7 +3141,7 @@ exportJson() {
   }
 
   // --- UPPDATERAD EXPORT: Använd sorteringen ---
-exportAllJson() {
+  exportAllJson() {
     this.backupModal.classList.remove("visible"); // Stänger menyn direkt
     const projects =
       JSON.parse(
@@ -3493,7 +3537,7 @@ exportAllJson() {
       this.updateProjectList(); // Ladda om menyn (som nu bara kommer visa setlisten)
 
       this.showCustomAlert(
-        `GIG-MODE ACTIVATED!\nDownloaded ${newCount} new songs och updated ${updateCount} current.\nYou now only see the setlist songs in the menu.`
+        `GIG-MODE ACTIVATED!\nDownloaded ${newCount} new songs and updated ${updateCount} current ones.\nYou now only see the setlist songs in the menu.`
       );
 
       // Ladda den första låten i setlisten direkt på skärmen
@@ -3504,14 +3548,14 @@ exportAllJson() {
       console.error("Fel vid hämtning:", error);
       this.showCustomAlert("An error occurred while downloading the setlist.");
     } finally {
-      this.btnDownloadSetlist.textContent = "Ladda ner";
+      this.btnDownloadSetlist.textContent = "Download";
       this.btnDownloadSetlist.disabled = false;
     }
   }
 
-importJsonFromFile(file) {
+  importJsonFromFile(file) {
     if (!file) return;
-    
+
     // --- NYTT: Stäng Backup-menyn direkt när en fil har valts! ---
     this.backupModal.classList.remove("visible");
 
@@ -3842,7 +3886,9 @@ importJsonFromFile(file) {
   async createBand() {
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
-      return this.showCustomAlert("You must log in (via the side menu) before you can create a band!");
+      return this.showCustomAlert(
+        "You must log in (via the side menu) before you can create a band!"
+      );
     }
 
     // --- NYTT: Stäng modalen omedelbart så den inte ligger i bakgrunden! ---
@@ -3883,14 +3929,18 @@ importJsonFromFile(file) {
       this.showCustomAlert(`Band created!\nYour invite code is: ${bandCode}`);
     } catch (e) {
       console.error(e);
-      this.showCustomAlert("Could not create the band. Check your Firebase rules!");
+      this.showCustomAlert(
+        "Could not create the band. Check your Firebase rules!"
+      );
     }
   }
 
-async joinBand() {
+  async joinBand() {
     if (!window.fb || !window.fb.auth.currentUser) {
       this.bandModal.classList.remove("visible");
-      return this.showCustomAlert("You must log in (via the side menu) before you can join a band!");
+      return this.showCustomAlert(
+        "You must log in (via the side menu) before you can join a band!"
+      );
     }
 
     // --- NYTT: Stäng modalen omedelbart! ---
@@ -3946,7 +3996,9 @@ async joinBand() {
     // --- NYTT: Stäng modalen direkt så dialogrutorna inte krockar! ---
     this.bandModal.classList.remove("visible");
 
-    const confirmed = await this.showCustomConfirm("Are you sure you want to leave the band and return to your private songs?");
+    const confirmed = await this.showCustomConfirm(
+      "Are you sure you want to leave the band and return to your private songs?"
+    );
     if (!confirmed) return;
 
     const uid = window.fb.auth.currentUser.uid;

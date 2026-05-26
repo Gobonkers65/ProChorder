@@ -1341,6 +1341,7 @@ body.dark-mode .app-logo span {
   pointer-events: none; 
   /* HÄR ÄR MAGIN: Tvinga blocket att ignorera kod-radbrytningar */
   white-space: normal !important; 
+  text-align: center; /* <-- LÄGG TILL DENNA RAD! */
 }
 
 .song-header-title {

@@ -1320,11 +1320,11 @@ body.dark-mode.edit-mode-on #btn-main-edit-toggle {
   box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Ger loggan ett litet djup */
 }
 
-app-logo span {
+.app-logo span {
   font-weight: 900;
-  font-size: 1.1rem; 
+  font-size: 1.2rem; /* Minskad från 1.4rem */
   letter-spacing: -0.5px;
-  color: var(--primary);
+  color: #013d75;
   
   /* --- NYTT: Fix för långa bandnamn --- */
   white-space: nowrap;
@@ -1335,7 +1335,7 @@ app-logo span {
 
 /* I mörkt läge vill vi bara att texten ändrar färg, bilden förblir densamma */
 body.dark-mode .app-logo span {
-  color: #ffffff;
+  color: #508aff;
 }
 
 /* --- LÅTRUBRIK INUTI EDITORN --- */

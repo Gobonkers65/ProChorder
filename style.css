@@ -1320,11 +1320,17 @@ body.dark-mode.edit-mode-on #btn-main-edit-toggle {
   box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Ger loggan ett litet djup */
 }
 
-.app-logo span {
+app-logo span {
   font-weight: 900;
-  font-size: 1.4rem;
+  font-size: 1.1rem; 
   letter-spacing: -0.5px;
   color: var(--primary);
+  
+  /* --- NYTT: Fix för långa bandnamn --- */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px; /* Justera denna om du vill ha mer/mindre plats */
 }
 
 /* I mörkt läge vill vi bara att texten ändrar färg, bilden förblir densamma */

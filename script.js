@@ -4033,10 +4033,14 @@ item.addEventListener("drop", (e) => {
       console.error(e);
     }
   }
-  updateBandUI() {
-    const modalBox = document.querySelector("#band-modal .custom-dialog-box");
-    if (!modalBox) return;
-
+updateBandUI() {
+    const modalBox = this.bandModal.querySelector(".custom-dialog-box");
+    
+    // --- NYTT: Byt namn i toppmenyn (ProChorder <-> Bandnamn) ---
+    const topBarName = document.getElementById("top-bar-band-name");
+    if (topBarName) {
+      topBarName.textContent = this.currentBandName ? this.currentBandName : "ProChorder";
+    }
     if (this.currentBandId) {
       modalBox.innerHTML = `
         <h3 style="margin-top: 0">${this.currentBandName}</h3>

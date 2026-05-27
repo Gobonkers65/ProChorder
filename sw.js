@@ -1,4 +1,4 @@
-const CACHE_NAME = "prochorder-v2"; // <-- BYT DENNA SIFFRA VID VARJE UPPDATERING PÅ GITHUB
+const CACHE_NAME = "prochorder-v11"; // <-- BYT DENNA SIFFRA VID VARJE UPPDATERING PÅ GITHUB
 const assets = [
   "./",
   "./index.html",

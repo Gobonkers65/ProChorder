@@ -55,6 +55,11 @@ body.dark-mode {
   --surface-rgb: 40, 45, 51;
   --primary-rgb: 76, 154, 255;
 }
+/* Toppmenyn blir svart i mörkt läge */
+body.dark-mode .top-bar {
+  background-color: #000000;
+  border-bottom: 1px solid #333333; /* En lite mörkare kantlinje för att det ska smälta in snyggt */
+}
 
 body.dark-mode #editor a {
   color: var(--text-color);
@@ -112,7 +117,10 @@ body {
   align-items: center;
   gap: 0.5em;
   padding: 12px 1em;
-  background-color: rgba(var(--bg-rgb), 0.8);
+  
+  /* Ljusgrå i standardläget (Light mode) */
+  background-color: rgba(179, 178, 178, 0.9); 
+  
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-soft);
@@ -1335,7 +1343,7 @@ body.dark-mode.edit-mode-on #btn-main-edit-toggle {
 
 /* I mörkt läge vill vi bara att texten ändrar färg, bilden förblir densamma */
 body.dark-mode .app-logo span {
-  color: #508aff;
+  color: #d1d1d1;
 }
 
 /* --- LÅTRUBRIK INUTI EDITORN --- */

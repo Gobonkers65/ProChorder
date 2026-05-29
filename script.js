@@ -449,9 +449,17 @@ class StableChordEditor {
     this.editor.addEventListener(
       "touchend",
       (e) => {
-        // NYTT: Stoppa swipen direkt om Edit-läget är på, eller om vi drar och släpper!
-        if (this.isEditMode || document.body.classList.contains("is-dragging"))
+        // Spärra navigering om vi är i Edit-läge
+        if (this.isEditMode) {
+          // Om användaren faktiskt svepte (inte bara nuddade skärmen)
+          const diffX = e.changedTouches[0].screenX - touchStartX;
+          if (Math.abs(diffX) > 50) {
+            this.showCustomAlert("Please exit Edit Mode first!");
+          }
           return;
+        }
+
+        if (document.body.classList.contains("is-dragging")) return;
 
         const touchEndX = e.changedTouches[0].screenX;
         const touchEndY = e.changedTouches[0].screenY;
@@ -570,8 +578,8 @@ class StableChordEditor {
       if (secMenu) secMenu.classList.add("is-hidden");
 
       // Lås redigeringen
-      this.editor
-// Lås redigeringen
+      this.editor;
+      // Lås redigeringen
       this.editor
         .querySelectorAll(
           ".block-content, .block-badge, .song-header-title, .song-header-author"
@@ -628,7 +636,7 @@ class StableChordEditor {
     // --- SKAPA KONTROLLER (Flytta, Kopiera, Radera) ---
     const controls = document.createElement("div");
     controls.className = "block-controls";
-
+    controls.contentEditable = "false";
     // Flytta UPP
     const btnUp = document.createElement("button");
     btnUp.className = "block-control-btn";
@@ -781,7 +789,13 @@ class StableChordEditor {
       }
     };
 
-    this.hamburgerBtn.addEventListener("click", toggleMenu);
+    this.hamburgerBtn.addEventListener("click", () => {
+      if (this.isEditMode) {
+        this.showCustomAlert("Please exit Edit Mode first!");
+        return;
+      }
+      toggleMenu();
+    });
     this.menuOverlay.addEventListener("click", toggleMenu);
 
     this.btnToggleChordMode.addEventListener("click", () =>
@@ -892,18 +906,16 @@ class StableChordEditor {
     });
     this.projectSelectorBtn.addEventListener("click", (e) => {
       e.stopPropagation();
+      if (this.isEditMode) {
+        this.showCustomAlert("Please exit Edit Mode first!");
+        return;
+      }
       this.toggleProjectMenu();
     });
 
-    this.btnNewProject.addEventListener("click", async () => {
+this.btnNewProject.addEventListener("click", () => {
       toggleMenu();
-      if (
-        await this.showCustomConfirm(
-          "Are you sure? Unsaved changes will be lost."
-        )
-      ) {
-        this.createNewProject();
-      }
+      this.createNewProject();
     });
 
     this.btnSaveCopy.addEventListener("click", async () => {
@@ -978,8 +990,11 @@ class StableChordEditor {
     });
 
     this.editor.addEventListener("click", (e) => {
-      // NYTT: Blockera ackordväljaren om man klickar på rubriker eller småknapparna!
-      if (e.target.closest(".song-block-header")) return;
+      // --- NYTT: Klicka på rubriken öppnar dialogrutan! ---
+      if (e.target.closest("#song-header")) {
+        if (this.isEditMode) this.openMetadataModal();
+        return;
+      }
 
       const link = e.target.closest("a");
       if (link && link.href) {
@@ -1123,6 +1138,56 @@ class StableChordEditor {
     //   const { onAuthStateChanged } = window.fbAuth; // Vi hämtar funktionen från fönstret
     // Men vänta, vi behöver importera rätt funktioner först...
     //  }
+    // Metadata Modal Knappar
+    document
+      .getElementById("btn-metadata-save")
+      .addEventListener("click", () => this.saveMetadata());
+    document
+      .getElementById("btn-metadata-cancel")
+      .addEventListener("click", () => {
+        document.getElementById("metadata-modal").classList.remove("visible");
+      // --- NY LOGIK: Om vi ångrar skapandet av en helt ny låt ---
+      if (this.isCreatingNew) {
+        this.isCreatingNew = false; // Återställ flaggan
+        const nameToDelete = this.titleInput.value;
+
+        // 1. Radera tyst den tomma skräp-låten från lokalt minne
+        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+        delete projects[nameToDelete];
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+
+        let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+        order = order.filter((title) => title !== nameToDelete);
+        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+
+        // 2. Radera tyst från molnet (utan att visa "Are you sure"-rutan)
+        if (window.fb && window.fb.auth.currentUser) {
+          const uid = window.fb.auth.currentUser.uid;
+          const { db, doc, deleteDoc } = window.fb;
+          const songRef = this.currentBandId
+            ? doc(db, "bands", this.currentBandId, "songs", nameToDelete)
+            : doc(db, "users", uid, "songs", nameToDelete);
+          deleteDoc(songRef).catch(e => console.error("Kunde inte städa molnet:", e));
+          this.syncOrderToCloud(order);
+        }
+
+        // 3. Ladda om sidomenyn så låten försvinner visuellt
+        this.updateProjectList();
+
+        // 4. Ladda första låten i biblioteket och stäng Edit-läget!
+        if (order.length > 0) {
+          this.loadProject(order[0]);
+          if (this.isEditMode) this.toggleEditMode();
+        } else {
+          // Fallback: Om biblioteket var helt tomt, rensa bara skärmen och stäng Edit
+          this.titleInput.value = "";
+          this.authorInput.value = "";
+          this.editor.innerHTML = "";
+          this.updateEditorHeader();
+          if (this.isEditMode) this.toggleEditMode();
+        }
+      }
+    });
   }
 
   // --- METRONOM LOGIK ---
@@ -1212,7 +1277,7 @@ class StableChordEditor {
 
   // --- PROJEKT MENY ---
   // --- PROJEKT MENY ---
-toggleProjectMenu() {
+  toggleProjectMenu() {
     const isOpen = this.projectDropdownMenu.classList.toggle("is-open");
     this.projectSelectorBtn.classList.toggle("is-active", isOpen);
 
@@ -1239,7 +1304,7 @@ toggleProjectMenu() {
   }
 
   // NYTT: Kollar om listan ändrats sedan vi öppnade menyn
-async checkAndSyncOrderChanges() {
+  async checkAndSyncOrderChanges() {
     // Kör bara om vi är i ett band och inte i ett tillfälligt setlist-läge
     if (!this.currentBandId || this.activeSetlist) return;
 
@@ -1778,7 +1843,7 @@ async checkAndSyncOrderChanges() {
   }
 
   // --- SÄKER REDIGERING & ENTER-FIX ---
-handleKeyDown(e) {
+  handleKeyDown(e) {
     // --- 1. SÄKERHET FÖR RUBRIKERNA (Körs ALLTID, oavsett läge!) ---
     if (
       e.target.classList.contains("song-header-title") ||
@@ -1797,7 +1862,10 @@ handleKeyDown(e) {
         const text = e.target.textContent;
 
         // Om all text är markerad, ELLER om det bara är ett tecken kvar
-        if (sel.toString() === text || (text.length === 1 && e.key === "Backspace")) {
+        if (
+          sel.toString() === text ||
+          (text.length === 1 && e.key === "Backspace")
+        ) {
           e.preventDefault(); // Stoppa webbläsarens destruktiva beteende
           e.target.textContent = ""; // Töm texten manuellt istället
           return;
@@ -1808,7 +1876,7 @@ handleKeyDown(e) {
     // --- 2. Avbryt om vi är i text-läge (men EFTER rubrik-skyddet!) ---
     if (this.editMode !== "chord") return;
 
-if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       // LÄGG TILL DESSA TRE RADER: Hämtar markörens position!
       const sel = window.getSelection();
       if (!sel.rangeCount) return;
@@ -2022,34 +2090,50 @@ if (e.key === "Enter" && !e.shiftKey) {
       this.editor.prepend(header);
     }
 
-    // Sätt aldrig contentEditable på containern — det stör barnens redigering
-    header.removeAttribute("contenteditable");
-
-    // Kollar om edit-läget är igång just nu
-    const isEditable = this.isEditMode ? "true" : "false";
-
-    // Spara befintliga värden från DOM om de redan finns (undvik att skriva över pågående redigering)
-    const existingTitle = this.editor.querySelector(".song-header-title");
-    const existingAuthor = this.editor.querySelector(".song-header-author");
-    const currentTitle = existingTitle
-      ? existingTitle.textContent
-      : this.titleInput.value;
-    const currentAuthor = existingAuthor
-      ? existingAuthor.textContent
-      : this.authorInput.value;
+    const currentTitle = this.titleInput.value || "Untitled song";
+    const currentAuthor = this.authorInput.value || "Unknown artist";
 
     header.innerHTML = `
-      <h1 class="song-header-title" contenteditable="${isEditable}" spellcheck="false">${
-      currentTitle || ""
-    }</h1>
-      <h3 class="song-header-author" contenteditable="${isEditable}" spellcheck="false">${
-      currentAuthor || ""
-    }</h3>
+      <h1 class="song-header-title">${currentTitle}</h1>
+      <h3 class="song-header-author">${currentAuthor}</h3>
     `;
+  }
+  openMetadataModal() {
+    if (this.editMode === "scroll") return;
+    const modal = document.getElementById("metadata-modal");
+    const titleField = document.getElementById("modal-input-title");
+    const authorField = document.getElementById("modal-input-author");
 
-    // Synka tillbaka till de dolda inputfälten
-    this.titleInput.value = currentTitle || "";
-    this.authorInput.value = currentAuthor || "";
+    // Rensa fälten om de bara innehåller standard-texten
+    titleField.value = this.titleInput.value.startsWith("Untitled song")
+      ? ""
+      : this.titleInput.value;
+    authorField.value =
+      this.authorInput.value === "Unknown artist" ? "" : this.authorInput.value;
+
+    modal.classList.add("visible");
+    setTimeout(() => titleField.focus(), 100);
+  }
+
+  saveMetadata() {
+    this.isCreatingNew = false;
+    const newTitle = document.getElementById("modal-input-title").value.trim();
+    const newAuthor = document
+      .getElementById("modal-input-author")
+      .value.trim();
+
+    if (!newTitle) {
+      this.showCustomAlert("Song title cannot be empty!");
+      return;
+    }
+
+    this.titleInput.value = newTitle;
+    this.authorInput.value = newAuthor || "Unknown artist";
+
+    this.updateEditorHeader();
+    this.saveProject(newTitle); // Detta döper automatiskt om filen och sparar!
+
+    document.getElementById("metadata-modal").classList.remove("visible");
   }
   // LADDAR IN LÅTEN PÅ SKÄRMEN I DOM NYA BLOCKEN
   loadContent(text, recordHistory = false) {
@@ -2286,22 +2370,15 @@ if (e.key === "Enter" && !e.shiftKey) {
     await this.saveProject(newName);
 
     // Slå på Edit-läget automatiskt om det inte redan är igång
-    if (!this.isEditMode) {
+if (!this.isEditMode) {
       this.toggleEditMode();
     }
 
-    // 4. UX-MAGI: Markera hela titeln så man bara kan börja skriva direkt!
-    setTimeout(() => {
-      const titleEl = this.editor.querySelector(".song-header-title");
-      if (titleEl) {
-        const range = document.createRange();
-        range.selectNodeContents(titleEl);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        titleEl.focus();
-      }
-    }, 50);
+    // --- NYTT: Markera att detta är en helt ny låt! ---
+    this.isCreatingNew = true; 
+
+    // Öppna dialogrutan direkt så användaren får döpa låten
+    this.openMetadataModal();
   }
 
   saveCopy() {
@@ -2762,7 +2839,27 @@ if (e.key === "Enter" && !e.shiftKey) {
       handle.className = "drag-handle";
       handle.draggable = true;
 
+      let touchStartY = 0;
+      let touchMoved = false;
+      item.addEventListener(
+        "touchstart",
+        (e) => {
+          touchStartY = e.touches[0].clientY;
+          touchMoved = false;
+        },
+        { passive: true }
+      );
+      item.addEventListener(
+        "touchmove",
+        (e) => {
+          if (Math.abs(e.touches[0].clientY - touchStartY) > 8) {
+            touchMoved = true;
+          }
+        },
+        { passive: true }
+      );
       item.addEventListener("click", (e) => {
+        if (touchMoved) return;
         if (e.target.closest(".drag-handle")) return;
         this.selectProject(name);
       });
@@ -2791,7 +2888,7 @@ if (e.key === "Enter" && !e.shiftKey) {
         item.classList.remove("drag-over");
       });
 
-item.addEventListener("drop", (e) => {
+      item.addEventListener("drop", (e) => {
         e.preventDefault();
         const fromIndex = parseInt(e.dataTransfer.getData("text/plain"));
         const toIndex = index;
@@ -4033,13 +4130,15 @@ item.addEventListener("drop", (e) => {
       console.error(e);
     }
   }
-updateBandUI() {
+  updateBandUI() {
     const modalBox = this.bandModal.querySelector(".custom-dialog-box");
-    
+
     // --- NYTT: Byt namn i toppmenyn (ProChorder <-> Bandnamn) ---
     const topBarName = document.getElementById("top-bar-band-name");
     if (topBarName) {
-      topBarName.textContent = this.currentBandName ? this.currentBandName : "ProChorder";
+      topBarName.textContent = this.currentBandName
+        ? this.currentBandName
+        : "ProChorder";
     }
     if (this.currentBandId) {
       modalBox.innerHTML = `

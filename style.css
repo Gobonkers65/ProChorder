@@ -230,9 +230,16 @@ body {
   opacity: 1;
   cursor: grabbing;
 }
-.project-dropdown-item:hover {
-  background-color: var(--primary-bg-hover);
-  color: var(--primary);
+/* Tvinga hover-effekter att BARA fungera på enheter med en riktig muspekare */
+@media (hover: hover) {
+  .project-dropdown-item:hover {
+    background-color: var(--primary-bg-hover);
+    color: var(--primary);
+  }
+  
+  .song-transfer-item:hover {
+    background: var(--primary-bg-hover);
+  }
 }
 .project-dropdown-item.drag-over {
   border-top: 2px solid var(--primary);
@@ -796,9 +803,9 @@ body.scroll-mode-active #floating-live-btn {
   touch-action: pan-y; /* NYTT: Berättar för mobilen att vertikal scroll är tillåtet här */
 }
 
-.song-transfer-item:hover {
+/*.song-transfer-item:hover {
   background: var(--primary-bg-hover);
-}
+}*/
 
 /* Förminska flytthandtagen så de inte stjäl utrymme */
 .drag-handle {
@@ -1021,7 +1028,8 @@ body.dark-mode.edit-mode-on .block-badge {
   display: none; 
   gap: 4px; 
   margin-right: 70px; /* Skjuter in knapparna åt vänster, bort från menyn! */
-
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 body.edit-mode-on .block-controls {
   display: flex;
@@ -1040,6 +1048,9 @@ body.edit-mode-on .block-controls {
   justify-content: center;
   padding: 0;
   margin: 0;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-user-drag: none !important;
 }
 body.dark-mode .block-control-btn {
   border-color: #ffffff;
@@ -1352,21 +1363,19 @@ body.dark-mode .app-logo span {
   margin-bottom: 0em;     
   padding-bottom: 0.1em;  
   border-bottom: 1px solid var(--border);
-  pointer-events: none; 
-  /* HÄR ÄR MAGIN: Tvinga blocket att ignorera kod-radbrytningar */
-  white-space: normal !important; 
-  text-align: center; /* <-- LÄGG TILL DENNA RAD! */
+  text-align: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
 .song-header-title {
   margin: 0 0 2px 0;      
   font-size: 1.4rem;      
   color: var(--primary);
-  line-height: 1.1; /* Ändrat från 0.1 så att texten inte riskerar att klippas */
- opacity: 0.8;
+  line-height: 1.1; 
+  opacity: 0.8;
   font-weight: 800;
   letter-spacing: -0.1px;
-  text-align: center;
 }
 
 body.dark-mode .song-header-title {
@@ -1378,7 +1387,15 @@ body.dark-mode .song-header-title {
   font-size: 0.80rem;     
   opacity: 0.7;
   font-weight: 400;
-  text-align: center;
+}
+
+/* När Edit-läget är på, visa att rubriken är klickbar! */
+body.edit-mode-on .song-header-block {
+  cursor: pointer;
+  pointer-events: auto !important;
+}
+body.edit-mode-on .song-header-block:hover {
+  background-color: var(--primary-bg-hover);
 }
 /* --- METRONOM PULS ANIMATION --- */
 @keyframes metronome-pulse-anim {
@@ -1502,16 +1519,6 @@ body.dark-mode.edit-mode-on .song-header-author {
 .song-header-author:empty::before {
   content: "Artist / Composer"; 
   opacity: 0.3;
-}
-/* --- LÅS UPP RUBRIKEN I EDIT-LÄGE (MOBIL-FIX) --- */
-body.edit-mode-on .song-header-block,
-body.edit-mode-on .song-header-title,
-body.edit-mode-on .song-header-author {
-  pointer-events: auto !important;
-  user-select: text !important;
-  -webkit-user-select: text !important; /* <-- SUPERVIKTIG FÖR MOBILER! */
-  -webkit-user-modify: read-write !important; /* Tvingar fram tangentbordet */
-  outline: none; /* Tar bort fula blå ramar på mobilen */
 }
 /* --- FÖRHINDRA TEXT- OCH RUTMARKERING VID SCROLL --- */
 .project-dropdown-item,

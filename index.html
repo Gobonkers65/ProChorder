@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProChorder 11.0</title>
+    <title>ProChorder 12.5</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -508,7 +508,22 @@
         </div>
       </div>
     </div>
-
+    <div id="metadata-modal" class="custom-dialog-overlay">
+      <div class="custom-dialog-box" style="max-width: 350px; width: 90%;">
+        <h3 style="margin-top: 0">Song Details</h3>
+        <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1em">
+          Name your song and artist.
+        </p>
+        <div class="sidebar-controls vertical">
+          <input type="text" id="modal-input-title" placeholder="Song Title" autocomplete="off" />
+          <input type="text" id="modal-input-author" placeholder="Artist / Composer" autocomplete="off" />
+        </div>
+        <div class="dialog-buttons">
+          <button id="btn-metadata-cancel" class="btn-secondary">Cancel</button>
+          <button id="btn-metadata-save" class="btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
     <div id="chord-editor-modal" class="custom-dialog-overlay">
       <div class="custom-dialog-box">
         <div class="chord-selector-container">

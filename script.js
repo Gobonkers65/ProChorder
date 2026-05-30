@@ -1025,7 +1025,9 @@ this.btnNewProject.addEventListener("click", () => {
     );
 
     // Öppna Hämta Setlist
+// Öppna Hämta Setlist (Biblioteket)
     this.btnOpenFetchSetlist.addEventListener("click", () => {
+      this.fetchSetlistLibrary(); // <-- NYTT: Hämta listorna först!
       openModal(this.fetchSetlistModal);
       toggleMenu();
     });
@@ -1037,10 +1039,6 @@ this.btnNewProject.addEventListener("click", () => {
     this.btnGenerateSetlist.addEventListener("click", () =>
       this.generateSetlist()
     );
-    this.btnDownloadSetlist.addEventListener("click", () =>
-      this.fetchSharedSetlist()
-    );
-
     this.editor.addEventListener("keydown", this.handleKeyDown.bind(this));
 
     this.editor.addEventListener("paste", (e) => {
@@ -3435,19 +3433,15 @@ if (!this.isEditMode) {
     return code;
   }
 
-  async generateSetlist() {
-    if (!window.fb) {
-      this.showCustomAlert("Server not connected.");
+async generateSetlist() {
+    // 1. Spärr: Måste vara inloggad för att spara till bandet/molnet
+    if (!window.fb || !window.fb.auth.currentUser) {
+      this.showCustomAlert("You must be logged in to save a setlist!");
       return;
     }
 
-    const rows = this.setlistSelectedList.querySelectorAll(
-      ".song-transfer-item"
-    );
-    const projects =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
-      ) || {};
+    const rows = this.setlistSelectedList.querySelectorAll(".song-transfer-item");
+    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
     const sharedSongs = [];
 
     rows.forEach((row) => {
@@ -3458,74 +3452,295 @@ if (!this.isEditMode) {
     });
 
     if (sharedSongs.length === 0) {
-      this.showCustomAlert("Select at least one song to share.");
+      this.showCustomAlert("Select at least one song for your setlist.");
       return;
     }
 
-    // NYTT: Spara listan som "utkast" så rutan minns detta nästa gång du öppnar den!
     this.draftSetlist = sharedSongs.map((s) => s.title);
 
-    // --- NY LOGIK FÖR EGEN KOD ---
+    // 2. Hämta namnet (istället för koden)
     const codeInput = document.getElementById("custom-setlist-code-input");
-    let shareCode = codeInput ? codeInput.value.trim().toUpperCase() : "";
+    let setlistName = codeInput ? codeInput.value.trim().toUpperCase() : "";
 
-    // Om användaren lämnar tomt, slumpa en kod som tidigare
-    if (!shareCode) {
-      shareCode = this.generateRandomCode();
-    } else {
-      // Formatera koden: byt ut mellanslag mot understreck och ta bort konstiga tecken
-      shareCode = shareCode.replace(/\s+/g, "_").replace(/[^A-Z0-9_]/g, "");
-    }
-
-    if (shareCode.length < 3) {
-      this.showCustomAlert("The code must be at least 3 characters long.");
+    if (!setlistName) {
+      this.showCustomAlert("Please enter a name for your setlist (e.g. FESTIVAL).");
       return;
     }
-    // -------------------------------
 
-    this.btnGenerateSetlist.textContent = "Creating...";
+    this.btnGenerateSetlist.textContent = "Saving...";
     this.btnGenerateSetlist.disabled = true;
 
     try {
+      const uid = window.fb.auth.currentUser.uid;
       const { db, doc, setDoc } = window.fb;
-      const setlistRef = doc(db, "shared_setlists", shareCode);
+
+      // --- HÄR ÄR MAGIN: Spara inuti bandets mapp! ---
+      const setlistRef = this.currentBandId
+        ? doc(db, "bands", this.currentBandId, "setlists", setlistName)
+        : doc(db, "users", uid, "setlists", setlistName);
 
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("TIMEOUT")), 8000)
       );
+      
       const uploadPromise = setDoc(setlistRef, {
+        name: setlistName,
         createdAt: new Date().toISOString(),
         songs: sharedSongs,
-        createdBy: window.fb.auth.currentUser
-          ? window.fb.auth.currentUser.displayName || "An artist"
-          : "Anonymous",
+        createdBy: window.fb.auth.currentUser.displayName || "Unknown",
       });
 
       await Promise.race([uploadPromise, timeoutPromise]);
 
-      // --- NYTT: Stäng Setlist-rutan ---
       if (this.createSetlistModal) {
         this.createSetlistModal.classList.remove("visible");
       }
 
-      // Visa bekräftelsen i en Alert
-      this.showCustomAlert(`Setlist shared! Your code is: ${shareCode}`);
-
-      // Töm inmatningsfältet för nästa gång
+      this.showCustomAlert(`Setlist "${setlistName}" saved to your library!`);
       if (codeInput) codeInput.value = "";
+
     } catch (error) {
-      console.error("Error while sharing:", error);
+      console.error("Error while saving:", error);
       if (error.message === "TIMEOUT") {
         this.showCustomAlert("Server is not responding (Timeout).");
       } else {
-        this.showCustomAlert("Error when sharing setlist.");
+        this.showCustomAlert("Error when saving setlist.");
       }
     } finally {
-      this.btnGenerateSetlist.textContent = "Share";
+      this.btnGenerateSetlist.textContent = "Save Setlist";
       this.btnGenerateSetlist.disabled = false;
     }
   }
+// --- SETLIST BIBLIOTEK LOGIK ---
 
+  async fetchSetlistLibrary() {
+    const container = document.getElementById("setlist-library-container");
+    container.innerHTML = '<p style="text-align: center; opacity: 0.5; margin-top: 50px;">Loading setlists...</p>';
+
+    if (!window.fb || !window.fb.auth.currentUser) {
+      container.innerHTML = '<p style="text-align: center; opacity: 0.7; margin-top: 50px;">Please log in to view setlists.</p>';
+      return;
+    }
+
+    const uid = window.fb.auth.currentUser.uid;
+    const { db, collection, getDocs } = window.fb;
+    
+    // Titta i bandets mapp om vi är i ett band, annars i vår privata
+    const setlistsRef = this.currentBandId
+      ? collection(db, "bands", this.currentBandId, "setlists")
+      : collection(db, "users", uid, "setlists");
+
+    try {
+      const snapshot = await getDocs(setlistsRef);
+      const setlists = [];
+      snapshot.forEach(doc => {
+        setlists.push(doc.data());
+      });
+      this.renderSetlistLibrary(setlists);
+    } catch (error) {
+      console.error("Error fetching setlists:", error);
+      container.innerHTML = '<p style="text-align: center; color: var(--danger-bg); margin-top: 50px;">Error loading setlists.</p>';
+    }
+  }
+
+  renderSetlistLibrary(setlists) {
+    const container = document.getElementById("setlist-library-container");
+    container.innerHTML = "";
+
+    if (setlists.length === 0) {
+      container.innerHTML = '<p style="text-align: center; opacity: 0.5; margin-top: 50px;">No setlists found.</p>';
+      return;
+    }
+
+    // Sortera så att den senast skapade listan hamnar överst
+    setlists.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    setlists.forEach(setlist => {
+      const row = document.createElement("div");
+      row.className = "song-transfer-item";
+      row.style.cursor = "default";
+      row.style.flexDirection = "column";
+      row.style.alignItems = "stretch";
+      row.style.gap = "10px";
+
+      // Övre delen: Namn och antal låtar
+      const topRow = document.createElement("div");
+      topRow.style.display = "flex";
+      topRow.style.justifyContent = "space-between";
+      topRow.style.alignItems = "center";
+
+      const nameSpan = document.createElement("strong");
+      nameSpan.textContent = setlist.name;
+      nameSpan.style.fontSize = "1.1em";
+      nameSpan.style.color = "var(--primary)";
+
+      const countSpan = document.createElement("span");
+      countSpan.textContent = `${setlist.songs ? setlist.songs.length : 0} songs`;
+      countSpan.style.opacity = "0.7";
+      countSpan.style.fontSize = "0.9em";
+
+      topRow.appendChild(nameSpan);
+      topRow.appendChild(countSpan);
+
+      // Nedre delen: Knapparna
+      const btnRow = document.createElement("div");
+      btnRow.style.display = "flex";
+      btnRow.style.gap = "5px";
+
+      const btnLoad = document.createElement("button");
+      btnLoad.textContent = "Load";
+      btnLoad.className = "btn-primary";
+      btnLoad.style.flex = "1";
+      btnLoad.onclick = () => this.loadSetlist(setlist);
+
+      const btnEdit = document.createElement("button");
+      btnEdit.textContent = "Edit";
+      btnEdit.className = "btn-secondary-style";
+      btnEdit.style.flex = "1";
+      btnEdit.onclick = () => this.editSetlist(setlist);
+
+      const btnPdf = document.createElement("button");
+      btnPdf.textContent = "PDF";
+      btnPdf.className = "btn-secondary-style";
+      btnPdf.style.flex = "1";
+      btnPdf.onclick = () => this.exportSetlistPdf(setlist);
+
+      const btnDel = document.createElement("button");
+      btnDel.innerHTML = "&times;"; // Ett snyggt kryss
+      btnDel.className = "btn-danger";
+      btnDel.style.flex = "0.3";
+      btnDel.title = "Delete Setlist";
+      btnDel.onclick = () => this.deleteSetlist(setlist.name);
+
+      btnRow.appendChild(btnLoad);
+      btnRow.appendChild(btnEdit);
+      btnRow.appendChild(btnPdf);
+      btnRow.appendChild(btnDel);
+
+      row.appendChild(topRow);
+      row.appendChild(btnRow);
+      container.appendChild(row);
+    });
+  }
+
+  loadSetlist(setlist) {
+    const songTitles = (setlist.songs || []).map(s => s.title);
+    if (songTitles.length === 0) {
+      this.showCustomAlert("This setlist is empty!");
+      return;
+    }
+
+    // Se till att låtarna i setlistan sparas i vårt lokala minne
+    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    let addedNew = false;
+
+    setlist.songs.forEach(song => {
+       if (song && song.title) {
+          projects[song.title] = song;
+          if (!order.includes(song.title)) {
+             order.push(song.title);
+             addedNew = true;
+          }
+       }
+    });
+
+    if (addedNew) {
+       localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+       localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+    }
+
+    // Aktivera Gig-Mode
+    this.activeSetlist = songTitles;
+    if (this.btnExitSetlist) this.btnExitSetlist.classList.remove("hidden");
+    this.hamburgerBtn.classList.add("hidden");
+
+    this.updateProjectList();
+    this.loadProject(songTitles[0]);
+    
+    document.getElementById("fetch-setlist-modal").classList.remove("visible");
+    this.showCustomAlert(`GIG-MODE ACTIVATED!\nLoaded setlist: "${setlist.name}"`);
+  }
+
+  editSetlist(setlist) {
+    // Stäng biblioteket
+    document.getElementById("fetch-setlist-modal").classList.remove("visible");
+    
+    // Ladda in titlarna som valda låtar i minnet
+    const songTitles = (setlist.songs || []).map(s => s.title);
+    this.draftSetlist = songTitles;
+    
+    // Fyll i namnet i inmatningsfältet
+    const codeInput = document.getElementById("custom-setlist-code-input");
+    if (codeInput) codeInput.value = setlist.name;
+    
+    // Öppna Edit-modalen och bygg listan
+    this.populateSetlistOptions();
+    document.getElementById("create-setlist-modal").classList.add("visible");
+  }
+
+  async deleteSetlist(setName) {
+    if (!await this.showCustomConfirm(`Are you sure you want to delete the setlist "${setName}" permanently?`)) return;
+
+    const uid = window.fb.auth.currentUser.uid;
+    const { db, doc, deleteDoc } = window.fb;
+    const setlistRef = this.currentBandId
+      ? doc(db, "bands", this.currentBandId, "setlists", setName)
+      : doc(db, "users", uid, "setlists", setName);
+
+    try {
+      await deleteDoc(setlistRef);
+      this.fetchSetlistLibrary(); // Ladda om listan tyst och snyggt i bakgrunden
+    } catch (e) {
+      console.error(e);
+      this.showCustomAlert("Error deleting setlist.");
+    }
+  }
+  
+  exportSetlistPdf(setlist) {
+     const { jsPDF } = window.jspdf;
+     const doc = new jsPDF();
+     let y = 20;
+     
+     // Rubrik
+     doc.setFont("helvetica", "bold");
+     doc.setFontSize(22);
+     doc.text(`${this.currentBandName || "My Band"} - ${setlist.name}`, 105, y, { align: "center" });
+     y += 15;
+     
+     doc.setFontSize(14);
+     doc.setFont("helvetica", "normal");
+     
+     if (!setlist.songs || setlist.songs.length === 0) {
+        doc.text("No songs in this setlist.", 20, y);
+     } else {
+        setlist.songs.forEach((song, index) => {
+           doc.setFont("helvetica", "bold");
+           doc.text(`${index + 1}.`, 20, y);
+           doc.setFont("helvetica", "normal");
+           doc.text(song.title, 35, y);
+           
+           // Bonus: Skriv ut tempot (BPM) ute till höger om det finns sparat!
+           if (song.tempo) {
+              doc.setFontSize(10);
+              doc.setTextColor(100); // Grå text
+              doc.text(`${song.tempo} BPM`, 190, y, { align: "right" });
+              doc.setFontSize(14);
+              doc.setTextColor(0); // Tillbaka till svart
+           }
+           
+           y += 12; // Hoppa ner en rad
+           
+           // Ny sida om vi når botten
+           if (y > 280) {
+              doc.addPage();
+              y = 20;
+           }
+        });
+     }
+     
+     doc.save(`Setlist_${setlist.name}.pdf`);
+  }
   // --- SETLIST LOGIK: HÄMTA ---
 
   async fetchSharedSetlist() {
@@ -3755,7 +3970,10 @@ if (!this.isEditMode) {
       StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
       JSON.stringify(order)
     );
-
+// --- NYTT: Synka den nya ordningen till molnet så den inte skrivs över vid reload! ---
+    if (isCloudConnected) {
+      this.syncOrderToCloud(order);
+    }
     this.updateProjectList();
     this.showCustomAlert(
       `${importedCount} New songs imported. ${overwrittenCount} songs updated. ${

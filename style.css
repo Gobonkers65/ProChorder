@@ -1485,41 +1485,6 @@ body:not(.edit-mode-on) #editor .chord-text {
 body.dark-mode .status-dot.online {
   background-color: #27ae60;
 }
-/* --- FLYTTA IN TITEL & ARTIST TILL EDITORN --- */
-/* 1. Göm de gamla fälten i sidomenyn */
-#song-title, #song-author {
-  display: none !important;
-}
-
-/* 3. Visuella hintar när Edit-läget är på */
-body.edit-mode-on .song-header-title,
-body.edit-mode-on .song-header-author {
-  cursor: text;
-  display: inline-block;
-  min-width: 150px;
-  border-bottom: 1px dashed var(--primary);
-  transition: background 0.2s;
-}
-body.dark-mode.edit-mode-on .song-header-title,
-body.dark-mode.edit-mode-on .song-header-author {
-  border-bottom-color: rgba(255, 255, 255, 0.4);
-}
-.song-header-title:focus,
-.song-header-author:focus {
-  outline: none;
-  border-bottom-style: solid;
-  background: var(--primary-bg-hover);
-  border-radius: 4px;
-}
-/* 2. Spök-text (Placeholders) när fälten är tomma */
-.song-header-title:empty::before {
-  content: "Song title"; /* Ändrad från Untitled song för att inte förvirra */
-  opacity: 0.3;
-}
-.song-header-author:empty::before {
-  content: "Artist / Composer"; 
-  opacity: 0.3;
-}
 /* --- FÖRHINDRA TEXT- OCH RUTMARKERING VID SCROLL --- */
 .project-dropdown-item,
 .song-transfer-item,

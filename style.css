@@ -613,6 +613,11 @@ body.scroll-mode-active #editor {
   pointer-events: auto;
   visibility: visible;
 }
+/* Tvinga alltid varnings- och bekräftelserutor att ligga absolut överst */
+#custom-alert,
+#custom-confirm {
+  z-index: 9999 !important;
+}
 .custom-dialog-box {
   background-color: var(--surface);
   color: var(--text-color);

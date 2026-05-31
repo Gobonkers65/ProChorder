@@ -3721,10 +3721,11 @@ async generateSetlist() {
            doc.text(song.title, 35, y);
            
            // Bonus: Skriv ut tempot (BPM) ute till höger om det finns sparat!
-           if (song.tempo) {
+         const bpmValue = song.bpm || song.tempo; // Kollar båda för säkerhets skull
+           if (bpmValue) {
               doc.setFontSize(10);
               doc.setTextColor(100); // Grå text
-              doc.text(`${song.tempo} BPM`, 190, y, { align: "right" });
+              doc.text(`${bpmValue} BPM`, 190, y, { align: "right" });
               doc.setFontSize(14);
               doc.setTextColor(0); // Tillbaka till svart
            }

@@ -774,7 +774,7 @@ class StableChordEditor {
   }
 
   setupEventListeners() {
-    const toggleMenu = () => {
+const toggleMenu = () => {
       const isOpening = this.sideMenu.classList.contains("is-closed");
 
       this.sideMenu.classList.toggle("is-closed");
@@ -783,9 +783,13 @@ class StableChordEditor {
       if (isOpening) {
         this.floatingToolbar.classList.add("is-hidden");
       } else {
+        // --- NÄR MENYN STÄNGS ---
         if (this.isEditMode) {
           this.floatingToolbar.classList.remove("is-hidden");
         }
+        
+        // NYTT: Tvinga metronomen att stanna!
+        this.stopMetronome();
       }
     };
 
@@ -3721,7 +3725,7 @@ async generateSetlist() {
            doc.text(song.title, 35, y);
            
            // Bonus: Skriv ut tempot (BPM) ute till höger om det finns sparat!
-         const bpmValue = song.bpm || song.tempo; // Kollar båda för säkerhets skull
+          const bpmValue = song.bpm || song.tempo; // Kollar båda för säkerhets skull
            if (bpmValue) {
               doc.setFontSize(10);
               doc.setTextColor(100); // Grå text

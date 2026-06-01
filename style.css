@@ -60,7 +60,10 @@ body.dark-mode .top-bar {
   background-color: #000000;
   border-bottom: 1px solid #333333; /* En lite mörkare kantlinje för att det ska smälta in snyggt */
 }
-
+body.dark-mode #side-menu {
+  background-color: #000000;
+  border-left-color: #333333; /* Matchar toppmenyns mörka kantlinje */
+}
 body.dark-mode #editor a {
   color: var(--text-color);
   text-decoration: underline;
@@ -283,10 +286,35 @@ body {
 .btn-secondary-style:hover {
   background-color: var(--bg);
 }
-#btn-toggle-metronome {
+/* --- NYTT: Mer specifik selektor för att vinna över standard-knapparna --- */
+#side-menu #btn-toggle-metronome {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100px;        /* Stor bredd */
+  height: 100px;       /* Stor höjd */
+  border-radius: 50%; /* Gör den helt rund */
+  margin: 0 auto;     /* Centrerar knappen över BPM-kontrollerna */
+  padding: 0;
+}
+
+#side-menu #btn-toggle-metronome .icon-medium {
+  width: 30px;        /* Större ikon */
+  height: 30px;
+  color: var(--text-color);
+  stroke-width: initial;
+  margin: auto;
+}
+
+#btn-toggle-metronome.is-active {
+  background-color: var(--chord-color) !important;
+  color: #000 !important;
+  border-color: var(--primary);
+}
+#btn-toggle-metronome.is-active .icon-medium,
+#btn-toggle-metronome.is-active svg {
+  color: #000000 !important;
+  stroke: #000000 !important;
 }
 #btn-toggle-metronome .icon-medium {
   width: 24px;
@@ -314,7 +342,7 @@ body {
   height: 100%;
   width: var(--menu-width);
   max-width: 90%;
-  background-color: rgba(var(--surface-rgb), 0.9);
+  background-color: rgba(179, 178, 178, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   box-shadow: var(--shadow-soft);

@@ -120,7 +120,7 @@
     <div id="menu-overlay" class="is-closed"></div>
 
     <nav id="side-menu" class="is-closed">
-      <div
+     <div
         id="auth-container"
         class="sidebar-controls vertical"
         style="
@@ -136,20 +136,30 @@
           style="
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
+            justify-content: space-between;
+            width: 100%;
           "
         >
-          <img
-            id="user-photo"
-            src=""
-            alt=""
-            style="width: 32px; height: 32px; border-radius: 50%; display: none"
-          />
-          <span
-            id="user-name"
-            style="font-size: 0.85em; font-weight: 600"
-          ></span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <img
+              id="user-photo"
+              src=""
+              alt=""
+              style="width: 32px; height: 32px; border-radius: 50%; display: none"
+            />
+            <span
+              id="user-name"
+              style="font-size: 0.85em; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;"
+            ></span>
+          </div>
+
+          <button 
+            id="btn-logout" 
+            class="btn-secondary-style hidden"
+            style="width: auto; height: 30px; padding: 0 10px; margin: 0; font-size: 0.75em;"
+          >
+            Sign out
+          </button>
         </div>
 
         <button
@@ -169,10 +179,6 @@
             />
           </svg>
           Sign in with Google
-        </button>
-
-        <button id="btn-logout" class="btn-secondary-style hidden">
-          Sign out
         </button>
       </div>
       <input

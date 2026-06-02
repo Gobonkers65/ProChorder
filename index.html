@@ -194,54 +194,24 @@
         style="grid-column: span 3"
       />
 
-      <div
-        class="sidebar-controls vertical"
-        style="grid-column: span 3; gap: 0.5em"
-      >
-        <button id="btn-toggle-metronome" class="btn-secondary-style">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            class="icon-medium"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M10.75 3.75l-4.5 14.5c-0.25 0.8 0.5 1.5 1.25 1.25L12 18.5l4.5 0.9c0.75 0.1 1.5-0.6 1.25-1.25L13.25 3.75a0.75 0.75 0 00-1.5 0zM12 4.5v15M11.25 7.5a0.75 0.75 0 011.5 0v5.25a0.75 0.75 0 01-1.5 0V7.5z"
-            />
-          </svg>
+<div style="grid-column: span 3; display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 1em;">
+        
+        <button id="btn-bpm-down" class="btn-secondary-style" style="width: 44px !important; height: 44px !important; border-radius: 50%; font-size: 1.5em; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; line-height: 1; user-select: none;">
+          -
         </button>
 
-        <div
-          id="combined-controls-row"
-          class="sidebar-controls horizontal"
-          style="gap: 8px"
-        >
-          <div class="control-group-half bpm-control-wrapper">
-            <button id="btn-bpm-down" class="btn-bpm-control minimal-control">
-              -
-            </button>
-            <div id="bpm-control-container" class="bpm-input-container">
-              <input
-                type="number"
-                id="metronome-bpm-input"
-                value="120"
-                min="40"
-                max="300"
-                placeholder="120"
-              />
-            </div>
-            <button id="btn-bpm-up" class="btn-bpm-control minimal-control">
-              +
-            </button>
-          </div>
-        </div>
-      </div>
+        <button id="btn-toggle-metronome" class="btn-secondary-style" style="width: 120px !important; height: 120px !important; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0; position: relative; flex-shrink: 0; overflow: hidden; transition: background-color 0.2s;">
+          <span id="metronome-bpm-display" style="font-size: 1.8em; font-weight: 800; margin-top: 5px;">120</span>
+          <span style="font-size: 1em; font-weight: 700; opacity: 0.7; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">BPM</span>
+           <span style="font-size: 1em; font-weight: 700; opacity: 0.7; margin-bottom: 5px; letter-spacing: 1px;">Metronome</span>
+        </button>
 
-      <div class="menu-grid" style="grid-column: span 3">
+        <button id="btn-bpm-up" class="btn-secondary-style" style="width: 44px !important; height: 44px !important; border-radius: 50%; font-size: 1.5em; padding: 0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; line-height: 1; user-select: none;">
+          +
+        </button>
+
+      </div>
+      
         <button id="btn-open-tuner-modal" class="menu-grid-btn">
           <span class="menu-grid-title">Tuner</span>
           <svg

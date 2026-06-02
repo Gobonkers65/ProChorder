@@ -283,7 +283,7 @@ class StableChordEditor {
       "btn-toggle-scroll-mode"
     );
     this.btnToggleMetronome = document.getElementById("btn-toggle-metronome");
-    this.metronomeBpmInput = document.getElementById("metronome-bpm-input");
+    this.metronomeBpmDisplay = document.getElementById("metronome-bpm-display");
     this.btnBpmUp = document.getElementById("btn-bpm-up");
     this.btnBpmDown = document.getElementById("btn-bpm-down");
 
@@ -873,36 +873,49 @@ const toggleMenu = () => {
       this.toggleMetronome()
     );
 
-    this.metronomeBpmInput.addEventListener("input", (e) => {
-      let newTempo = parseInt(e.target.value);
-      const min = parseInt(e.target.min) || 40;
-      const max = parseInt(e.target.max) || 300;
-
-      if (newTempo >= min && newTempo <= max) {
-        this.tempo = newTempo;
-        if (this.metronomeRunning && this.audioContext?.state === "suspended") {
-          this.audioContext.resume();
-        }
-      }
-    });
-
-    this.metronomeBpmInput.addEventListener("blur", (e) => {
-      if (!e.target.value || e.target.value < 40) {
-        e.target.value = this.tempo;
-      }
-    });
-
-    const updateBpm = (delta) => {
-      const min = parseInt(this.metronomeBpmInput.min) || 40;
-      const max = parseInt(this.metronomeBpmInput.max) || 300;
+const updateBpm = (delta) => {
+      const min = 40;
+      const max = 300;
       let newTempo = this.tempo + delta;
       if (newTempo >= min && newTempo <= max) {
         this.tempo = newTempo;
-        this.metronomeBpmInput.value = newTempo;
+        if (this.metronomeBpmDisplay) {
+          this.metronomeBpmDisplay.textContent = newTempo;
+        }
       }
     };
-    this.btnBpmUp.addEventListener("click", () => updateBpm(1));
-    this.btnBpmDown.addEventListener("click", () => updateBpm(-1));
+
+    let bpmInterval;
+    let bpmTimeout;
+
+    const startBpmChange = (delta) => {
+      updateBpm(delta); // Ändra direkt vid första klicket
+      bpmTimeout = setTimeout(() => {
+        bpmInterval = setInterval(() => {
+          updateBpm(delta);
+        }, 200); // Snabbspolning: 5 gånger per sekund
+      }, 400); // Vänta lite så ett vanligt klick inte triggar snabbspolningen
+    };
+
+    const stopBpmChange = () => {
+      clearTimeout(bpmTimeout);
+      clearInterval(bpmInterval);
+    };
+
+    // Koppla funktionerna till knapparna för både mus och touch-skärmar
+    const addHoldEvents = (btn, delta) => {
+      if (!btn) return;
+      btn.addEventListener("mousedown", () => startBpmChange(delta));
+      btn.addEventListener("mouseup", stopBpmChange);
+      btn.addEventListener("mouseleave", stopBpmChange);
+      
+      // Spärrar mobiler från att dubbelklicka/markera och kör hold istället
+      btn.addEventListener("touchstart", (e) => { e.preventDefault(); startBpmChange(delta); }, {passive: false});
+      btn.addEventListener("touchend", (e) => { e.preventDefault(); stopBpmChange(); }, {passive: false});
+    };
+
+    addHoldEvents(this.btnBpmUp, 1);
+    addHoldEvents(this.btnBpmDown, -1);
 
     this.projectList.addEventListener("change", () => {
       const name = this.projectList.value || "";
@@ -2690,9 +2703,9 @@ if (!this.isEditMode) {
         this.updateDurationFromSpeed();
       }
 
-      this.tempo = data.tempo || 120;
-      if (this.metronomeBpmInput) {
-        this.metronomeBpmInput.value = this.tempo;
+this.tempo = data.tempo || 120;
+      if (this.metronomeBpmDisplay) {
+        this.metronomeBpmDisplay.textContent = this.tempo;
       }
 
       if (this.fontSizeSelector && data.fontSize) {

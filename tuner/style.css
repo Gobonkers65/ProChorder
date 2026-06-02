@@ -1,165 +1,145 @@
-html {
+:root {
+  --tuner-bg: #1a1a1a; /* NYTT: Tvingar fram en mörkgrå/svart bakgrund */
+  --tuner-text: #e0e0e0;
+  --tuner-accent: #ffca28;
+  --tuner-needle: #e74c3c; 
+}
+
+html, body {
   height: 100%;
+  margin: 0;
+  overflow: hidden;
 }
 
 body {
-  position: fixed;
-  font-family: sans-serif;
-  color: #2c3e50;
-  margin: 0;
-  width: 100%;
-  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--tuner-text);
+  background-color: var(--tuner-bg);
   cursor: default;
   user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-.notes {
-  margin: auto;
-  width: 400px;
-  position: fixed;
-  top: 50%;
-  left: 0;
-  right: 0;
-  text-align: center;
-}
-
-.note {
-  font-size: 90px;
-  font-weight: bold;
-  position: relative;
-  display: inline-block;
-  padding-right: 30px;
-  padding-left: 10px;
-}
-
-.note.active {
-  color: #e74c3c;
-}
-
-.notes-list {
-  overflow: auto;
-  overflow: -moz-scrollbars-none;
-  white-space: nowrap;
-  -ms-overflow-style: none;
-  -webkit-mask-image: -webkit-linear-gradient(
-    left,
-    rgba(255, 255, 255, 0),
-    #fff,
-    rgba(255, 255, 255, 0)
-  );
-}
-
-.notes-list::-webkit-scrollbar {
-  display: none;
-}
-
-.note {
-  -webkit-tap-highlight-color: transparent;
-}
-
-.note span {
-  position: absolute;
-  right: 0.25em;
-  font-size: 40%;
-  font-weight: normal;
-}
-
-.note-sharp {
-  top: 0.3em;
-}
-
-.note-octave {
-  bottom: 0.3em;
-}
-
-.frequency {
-  font-size: 32px;
-}
-
-.frequency span {
-  font-size: 50%;
-  margin-left: 0.25em;
-}
-
+/* --- MÄTAREN (Analog VU-känsla) --- */
 .meter {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 50%;
-  width: 400px;
-  height: 33%;
-  margin: 0 auto 5vh auto;
+  position: relative;
+  width: 300px;
+  height: 150px;
+  margin-bottom: 20px;
 }
 
 .meter-pointer {
-  width: 2px;
+  width: 3px;
   height: 100%;
-  background: #2c3e50;
+  background: var(--tuner-needle);
   transform: rotate(45deg);
   transform-origin: bottom;
-  transition: transform 0.5s;
+  transition: transform 0.1s ease-out; /* Snabbare, mer responsiv nål */
   position: absolute;
   right: 50%;
+  border-radius: 3px;
+  box-shadow: 0 0 5px rgba(231, 76, 60, 0.5); /* Lätt glöd på nålen */
 }
 
 .meter-dot {
-  width: 10px;
-  height: 10px;
-  background: #2c3e50;
+  width: 16px;
+  height: 16px;
+  background: var(--tuner-text);
   border-radius: 50%;
   position: absolute;
-  bottom: -5px;
+  bottom: -8px;
   right: 50%;
-  margin-right: -4px;
+  margin-right: -8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .meter-scale {
-  width: 1px;
+  width: 2px;
   height: 100%;
   transform-origin: bottom;
   transition: transform 0.2s;
   box-sizing: border-box;
-  border-top: 10px solid;
+  border-top: 12px solid rgba(255, 255, 255, 0.2);
   position: absolute;
   right: 50%;
 }
 
 .meter-scale-strong {
-  width: 2px;
-  border-top-width: 20px;
+  width: 3px;
+  border-top: 18px solid rgba(255, 255, 255, 0.5);
 }
 
+/* --- NOT-DISPLAYEN --- */
+.notes {
+  text-align: center;
+  position: relative;
+  width: 100%;
+  max-width: 400px; /* Låser bredden så att noten hamnar i mitten */
+  margin: 0 auto;   /* Centrerar hela boxen på skärmen */
+}
+
+.notes-list {
+  overflow: auto;
+  white-space: nowrap;
+  scrollbar-width: none; /* Döljer scrollbar i Firefox */
+  -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%);
+}
+.notes-list::-webkit-scrollbar {
+  display: none;
+}
+
+.note {
+  font-size: 80px;
+  font-weight: 800;
+  position: relative;
+  display: inline-block;
+  padding: 0 20px;
+  color: rgba(255,255,255,0.1); /* Dolda noter är mörka */
+  transition: color 0.2s;
+}
+
+.note.active {
+  color: var(--tuner-accent);
+  text-shadow: 0 0 15px rgba(255, 202, 40, 0.4); /* Snyggt neon-glow */
+}
+
+.note span {
+  position: absolute;
+  right: -5px;
+  font-size: 40%;
+  font-weight: bold;
+}
+.note-sharp { top: 0.2em; }
+.note-octave { bottom: 0.2em; color: rgba(255,255,255,0.4); }
+
+.frequency {
+  font-size: 24px;
+  margin-top: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.6);
+}
+.frequency span { font-size: 60%; margin-left: 0.2em; }
+
+/* --- FREKVENS-VÅGORNA I BAKGRUNDEN --- */
 .frequency-bars {
   position: fixed;
   bottom: 0;
+  left: 0;
+  z-index: -1;
+  opacity: 0.3; /* Gör vågorna väldigt subtila */
 }
 
-@media (max-width: 768px) {
-  .meter {
-    width: 100%;
-  }
-
-  .notes {
-    width: 100%;
-  }
-}
-
-.swal-button {
-  background: #2c3e50;
-}
-
-.a4 {
+/* --- KNAPPAR (Auto & A4) --- */
+.a4, .auto {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  top: 15px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
 }
-
-.a4 span {
-  color: #e74c3c;
-}
-
-.auto {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-}
+.a4 { left: 20px; }
+.a4 span { color: var(--tuner-accent); font-weight: bold; }
+.auto { right: 20px; display: flex; align-items: center; gap: 8px; }

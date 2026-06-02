@@ -37,25 +37,22 @@ self.tuner.init(); /*Nya rader*/
 self.frequencyData = new Uint8Array(self.tuner.analyser.frequencyBinCount); /*Nya rader*/
 
   this.$a4.addEventListener("click", function () {
-    swal
-      .fire({ input: "number", inputValue: self.a4 })
-      .then(function ({ value: a4 }) {
-        if (!parseInt(a4) || a4 === self.a4) {
-          return;
-        }
-        self.a4 = a4;
-        self.$a4.innerHTML = a4;
-        self.tuner.middleA = a4;
-        self.notes.createNotes();
-        self.update({
-          name: "A",
-          frequency: self.a4,
-          octave: 4,
-          value: 69,
-          cents: 0,
-        });
-        localStorage.setItem("a4", a4);
-      });
+    const a4 = window.prompt("Set A4 frequency (standard is 440Hz):", self.a4);
+    if (!parseInt(a4) || a4 == self.a4) {
+      return;
+    }
+    self.a4 = a4;
+    self.$a4.innerHTML = a4;
+    self.tuner.middleA = a4;
+    self.notes.createNotes();
+    self.update({
+      name: "A",
+      frequency: self.a4,
+      octave: 4,
+      value: 69,
+      cents: 0,
+    });
+    localStorage.setItem("a4", a4);
   });
 
   this.updateFrequencyBars();

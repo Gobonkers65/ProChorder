@@ -19,7 +19,7 @@ FrequencyBars.prototype.update = function (data) {
   const width = this.$canvas.width / length - 0.5;
   this.canvasContext.clearRect(0, 0, this.$canvas.width, this.$canvas.height);
   for (var i = 0; i < length; i += 1) {
-    this.canvasContext.fillStyle = "#ecf0f1";
+  this.canvasContext.fillStyle = "rgba(255, 202, 40, 0.15)";
     this.canvasContext.fillRect(
       i * (width + 0.5),
       this.$canvas.height - data[i],

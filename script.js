@@ -2554,146 +2554,128 @@ class StableChordEditor {
     }
   } // <--- Här slutar funktionen saveProject
 
-  async fetchSongsFromCloud() {
-    if (!window.fb || !window.fb.auth.currentUser) return;
+async fetchSongsFromCloud() {
+  if (!window.fb || !window.fb.auth.currentUser) return;
 
-    const uid = window.fb.auth.currentUser.uid;
-    // NYTT: Hämtar in 'doc' så vi kan lyssna på meta-dokumentet
-    const { db, collection, onSnapshot, doc } = window.fb;
+  const uid = window.fb.auth.currentUser.uid;
+  const { db, collection, onSnapshot, doc } = window.fb;
 
-    const songsRef = this.currentBandId
-      ? collection(db, "bands", this.currentBandId, "songs")
-      : collection(db, "users", uid, "songs");
+  const songsRef = this.currentBandId
+    ? collection(db, "bands", this.currentBandId, "songs")
+    : collection(db, "users", uid, "songs");
 
-    if (this.cloudListener) {
-      this.cloudListener();
-    }
-    if (this.orderListener) {
-      this.orderListener();
-    }
+  if (this.cloudListener) this.cloudListener();
+  if (this.orderListener) this.orderListener();
 
-    // --- 1. DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
-    // Peka på exakt samma rot-dokument som syncOrderToCloud använder!
-    const targetRef = this.currentBandId
-      ? doc(db, "bands", this.currentBandId)
-      : doc(db, "users", uid);
+  // NY FLAG: håller koll på om orderListener kört klart minst en gång
+  this.orderReady = false;
 
-    this.orderListener = onSnapshot(targetRef, (snap) => {
-      // Kolla efter "songOrder" istället för "order"
-      if (snap.exists() && snap.data().songOrder) {
-        const cloudOrder = snap.data().songOrder;
-        const localOrder =
-          JSON.parse(
-            localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-          ) || [];
+  // --- 1. DEN TYSTA LYSSNAREN FÖR LÅTORDNINGEN ---
+  const targetRef = this.currentBandId
+    ? doc(db, "bands", this.currentBandId)
+    : doc(db, "users", uid);
 
-        // Uppdatera skärmen automatiskt i bakgrunden om ordningen ändrats!
-        if (JSON.stringify(cloudOrder) !== JSON.stringify(localOrder)) {
-          localStorage.setItem(
-            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-            JSON.stringify(cloudOrder)
-          );
-          this.updateProjectList(this.titleInput.value);
-        }
-      }
-    });
-
-    // --- 2. DEN BEFINTLIGA LYSSNAREN FÖR SJÄLVA LÅTARNA ---
-    this.cloudListener = onSnapshot(songsRef, (snapshot) => {
-      const localProjects =
-        JSON.parse(
-          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
-        ) || {};
-      let localOrder =
-        JSON.parse(
-          localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-        ) || [];
-      let needsRefresh = false;
-
-      snapshot.docChanges().forEach((change) => {
-        const songData = change.doc.data();
-        const songTitle = change.doc.id;
-
-        if (change.type === "added" || change.type === "modified") {
-          localProjects[songTitle] = songData;
-          if (!localOrder.includes(songTitle)) {
-            localOrder.push(songTitle);
-          }
-
-          const currentViewTitle = (this.titleInput.value || "")
-            .trim()
-            .toLowerCase();
-          const incomingTitle = (songTitle || "").trim().toLowerCase();
-
-          if (
-            currentViewTitle !== "" &&
-            currentViewTitle === incomingTitle &&
-            !this.isEditMode
-          ) {
-            needsRefresh = true;
-          }
-        }
-
-        if (change.type === "removed") {
-          const deletedIndex = localOrder.indexOf(songTitle);
-          delete localProjects[songTitle];
-          localOrder = localOrder.filter((t) => t !== songTitle);
-
-          const currentViewTitle = (this.titleInput.value || "")
-            .trim()
-            .toLowerCase();
-          const incomingTitle = (songTitle || "").trim().toLowerCase();
-
-          if (currentViewTitle !== "" && currentViewTitle === incomingTitle) {
-            // Stäng edit-läget om det är på
-            if (this.isEditMode) this.toggleEditMode();
-
-            // Navigera till närmaste låt, eller skapa ny om listan är tom
-            if (localOrder.length > 0) {
-              const nextIndex = Math.min(deletedIndex, localOrder.length - 1);
-              this.loadProject(localOrder[nextIndex]);
-            } else {
-              this.createNewProject();
-            }
-          }
-        }
-      });
-
-      localStorage.setItem(
-        StableChordEditor.STORAGE_KEYS.PROJECTS,
-        JSON.stringify(localProjects)
-      );
+  this.orderListener = onSnapshot(targetRef, (snap) => {
+    if (snap.exists() && snap.data().songOrder) {
+      const cloudOrder = snap.data().songOrder;
       localStorage.setItem(
         StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-        JSON.stringify(localOrder)
+        JSON.stringify(cloudOrder)
       );
-
       this.updateProjectList(this.titleInput.value);
+    }
+    // Markera klar oavsett om songOrder fanns eller inte
+    this.orderReady = true;
+  });
 
-      if (needsRefresh) {
-        this.loadProject(this.titleInput.value);
+  // --- 2. LYSSNAREN FÖR SJÄLVA LÅTARNA ---
+  this.cloudListener = onSnapshot(songsRef, (snapshot) => {
+    const localProjects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
+    let localOrder =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
+    let needsRefresh = false;
 
-        if (this.btnMainEditToggle) {
-          const origText = this.btnMainEditToggle.textContent;
-          this.btnMainEditToggle.textContent = "SYNCED!";
-          this.btnMainEditToggle.style.backgroundColor = "var(--success-bg)";
-          this.btnMainEditToggle.style.color = "#ffffff";
+    snapshot.docChanges().forEach((change) => {
+      const songData = change.doc.data();
+      const songTitle = change.doc.id;
 
-          // --- NYTT: Göm ringen och ge plats åt texten ---
-          this.btnMainEditToggle.style.borderColor = "transparent";
-          this.btnMainEditToggle.style.width = "auto";
-          this.btnMainEditToggle.style.padding = "0 12px";
-          this.btnMainEditToggle.style.borderRadius = "20px";
+      if (change.type === "added" || change.type === "modified") {
+        localProjects[songTitle] = songData;
+        if (!localOrder.includes(songTitle)) {
+          localOrder.push(songTitle);
+        }
 
-          setTimeout(() => {
-            this.btnMainEditToggle.textContent = origText;
-            this.btnMainEditToggle.style.backgroundColor = "";
-            this.btnMainEditToggle.style.color = "";
-          }, 2000);
+        const currentViewTitle = (this.titleInput.value || "").trim().toLowerCase();
+        const incomingTitle = (songTitle || "").trim().toLowerCase();
+
+        if (currentViewTitle !== "" && currentViewTitle === incomingTitle && !this.isEditMode) {
+          needsRefresh = true;
+        }
+      }
+
+      if (change.type === "removed") {
+        const deletedIndex = localOrder.indexOf(songTitle);
+        delete localProjects[songTitle];
+        localOrder = localOrder.filter((t) => t !== songTitle);
+
+        const currentViewTitle = (this.titleInput.value || "").trim().toLowerCase();
+        const incomingTitle = (songTitle || "").trim().toLowerCase();
+
+        if (currentViewTitle !== "" && currentViewTitle === incomingTitle) {
+          if (this.isEditMode) this.toggleEditMode();
+
+          if (localOrder.length > 0) {
+            const nextIndex = Math.min(deletedIndex, localOrder.length - 1);
+            this.loadProject(localOrder[nextIndex]);
+          } else {
+            this.createNewProject();
+          }
         }
       }
     });
-  }
+
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECTS,
+      JSON.stringify(localProjects)
+    );
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+      JSON.stringify(localOrder)
+    );
+
+    // Rendera listan bara om orderListener redan kört –
+    // annars tar orderListener hand om renderingen när den väl svarar.
+    if (this.orderReady) {
+      this.updateProjectList(this.titleInput.value);
+    }
+
+    if (needsRefresh) {
+      this.loadProject(this.titleInput.value);
+
+      if (this.btnMainEditToggle) {
+        const origText = this.btnMainEditToggle.textContent;
+        this.btnMainEditToggle.textContent = "SYNCED!";
+        this.btnMainEditToggle.style.backgroundColor = "var(--success-bg)";
+        this.btnMainEditToggle.style.color = "#ffffff";
+        this.btnMainEditToggle.style.borderColor = "transparent";
+        this.btnMainEditToggle.style.width = "auto";
+        this.btnMainEditToggle.style.padding = "0 12px";
+        this.btnMainEditToggle.style.borderRadius = "20px";
+
+        setTimeout(() => {
+          this.btnMainEditToggle.textContent = origText;
+          this.btnMainEditToggle.style.backgroundColor = "";
+          this.btnMainEditToggle.style.color = "";
+        }, 2000);
+      }
+    }
+  });
+}
 
   loadProject(name) {
     const projects =
@@ -4468,9 +4450,9 @@ class StableChordEditor {
       console.error(e);
     }
   }
-async switchBand(bandId, bandName) {
+  async switchBand(bandId, bandName) {
     // 1. Säkerhetskontroll: Gör inget om vi redan är i detta läge
-    if (this.currentBandId === bandId) return; 
+    if (this.currentBandId === bandId) return;
 
     // 2. Säkerhetskontroll: Förhindra krasch om användaren inte är inloggad
     const user = window.fb?.auth?.currentUser;
@@ -4493,7 +4475,7 @@ async switchBand(bandId, bandName) {
         doc(db, "users", uid),
         {
           currentBandId: safeBandId,
-          bandName: safeBandName
+          bandName: safeBandName,
         },
         { merge: true } // Merge gör att vi inte råkar radera listan 'myBands'
       );
@@ -4513,19 +4495,20 @@ async switchBand(bandId, bandName) {
 
       // Ladda in det nya bandets låtar (och vänta tills det är klart)
       await this.fetchSongsFromCloud();
-      
+
       // Öppna den första låten automatiskt om det finns någon i biblioteket
       if (this.projects && Object.keys(this.projects).length > 0) {
         const firstSongId = Object.keys(this.projects)[0];
         this.loadProject(firstSongId);
       }
-      
+
       // Stäng menyn
       this.bandModal.classList.remove("visible");
-      
     } catch (e) {
-       console.error("Ett fel uppstod vid byte av band:", e);
-       this.showCustomAlert("Ett fel uppstod. Kontrollera din uppkoppling och försök igen.");
+      console.error("Ett fel uppstod vid byte av band:", e);
+      this.showCustomAlert(
+        "Ett fel uppstod. Kontrollera din uppkoppling och försök igen."
+      );
     }
   }
 

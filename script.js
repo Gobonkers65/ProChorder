@@ -774,7 +774,7 @@ class StableChordEditor {
   }
 
   setupEventListeners() {
-const toggleMenu = () => {
+    const toggleMenu = () => {
       const isOpening = this.sideMenu.classList.contains("is-closed");
 
       this.sideMenu.classList.toggle("is-closed");
@@ -787,7 +787,7 @@ const toggleMenu = () => {
         if (this.isEditMode) {
           this.floatingToolbar.classList.remove("is-hidden");
         }
-        
+
         // NYTT: Tvinga metronomen att stanna!
         this.stopMetronome();
       }
@@ -873,7 +873,7 @@ const toggleMenu = () => {
       this.toggleMetronome()
     );
 
-const updateBpm = (delta) => {
+    const updateBpm = (delta) => {
       const min = 40;
       const max = 300;
       let newTempo = this.tempo + delta;
@@ -908,10 +908,24 @@ const updateBpm = (delta) => {
       btn.addEventListener("mousedown", () => startBpmChange(delta));
       btn.addEventListener("mouseup", stopBpmChange);
       btn.addEventListener("mouseleave", stopBpmChange);
-      
+
       // Spärrar mobiler från att dubbelklicka/markera och kör hold istället
-      btn.addEventListener("touchstart", (e) => { e.preventDefault(); startBpmChange(delta); }, {passive: false});
-      btn.addEventListener("touchend", (e) => { e.preventDefault(); stopBpmChange(); }, {passive: false});
+      btn.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          startBpmChange(delta);
+        },
+        { passive: false }
+      );
+      btn.addEventListener(
+        "touchend",
+        (e) => {
+          e.preventDefault();
+          stopBpmChange();
+        },
+        { passive: false }
+      );
     };
 
     addHoldEvents(this.btnBpmUp, 1);
@@ -930,7 +944,7 @@ const updateBpm = (delta) => {
       this.toggleProjectMenu();
     });
 
-this.btnNewProject.addEventListener("click", () => {
+    this.btnNewProject.addEventListener("click", () => {
       toggleMenu();
       this.createNewProject();
     });
@@ -1042,7 +1056,7 @@ this.btnNewProject.addEventListener("click", () => {
     );
 
     // Öppna Hämta Setlist
-// Öppna Hämta Setlist (Biblioteket)
+    // Öppna Hämta Setlist (Biblioteket)
     this.btnOpenFetchSetlist.addEventListener("click", () => {
       this.fetchSetlistLibrary(); // <-- NYTT: Hämta listorna först!
       openModal(this.fetchSetlistModal);
@@ -1161,48 +1175,62 @@ this.btnNewProject.addEventListener("click", () => {
       .getElementById("btn-metadata-cancel")
       .addEventListener("click", () => {
         document.getElementById("metadata-modal").classList.remove("visible");
-      // --- NY LOGIK: Om vi ångrar skapandet av en helt ny låt ---
-      if (this.isCreatingNew) {
-        this.isCreatingNew = false; // Återställ flaggan
-        const nameToDelete = this.titleInput.value;
+        // --- NY LOGIK: Om vi ångrar skapandet av en helt ny låt ---
+        if (this.isCreatingNew) {
+          this.isCreatingNew = false; // Återställ flaggan
+          const nameToDelete = this.titleInput.value;
 
-        // 1. Radera tyst den tomma skräp-låten från lokalt minne
-        const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-        delete projects[nameToDelete];
-        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+          // 1. Radera tyst den tomma skräp-låten från lokalt minne
+          const projects =
+            JSON.parse(
+              localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+            ) || {};
+          delete projects[nameToDelete];
+          localStorage.setItem(
+            StableChordEditor.STORAGE_KEYS.PROJECTS,
+            JSON.stringify(projects)
+          );
 
-        let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
-        order = order.filter((title) => title !== nameToDelete);
-        localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+          let order =
+            JSON.parse(
+              localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+            ) || [];
+          order = order.filter((title) => title !== nameToDelete);
+          localStorage.setItem(
+            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+            JSON.stringify(order)
+          );
 
-        // 2. Radera tyst från molnet (utan att visa "Are you sure"-rutan)
-        if (window.fb && window.fb.auth.currentUser) {
-          const uid = window.fb.auth.currentUser.uid;
-          const { db, doc, deleteDoc } = window.fb;
-          const songRef = this.currentBandId
-            ? doc(db, "bands", this.currentBandId, "songs", nameToDelete)
-            : doc(db, "users", uid, "songs", nameToDelete);
-          deleteDoc(songRef).catch(e => console.error("Kunde inte städa molnet:", e));
-          this.syncOrderToCloud(order);
+          // 2. Radera tyst från molnet (utan att visa "Are you sure"-rutan)
+          if (window.fb && window.fb.auth.currentUser) {
+            const uid = window.fb.auth.currentUser.uid;
+            const { db, doc, deleteDoc } = window.fb;
+            const songRef = this.currentBandId
+              ? doc(db, "bands", this.currentBandId, "songs", nameToDelete)
+              : doc(db, "users", uid, "songs", nameToDelete);
+            deleteDoc(songRef).catch((e) =>
+              console.error("Kunde inte städa molnet:", e)
+            );
+            this.syncOrderToCloud(order);
+          }
+
+          // 3. Ladda om sidomenyn så låten försvinner visuellt
+          this.updateProjectList();
+
+          // 4. Ladda första låten i biblioteket och stäng Edit-läget!
+          if (order.length > 0) {
+            this.loadProject(order[0]);
+            if (this.isEditMode) this.toggleEditMode();
+          } else {
+            // Fallback: Om biblioteket var helt tomt, rensa bara skärmen och stäng Edit
+            this.titleInput.value = "";
+            this.authorInput.value = "";
+            this.editor.innerHTML = "";
+            this.updateEditorHeader();
+            if (this.isEditMode) this.toggleEditMode();
+          }
         }
-
-        // 3. Ladda om sidomenyn så låten försvinner visuellt
-        this.updateProjectList();
-
-        // 4. Ladda första låten i biblioteket och stäng Edit-läget!
-        if (order.length > 0) {
-          this.loadProject(order[0]);
-          if (this.isEditMode) this.toggleEditMode();
-        } else {
-          // Fallback: Om biblioteket var helt tomt, rensa bara skärmen och stäng Edit
-          this.titleInput.value = "";
-          this.authorInput.value = "";
-          this.editor.innerHTML = "";
-          this.updateEditorHeader();
-          if (this.isEditMode) this.toggleEditMode();
-        }
-      }
-    });
+      });
   }
 
   // --- METRONOM LOGIK ---
@@ -2385,12 +2413,12 @@ this.btnNewProject.addEventListener("click", () => {
     await this.saveProject(newName);
 
     // Slå på Edit-läget automatiskt om det inte redan är igång
-if (!this.isEditMode) {
+    if (!this.isEditMode) {
       this.toggleEditMode();
     }
 
     // --- NYTT: Markera att detta är en helt ny låt! ---
-    this.isCreatingNew = true; 
+    this.isCreatingNew = true;
 
     // Öppna dialogrutan direkt så användaren får döpa låten
     this.openMetadataModal();
@@ -2703,7 +2731,7 @@ if (!this.isEditMode) {
         this.updateDurationFromSpeed();
       }
 
-this.tempo = data.tempo || 120;
+      this.tempo = data.tempo || 120;
       if (this.metronomeBpmDisplay) {
         this.metronomeBpmDisplay.textContent = this.tempo;
       }
@@ -3450,15 +3478,20 @@ this.tempo = data.tempo || 120;
     return code;
   }
 
-async generateSetlist() {
+  async generateSetlist() {
     // 1. Spärr: Måste vara inloggad för att spara till bandet/molnet
     if (!window.fb || !window.fb.auth.currentUser) {
       this.showCustomAlert("You must be logged in to save a setlist!");
       return;
     }
 
-    const rows = this.setlistSelectedList.querySelectorAll(".song-transfer-item");
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    const rows = this.setlistSelectedList.querySelectorAll(
+      ".song-transfer-item"
+    );
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
     const sharedSongs = [];
 
     rows.forEach((row) => {
@@ -3480,7 +3513,9 @@ async generateSetlist() {
     let setlistName = codeInput ? codeInput.value.trim().toUpperCase() : "";
 
     if (!setlistName) {
-      this.showCustomAlert("Please enter a name for your setlist (e.g. FESTIVAL).");
+      this.showCustomAlert(
+        "Please enter a name for your setlist (e.g. FESTIVAL)."
+      );
       return;
     }
 
@@ -3499,7 +3534,7 @@ async generateSetlist() {
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("TIMEOUT")), 8000)
       );
-      
+
       const uploadPromise = setDoc(setlistRef, {
         name: setlistName,
         createdAt: new Date().toISOString(),
@@ -3515,7 +3550,6 @@ async generateSetlist() {
 
       this.showCustomAlert(`Setlist "${setlistName}" saved to your library!`);
       if (codeInput) codeInput.value = "";
-
     } catch (error) {
       console.error("Error while saving:", error);
       if (error.message === "TIMEOUT") {
@@ -3528,20 +3562,22 @@ async generateSetlist() {
       this.btnGenerateSetlist.disabled = false;
     }
   }
-// --- SETLIST BIBLIOTEK LOGIK ---
+  // --- SETLIST BIBLIOTEK LOGIK ---
 
   async fetchSetlistLibrary() {
     const container = document.getElementById("setlist-library-container");
-    container.innerHTML = '<p style="text-align: center; opacity: 0.5; margin-top: 50px;">Loading setlists...</p>';
+    container.innerHTML =
+      '<p style="text-align: center; opacity: 0.5; margin-top: 50px;">Loading setlists...</p>';
 
     if (!window.fb || !window.fb.auth.currentUser) {
-      container.innerHTML = '<p style="text-align: center; opacity: 0.7; margin-top: 50px;">Please log in to view setlists.</p>';
+      container.innerHTML =
+        '<p style="text-align: center; opacity: 0.7; margin-top: 50px;">Please log in to view setlists.</p>';
       return;
     }
 
     const uid = window.fb.auth.currentUser.uid;
     const { db, collection, getDocs } = window.fb;
-    
+
     // Titta i bandets mapp om vi är i ett band, annars i vår privata
     const setlistsRef = this.currentBandId
       ? collection(db, "bands", this.currentBandId, "setlists")
@@ -3550,13 +3586,14 @@ async generateSetlist() {
     try {
       const snapshot = await getDocs(setlistsRef);
       const setlists = [];
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         setlists.push(doc.data());
       });
       this.renderSetlistLibrary(setlists);
     } catch (error) {
       console.error("Error fetching setlists:", error);
-      container.innerHTML = '<p style="text-align: center; color: var(--danger-bg); margin-top: 50px;">Error loading setlists.</p>';
+      container.innerHTML =
+        '<p style="text-align: center; color: var(--danger-bg); margin-top: 50px;">Error loading setlists.</p>';
     }
   }
 
@@ -3565,14 +3602,15 @@ async generateSetlist() {
     container.innerHTML = "";
 
     if (setlists.length === 0) {
-      container.innerHTML = '<p style="text-align: center; opacity: 0.5; margin-top: 50px;">No setlists found.</p>';
+      container.innerHTML =
+        '<p style="text-align: center; opacity: 0.5; margin-top: 50px;">No setlists found.</p>';
       return;
     }
 
     // Sortera så att den senast skapade listan hamnar överst
     setlists.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    setlists.forEach(setlist => {
+    setlists.forEach((setlist) => {
       const row = document.createElement("div");
       row.className = "song-transfer-item";
       row.style.cursor = "default";
@@ -3592,7 +3630,9 @@ async generateSetlist() {
       nameSpan.style.color = "var(--primary)";
 
       const countSpan = document.createElement("span");
-      countSpan.textContent = `${setlist.songs ? setlist.songs.length : 0} songs`;
+      countSpan.textContent = `${
+        setlist.songs ? setlist.songs.length : 0
+      } songs`;
       countSpan.style.opacity = "0.7";
       countSpan.style.fontSize = "0.9em";
 
@@ -3641,30 +3681,42 @@ async generateSetlist() {
   }
 
   loadSetlist(setlist) {
-    const songTitles = (setlist.songs || []).map(s => s.title);
+    const songTitles = (setlist.songs || []).map((s) => s.title);
     if (songTitles.length === 0) {
       this.showCustomAlert("This setlist is empty!");
       return;
     }
 
     // Se till att låtarna i setlistan sparas i vårt lokala minne
-    const projects = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
-    let order = JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    const projects =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
+      ) || {};
+    let order =
+      JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+      ) || [];
     let addedNew = false;
 
-    setlist.songs.forEach(song => {
-       if (song && song.title) {
-          projects[song.title] = song;
-          if (!order.includes(song.title)) {
-             order.push(song.title);
-             addedNew = true;
-          }
-       }
+    setlist.songs.forEach((song) => {
+      if (song && song.title) {
+        projects[song.title] = song;
+        if (!order.includes(song.title)) {
+          order.push(song.title);
+          addedNew = true;
+        }
+      }
     });
 
     if (addedNew) {
-       localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
-       localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+      localStorage.setItem(
+        StableChordEditor.STORAGE_KEYS.PROJECTS,
+        JSON.stringify(projects)
+      );
+      localStorage.setItem(
+        StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+        JSON.stringify(order)
+      );
     }
 
     // Aktivera Gig-Mode
@@ -3674,30 +3726,37 @@ async generateSetlist() {
 
     this.updateProjectList();
     this.loadProject(songTitles[0]);
-    
+
     document.getElementById("fetch-setlist-modal").classList.remove("visible");
-    this.showCustomAlert(`GIG-MODE ACTIVATED!\nLoaded setlist: "${setlist.name}"`);
+    this.showCustomAlert(
+      `GIG-MODE ACTIVATED!\nLoaded setlist: "${setlist.name}"`
+    );
   }
 
   editSetlist(setlist) {
     // Stäng biblioteket
     document.getElementById("fetch-setlist-modal").classList.remove("visible");
-    
+
     // Ladda in titlarna som valda låtar i minnet
-    const songTitles = (setlist.songs || []).map(s => s.title);
+    const songTitles = (setlist.songs || []).map((s) => s.title);
     this.draftSetlist = songTitles;
-    
+
     // Fyll i namnet i inmatningsfältet
     const codeInput = document.getElementById("custom-setlist-code-input");
     if (codeInput) codeInput.value = setlist.name;
-    
+
     // Öppna Edit-modalen och bygg listan
     this.populateSetlistOptions();
     document.getElementById("create-setlist-modal").classList.add("visible");
   }
 
   async deleteSetlist(setName) {
-    if (!await this.showCustomConfirm(`Are you sure you want to delete the setlist "${setName}" permanently?`)) return;
+    if (
+      !(await this.showCustomConfirm(
+        `Are you sure you want to delete the setlist "${setName}" permanently?`
+      ))
+    )
+      return;
 
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, deleteDoc } = window.fb;
@@ -3713,51 +3772,53 @@ async generateSetlist() {
       this.showCustomAlert("Error deleting setlist.");
     }
   }
-  
+
   exportSetlistPdf(setlist) {
-     const { jsPDF } = window.jspdf;
-     const doc = new jsPDF();
-     let y = 20;
-     
-     // Rubrik
-     doc.setFont("helvetica", "bold");
-     doc.setFontSize(22);
-     doc.text(`${this.currentBandName || "My Band"} - ${setlist.name}`, 105, y, { align: "center" });
-     y += 15;
-     
-     doc.setFontSize(14);
-     doc.setFont("helvetica", "normal");
-     
-     if (!setlist.songs || setlist.songs.length === 0) {
-        doc.text("No songs in this setlist.", 20, y);
-     } else {
-        setlist.songs.forEach((song, index) => {
-           doc.setFont("helvetica", "bold");
-           doc.text(`${index + 1}.`, 20, y);
-           doc.setFont("helvetica", "normal");
-           doc.text(song.title, 35, y);
-           
-           // Bonus: Skriv ut tempot (BPM) ute till höger om det finns sparat!
-          const bpmValue = song.bpm || song.tempo; // Kollar båda för säkerhets skull
-           if (bpmValue) {
-              doc.setFontSize(10);
-              doc.setTextColor(100); // Grå text
-              doc.text(`${bpmValue} BPM`, 190, y, { align: "right" });
-              doc.setFontSize(14);
-              doc.setTextColor(0); // Tillbaka till svart
-           }
-           
-           y += 12; // Hoppa ner en rad
-           
-           // Ny sida om vi når botten
-           if (y > 280) {
-              doc.addPage();
-              y = 20;
-           }
-        });
-     }
-     
-     doc.save(`Setlist_${setlist.name}.pdf`);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let y = 20;
+
+    // Rubrik
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text(`${this.currentBandName || "My Band"} - ${setlist.name}`, 105, y, {
+      align: "center",
+    });
+    y += 15;
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "normal");
+
+    if (!setlist.songs || setlist.songs.length === 0) {
+      doc.text("No songs in this setlist.", 20, y);
+    } else {
+      setlist.songs.forEach((song, index) => {
+        doc.setFont("helvetica", "bold");
+        doc.text(`${index + 1}.`, 20, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(song.title, 35, y);
+
+        // Bonus: Skriv ut tempot (BPM) ute till höger om det finns sparat!
+        const bpmValue = song.bpm || song.tempo; // Kollar båda för säkerhets skull
+        if (bpmValue) {
+          doc.setFontSize(10);
+          doc.setTextColor(100); // Grå text
+          doc.text(`${bpmValue} BPM`, 190, y, { align: "right" });
+          doc.setFontSize(14);
+          doc.setTextColor(0); // Tillbaka till svart
+        }
+
+        y += 12; // Hoppa ner en rad
+
+        // Ny sida om vi når botten
+        if (y > 280) {
+          doc.addPage();
+          y = 20;
+        }
+      });
+    }
+
+    doc.save(`Setlist_${setlist.name}.pdf`);
   }
   // --- SETLIST LOGIK: HÄMTA ---
 
@@ -3988,7 +4049,7 @@ async generateSetlist() {
       StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
       JSON.stringify(order)
     );
-// --- NYTT: Synka den nya ordningen till molnet så den inte skrivs över vid reload! ---
+    // --- NYTT: Synka den nya ordningen till molnet så den inte skrivs över vid reload! ---
     if (isCloudConnected) {
       this.syncOrderToCloud(order);
     }
@@ -4204,10 +4265,21 @@ async generateSetlist() {
       const userRef = doc(db, "users", uid);
       const userSnap = await getDoc(userRef);
 
-      if (userSnap.exists() && userSnap.data().currentBandId) {
-        this.currentBandId = userSnap.data().currentBandId;
-        this.currentBandName = userSnap.data().bandName || "My Band";
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+
+        // NYTT: Hämta listan på alla band du är med i
+        this.myBands = data.myBands || [];
+
+        if (data.currentBandId) {
+          this.currentBandId = data.currentBandId;
+          this.currentBandName = data.bandName || "My Band";
+        } else {
+          this.currentBandId = null;
+          this.currentBandName = null;
+        }
       } else {
+        this.myBands = [];
         this.currentBandId = null;
         this.currentBandName = null;
       }
@@ -4215,8 +4287,8 @@ async generateSetlist() {
       console.error("Error loading band status:", e);
       this.currentBandId = null;
       this.currentBandName = null;
+      this.myBands = [];
     } finally {
-      // NYTT: Se till att UI alltid uppdateras, oavsett om databasen bråkar
       this.updateBandUI();
     }
   }
@@ -4245,12 +4317,14 @@ async generateSetlist() {
         members: [uid],
         createdAt: new Date().toISOString(),
       });
-
+      this.myBands = this.myBands || [];
+      this.myBands.push({ id: bandCode, name: bandName });
       await setDoc(
         doc(db, "users", uid),
         {
           currentBandId: bandCode,
           bandName: bandName,
+          myBands: this.myBands,
         },
         { merge: true }
       );
@@ -4330,14 +4404,61 @@ async generateSetlist() {
     }
   }
 
-  async leaveBand() {
-    // --- NYTT: Stäng modalen direkt så dialogrutorna inte krockar! ---
+async leaveBand() {
     this.bandModal.classList.remove("visible");
 
     const confirmed = await this.showCustomConfirm(
-      "Are you sure you want to leave the band and return to your private songs?"
+      "Are you sure you want to leave this band?"
     );
     if (!confirmed) return;
+
+    const uid = window.fb.auth.currentUser.uid;
+    const { db, doc, setDoc } = window.fb;
+
+    // Ta bort det aktiva bandet från listan
+    this.myBands = (this.myBands || []).filter(b => b.id !== this.currentBandId);
+
+    // Fall tillbaka på ett annat band, eller gå till Solo-läge (null)
+    let nextBandId = null;
+    let nextBandName = null;
+    if (this.myBands.length > 0) {
+      nextBandId = this.myBands[0].id;
+      nextBandName = this.myBands[0].name;
+    }
+
+    try {
+      await setDoc(
+        doc(db, "users", uid),
+        {
+          currentBandId: nextBandId,
+          bandName: nextBandName,
+          myBands: this.myBands
+        },
+        { merge: true }
+      );
+
+      this.currentBandId = nextBandId;
+      this.currentBandName = nextBandName;
+      this.updateBandUI();
+
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
+      
+      this.titleInput.value = "";
+      this.authorInput.value = "";
+      this.editor.innerHTML = "";
+      this.updateEditorHeader();
+
+      this.fetchSongsFromCloud();
+      if (!nextBandId) this.createNewProject();
+
+      this.showCustomAlert(nextBandId ? `Switched to ${nextBandName}` : "You are playing solo again!");
+    } catch (e) {
+      console.error(e);
+    }
+  }
+async switchBand(bandId, bandName) {
+    if (this.currentBandId === bandId) return; // Gör inget om vi redan är i detta läge
 
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, setDoc } = window.fb;
@@ -4346,71 +4467,104 @@ async generateSetlist() {
       await setDoc(
         doc(db, "users", uid),
         {
-          currentBandId: null,
-          bandName: null,
+          currentBandId: bandId,
+          bandName: bandName
         },
         { merge: true }
       );
 
-      this.currentBandId = null;
-      this.currentBandName = null;
+      this.currentBandId = bandId;
+      this.currentBandName = bandName;
       this.updateBandUI();
 
+      // Rensa minnet från förra bandets låtar
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
-      this.fetchSongsFromCloud();
-      this.createNewProject();
+      
+      // Töm skärmen så gamla låtar inte ligger kvar som "spöken"
+      this.titleInput.value = "";
+      this.authorInput.value = "";
+      this.editor.innerHTML = "";
+      this.updateEditorHeader();
 
-      this.showCustomAlert("You are playing solo again!");
+      // Dra ner det nya bandets (eller solo-bibliotekets) låtar
+      this.fetchSongsFromCloud();
+      
+      this.bandModal.classList.remove("visible");
+      this.showCustomAlert(bandId ? `Switched to: ${bandName}` : "Switched to Personal Library (Solo)");
     } catch (e) {
-      console.error(e);
+       console.error(e);
+       this.showCustomAlert("Error switching band.");
     }
   }
-  updateBandUI() {
+
+ updateBandUI() {
     const modalBox = this.bandModal.querySelector(".custom-dialog-box");
 
-    // --- NYTT: Byt namn i toppmenyn (ProChorder <-> Bandnamn) ---
     const topBarName = document.getElementById("top-bar-band-name");
     if (topBarName) {
-      topBarName.textContent = this.currentBandName
-        ? this.currentBandName
-        : "ProChorder";
+      topBarName.textContent = this.currentBandName ? this.currentBandName : "ProChorder";
     }
+
+    let bandsHtml = "";
+    const bandsList = this.myBands || [];
+
+    bandsHtml += `<h4 style="margin-bottom: 5px; text-align: left; opacity: 0.8;">My Libraries</h4>`;
+    bandsHtml += `<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; padding-right: 5px;">`;
+    
+    // --- 1. SOLO LÄGET ---
+    const isSoloActive = !this.currentBandId;
+    bandsHtml += `
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; border: ${isSoloActive ? '1px solid var(--primary)' : '1px solid transparent'};">
+        <div style="display: flex; flex-direction: column; text-align: left;">
+          <strong style="color: ${isSoloActive ? 'var(--primary)' : 'inherit'}">👤 Personal Library (Solo)</strong>
+        </div>
+        ${isSoloActive 
+          ? `<span style="font-size: 0.8em; opacity: 0.8; font-weight: bold; color: var(--primary);">ACTIVE</span>`
+          : `<button class="btn-secondary-style" style="width: auto; padding: 4px 10px; font-size: 0.8em; margin: 0;" onclick="app.switchBand(null, null)">Switch</button>`
+        }
+      </div>
+    `;
+
+    // --- 2. ALLA BANDEN ---
+    bandsList.forEach(b => {
+      const isActive = b.id === this.currentBandId;
+      bandsHtml += `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; border: ${isActive ? '1px solid var(--primary)' : '1px solid transparent'};">
+          <div style="display: flex; flex-direction: column; text-align: left;">
+            <strong style="color: ${isActive ? 'var(--primary)' : 'inherit'}">🎸 ${b.name}</strong>
+            <span style="font-size: 0.7em; opacity: 0.6;">Invite Code: ${b.id}</span>
+          </div>
+          ${isActive 
+            ? `<span style="font-size: 0.8em; opacity: 0.8; font-weight: bold; color: var(--primary);">ACTIVE</span>`
+            : `<button class="btn-secondary-style" style="width: auto; padding: 4px 10px; font-size: 0.8em; margin: 0;" onclick="app.switchBand('${b.id}', '${b.name.replace(/'/g, "\\'")}')">Switch</button>`
+          }
+        </div>
+      `;
+    });
+    bandsHtml += `</div>`;
+
+    // --- RITA UT RUTA OCH KNAPPAR ---
+    modalBox.innerHTML = `
+      <h3 style="margin-top: 0">Band Settings</h3>
+      
+      ${bandsHtml}
+      
+      <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px; margin-bottom: 20px;">
+          <button id="btn-band-create" class="btn-primary">Create new band</button>
+          <button id="btn-band-join" class="btn-secondary-style">Join existing band</button>
+          ${this.currentBandId ? `<button id="btn-band-leave" class="btn-danger" style="margin-top: 10px;">Leave Current Band</button>` : ``}
+      </div>
+      <div class="dialog-buttons">
+        <button id="band-modal-close-new" class="btn-primary">Close</button>
+      </div>
+    `;
+
+    // Koppla funktionerna
+    document.getElementById("btn-band-create").onclick = () => this.createBand();
+    document.getElementById("btn-band-join").onclick = () => this.joinBand();
     if (this.currentBandId) {
-      modalBox.innerHTML = `
-        <h3 style="margin-top: 0">${this.currentBandName}</h3>
-        <p style="font-size: 0.85em; opacity: 0.8;">Invite code (give to other members):</p>
-        <p style="font-size: 1.8em; font-weight: bold; color: var(--primary); margin: 0.2em 0 1em 0; letter-spacing: 2px;">
-          ${this.currentBandId}
-        </p>
-        <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
-            <button id="btn-band-leave" class="btn-danger">Leave Band</button>
-        </div>
-        <div class="dialog-buttons">
-          <button id="band-modal-close-new" class="btn-primary">Close</button>
-        </div>
-      `;
-      // NYTT: Tvinga klick-funktionen med .onclick (mycket säkrare än addEventListener här!)
-      document.getElementById("btn-band-leave").onclick = () =>
-        this.leaveBand();
-    } else {
-      modalBox.innerHTML = `
-        <h3 style="margin-top: 0">Band Mode</h3>
-        <p style="font-size: 0.85em; opacity: 0.8; margin-bottom: 1.5em">
-          Create a new band or join one to sync your songs in real-time.
-        </p>
-        <div class="sidebar-controls vertical" style="gap: 0.8em; min-width: 250px">
-            <button id="btn-band-create" class="btn-primary">Create new band</button>
-            <button id="btn-band-join" class="btn-secondary-style">Join band</button>
-        </div>
-        <div class="dialog-buttons">
-          <button id="band-modal-close-new" class="btn-primary">Close</button>
-        </div>
-      `;
-      // NYTT: Tvinga klick-funktionerna med .onclick!
-      document.getElementById("btn-band-create").onclick = () =>
-        this.createBand();
-      document.getElementById("btn-band-join").onclick = () => this.joinBand();
+      document.getElementById("btn-band-leave").onclick = () => this.leaveBand();
     }
 
     document.getElementById("band-modal-close-new").onclick = () => {

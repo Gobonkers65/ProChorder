@@ -2807,14 +2807,21 @@ class StableChordEditor {
     try {
       // 2. Använd { merge: true } så att vi bara uppdaterar låtlistan
       // och inte råkar skriva över bandets namn eller medlemmar!
-      await setDoc(
-        targetRef,
-        {
-          songOrder: order,
-          updatedAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
+this.myBands = this.myBands || [];
+        if (!this.myBands.find(b => b.id === code)) {
+           this.myBands.push({ id: code, name: bandData.name });
+        }
+
+        // Spara både det aktiva bandet OCH din uppdaterade lista till Firebase
+        await setDoc(
+          doc(db, "users", uid),
+          {
+            currentBandId: code,
+            bandName: bandData.name,
+            myBands: this.myBands
+          },
+          { merge: true }
+        );
 
       console.log("Song order synced to the cloud!");
     } catch (e) {
@@ -4259,7 +4266,7 @@ class StableChordEditor {
   // --- BAND & GRUPP LOGIK ---
   // ==========================================
 
-  async checkUserBand(uid) {
+async checkUserBand(uid) {
     try {
       const { db, doc, getDoc } = window.fb;
       const userRef = doc(db, "users", uid);
@@ -4267,13 +4274,13 @@ class StableChordEditor {
 
       if (userSnap.exists()) {
         const data = userSnap.data();
-
-        // NYTT: Hämta listan på alla band du är med i
-        this.myBands = data.myBands || [];
+        
+        // Hämta listan på alla band du är med i (eller en tom lista om du är ny)
+        this.myBands = data.myBands || []; 
 
         if (data.currentBandId) {
           this.currentBandId = data.currentBandId;
-          this.currentBandName = data.bandName || "My Band";
+          this.currentBandName = data.bandName || "Mitt Band";
         } else {
           this.currentBandId = null;
           this.currentBandName = null;
@@ -4284,9 +4291,7 @@ class StableChordEditor {
         this.currentBandName = null;
       }
     } catch (e) {
-      console.error("Error loading band status:", e);
-      this.currentBandId = null;
-      this.currentBandName = null;
+      console.error("Kunde inte hämta band:", e);
       this.myBands = [];
     } finally {
       this.updateBandUI();
@@ -4458,12 +4463,13 @@ async leaveBand() {
     }
   }
 async switchBand(bandId, bandName) {
-    if (this.currentBandId === bandId) return; // Gör inget om vi redan är i detta läge
+    if (this.currentBandId === bandId) return; // Gör inget om du redan är i bandet
 
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, setDoc } = window.fb;
 
     try {
+      // Uppdatera Firebase med ditt nya val
       await setDoc(
         doc(db, "users", uid),
         {
@@ -4477,24 +4483,20 @@ async switchBand(bandId, bandName) {
       this.currentBandName = bandName;
       this.updateBandUI();
 
-      // Rensa minnet från förra bandets låtar
+      // Rensa skärmen från förra bandets låtar
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
       localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
-      
-      // Töm skärmen så gamla låtar inte ligger kvar som "spöken"
       this.titleInput.value = "";
       this.authorInput.value = "";
       this.editor.innerHTML = "";
       this.updateEditorHeader();
 
-      // Dra ner det nya bandets (eller solo-bibliotekets) låtar
+      // Ladda in det nya bandets låtar
       this.fetchSongsFromCloud();
       
       this.bandModal.classList.remove("visible");
-      this.showCustomAlert(bandId ? `Switched to: ${bandName}` : "Switched to Personal Library (Solo)");
     } catch (e) {
-       console.error(e);
-       this.showCustomAlert("Error switching band.");
+       console.error("Kunde inte byta band:", e);
     }
   }
 
@@ -4506,25 +4508,25 @@ async switchBand(bandId, bandName) {
       topBarName.textContent = this.currentBandName ? this.currentBandName : "ProChorder";
     }
 
-    let bandsHtml = "";
-    const bandsList = this.myBands || [];
-
-    bandsHtml += `<h4 style="margin-bottom: 5px; text-align: left; opacity: 0.8;">My Libraries</h4>`;
-    bandsHtml += `<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; padding-right: 5px;">`;
+let bandsHtml = `<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">`;
     
-    // --- 1. SOLO LÄGET ---
-    const isSoloActive = !this.currentBandId;
-    bandsHtml += `
-      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; border: ${isSoloActive ? '1px solid var(--primary)' : '1px solid transparent'};">
-        <div style="display: flex; flex-direction: column; text-align: left;">
-          <strong style="color: ${isSoloActive ? 'var(--primary)' : 'inherit'}">👤 Personal Library (Solo)</strong>
+    const bandsList = this.myBands || [];
+    
+    bandsList.forEach(b => {
+      const isActive = b.id === this.currentBandId;
+      bandsHtml += `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px 12px; border-radius: 8px; border: ${isActive ? '1px solid var(--primary)' : '1px solid #555'};">
+          <div style="display: flex; flex-direction: column; text-align: left;">
+            <strong style="color: ${isActive ? 'var(--primary)' : 'inherit'}">${b.name}</strong>
+          </div>
+          ${isActive 
+            ? `<span style="font-size: 0.8em; opacity: 0.8; color: var(--primary);">Aktivt</span>`
+            : `<button class="btn-secondary-style" style="padding: 4px 10px; font-size: 0.8em; margin: 0;" onclick="app.switchBand('${b.id}', '${b.name.replace(/'/g, "\\'")}')">Byt till detta</button>`
+          }
         </div>
-        ${isSoloActive 
-          ? `<span style="font-size: 0.8em; opacity: 0.8; font-weight: bold; color: var(--primary);">ACTIVE</span>`
-          : `<button class="btn-secondary-style" style="width: auto; padding: 4px 10px; font-size: 0.8em; margin: 0;" onclick="app.switchBand(null, null)">Switch</button>`
-        }
-      </div>
-    `;
+      `;
+    });
+    bandsHtml += `</div>`;
 
     // --- 2. ALLA BANDEN ---
     bandsList.forEach(b => {

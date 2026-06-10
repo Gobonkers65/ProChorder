@@ -2575,22 +2575,26 @@ class StableChordEditor {
       ? doc(db, "bands", this.currentBandId)
       : doc(db, "users", uid);
 
- this.orderListener = onSnapshot(targetRef, (snap) => {
-  if (snap.exists() && snap.data().songOrder) {
-    const cloudOrder = snap.data().songOrder;
-    localStorage.setItem(
-      StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-      JSON.stringify(cloudOrder)
-    );
-    this.updateProjectList(this.titleInput.value);
+    this.orderListener = onSnapshot(targetRef, (snap) => {
+      if (snap.exists() && snap.data().songOrder) {
+        const cloudOrder = snap.data().songOrder;
+        localStorage.setItem(
+          StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+          JSON.stringify(cloudOrder)
+        );
+        this.updateProjectList(this.titleInput.value);
 
-    // Öppna första låten automatiskt första gången orderListener triggas
-    if (!this.orderReady && !this.titleInput.value && cloudOrder.length > 0) {
-      this.loadProject(cloudOrder[0]);
-    }
-  }
-  this.orderReady = true;
-});
+        // Öppna första låten automatiskt första gången orderListener triggas
+        if (
+          !this.orderReady &&
+          !this.titleInput.value &&
+          cloudOrder.length > 0
+        ) {
+          this.loadProject(cloudOrder[0]);
+        }
+      }
+      this.orderReady = true;
+    });
 
     // --- 2. LYSSNAREN FÖR SJÄLVA LÅTARNA ---
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {
@@ -2788,27 +2792,23 @@ class StableChordEditor {
     }
   }
 
-async syncOrderToCloud(order) {
-  if (!window.fb || !window.fb.auth.currentUser) return;
-  const uid = window.fb.auth.currentUser.uid;
-  const { db, doc, setDoc } = window.fb;
+  async syncOrderToCloud(order) {
+    if (!window.fb || !window.fb.auth.currentUser) return;
+    const uid = window.fb.auth.currentUser.uid;
+    const { db, doc, setDoc } = window.fb;
 
-  const targetRef = this.currentBandId
-    ? doc(db, "bands", this.currentBandId)
-    : doc(db, "users", uid);
+    const targetRef = this.currentBandId
+      ? doc(db, "bands", this.currentBandId)
+      : doc(db, "users", uid);
 
-  try {
-    await setDoc(
-      targetRef,
-      { songOrder: order },
-      { merge: true }
-    );
-    console.log("Song order synced to the cloud!");
-  } catch (e) {
-    console.error("Could not sync the song order:", e);
-    this.showCustomAlert("Could not sync order to the cloud.");
+    try {
+      await setDoc(targetRef, { songOrder: order }, { merge: true });
+      console.log("Song order synced to the cloud!");
+    } catch (e) {
+      console.error("Could not sync the song order:", e);
+      this.showCustomAlert("Could not sync order to the cloud.");
+    }
   }
-}
 
   updateProjectList(selectedValue) {
     const list = this.projectList;
@@ -4298,11 +4298,14 @@ async syncOrderToCloud(order) {
 
     try {
       // 1. Skapa själva bandet i databasen OCH lägg till dig som medlem!
-      await setDoc(doc(db, "bands", bandCode), {
-        name: bandName,
-        members: [uid], // <-- DETTA ÄR NYCKELN! Detta släpper in dig.
-        createdAt: new Date().toISOString(),
-      });
+      await setDoc(doc(db, "users", uid),
+        {
+          currentBandId: safeBandId,
+          bandName: safeBandName,
+          myBands: this.myBands, // ← behåll listan vid byte
+        },
+        { merge: true }
+      );
 
       // 2. Lägg till bandet i din lokala lista så att det syns i menyn
       this.myBands = this.myBands || [];
@@ -4366,12 +4369,18 @@ async syncOrderToCloud(order) {
           members.push(uid);
           await setDoc(bandRef, { members: members }, { merge: true });
         }
+        // Lägg till bandet i din lokala lista INNAN du sparar
+        this.myBands = this.myBands || [];
+        if (!this.myBands.find((b) => b.id === code)) {
+          this.myBands.push({ id: code, name: bandData.name });
+        }
 
         await setDoc(
           doc(db, "users", uid),
           {
             currentBandId: code,
             bandName: bandData.name,
+            myBands: this.myBands, // ← spara hela listan
           },
           { merge: true }
         );
@@ -4501,8 +4510,8 @@ async syncOrderToCloud(order) {
 
       // Öppna den första låten automatiskt om det finns någon i biblioteket
       // if (this.projects && Object.keys(this.projects).length > 0) {
-       //  const firstSongId = Object.keys(this.projects)[0];
-       //  this.loadProject(firstSongId);
+      //  const firstSongId = Object.keys(this.projects)[0];
+      //  this.loadProject(firstSongId);
       // }
 
       // Stäng menyn

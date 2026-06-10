@@ -2578,22 +2578,20 @@ async fetchSongsFromCloud() {
         : doc(db, "users", uid);
 
     // --- 1. ORDNINGSLYSSNAREN ---
-    this.orderListener = onSnapshot(targetRef, (snap) => {
-        if (this.currentBandId !== listenerBandId) return;
+this.orderListener = onSnapshot(targetRef, (snap) => {
+    if (this.currentBandId !== listenerBandId) return;
 
-        if (snap.exists() && snap.data().songOrder) {
-            const cloudOrder = snap.data().songOrder;
-            localStorage.setItem(
-                StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-                JSON.stringify(cloudOrder)
-            );
-            this.updateProjectList(this.titleInput.value);
-        }
-        this.orderReady = true;
-
-        // Om låtdatan redan kommit in, öppna första låten nu
-        this._tryLoadFirstSong();
-    });
+    if (snap.exists() && snap.data().songOrder) {
+        const cloudOrder = snap.data().songOrder;
+        localStorage.setItem(
+            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+            JSON.stringify(cloudOrder)
+        );
+    }
+    this.orderReady = true;
+    this.updateProjectList(this.titleInput.value);  // ← alltid utanför if
+    this._tryLoadFirstSong();
+});
 
     // --- 2. LÅTLYSSNAREN ---
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {

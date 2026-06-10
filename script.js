@@ -2560,13 +2560,13 @@ async fetchSongsFromCloud() {
     const uid = window.fb.auth.currentUser.uid;
     const { db, collection, onSnapshot, doc } = window.fb;
 
-    // Stäng gamla lyssnare
     if (this.cloudListener) this.cloudListener();
     if (this.orderListener) this.orderListener();
 
     this.orderReady = false;
+    // NY FLAG: håller koll på om cloudListener kört klart minst en gång
+    this.cloudReady = false;
 
-    // Spara vilket band DESSA lyssnare tillhör
     const listenerBandId = this.currentBandId;
 
     const songsRef = listenerBandId
@@ -2579,7 +2579,6 @@ async fetchSongsFromCloud() {
 
     // --- 1. ORDNINGSLYSSNAREN ---
     this.orderListener = onSnapshot(targetRef, (snap) => {
-        // Ignorera om vi redan bytt band igen
         if (this.currentBandId !== listenerBandId) return;
 
         if (snap.exists() && snap.data().songOrder) {
@@ -2589,17 +2588,15 @@ async fetchSongsFromCloud() {
                 JSON.stringify(cloudOrder)
             );
             this.updateProjectList(this.titleInput.value);
-
-            if (!this.orderReady && !this.titleInput.value && cloudOrder.length > 0) {
-                this.loadProject(cloudOrder[0]);
-            }
         }
         this.orderReady = true;
+
+        // Om låtdatan redan kommit in, öppna första låten nu
+        this._tryLoadFirstSong();
     });
 
     // --- 2. LÅTLYSSNAREN ---
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {
-        // Ignorera om vi redan bytt band igen
         if (this.currentBandId !== listenerBandId) return;
 
         const localProjects =
@@ -2649,6 +2646,11 @@ async fetchSongsFromCloud() {
             this.updateProjectList(this.titleInput.value);
         }
 
+        this.cloudReady = true;
+
+        // Om ordningen redan kommit in, öppna första låten nu
+        this._tryLoadFirstSong();
+
         if (needsRefresh) {
             this.loadProject(this.titleInput.value);
             if (this.btnMainEditToggle) {
@@ -2668,6 +2670,20 @@ async fetchSongsFromCloud() {
             }
         }
     });
+}
+
+// Hjälpmetod — körs av båda lyssnarna, men öppnar bara låten när BÅDA är klara
+_tryLoadFirstSong() {
+    if (!this.orderReady || !this.cloudReady) return;
+    if (this.titleInput.value) return; // En låt är redan öppen
+
+    const order = JSON.parse(
+        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+    ) || [];
+
+    if (order.length > 0) {
+        this.loadProject(order[0]);
+    }
 }
 
   loadProject(name) {

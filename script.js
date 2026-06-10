@@ -2575,18 +2575,22 @@ class StableChordEditor {
       ? doc(db, "bands", this.currentBandId)
       : doc(db, "users", uid);
 
-    this.orderListener = onSnapshot(targetRef, (snap) => {
-      if (snap.exists() && snap.data().songOrder) {
-        const cloudOrder = snap.data().songOrder;
-        localStorage.setItem(
-          StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-          JSON.stringify(cloudOrder)
-        );
-        this.updateProjectList(this.titleInput.value);
-      }
-      // Markera klar oavsett om songOrder fanns eller inte
-      this.orderReady = true;
-    });
+ this.orderListener = onSnapshot(targetRef, (snap) => {
+  if (snap.exists() && snap.data().songOrder) {
+    const cloudOrder = snap.data().songOrder;
+    localStorage.setItem(
+      StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+      JSON.stringify(cloudOrder)
+    );
+    this.updateProjectList(this.titleInput.value);
+
+    // Öppna första låten automatiskt första gången orderListener triggas
+    if (!this.orderReady && !this.titleInput.value && cloudOrder.length > 0) {
+      this.loadProject(cloudOrder[0]);
+    }
+  }
+  this.orderReady = true;
+});
 
     // --- 2. LYSSNAREN FÖR SJÄLVA LÅTARNA ---
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {
@@ -2784,41 +2788,27 @@ class StableChordEditor {
     }
   }
 
-  async syncOrderToCloud(order) {
-    if (!window.fb || !window.fb.auth.currentUser) return;
-    const uid = window.fb.auth.currentUser.uid;
-    const { db, doc, setDoc } = window.fb;
+async syncOrderToCloud(order) {
+  if (!window.fb || !window.fb.auth.currentUser) return;
+  const uid = window.fb.auth.currentUser.uid;
+  const { db, doc, setDoc } = window.fb;
 
-    // 1. Peka direkt på rot-dokumentet för Bandet (eller dig själv om du kör solo)
-    const targetRef = this.currentBandId
-      ? doc(db, "bands", this.currentBandId)
-      : doc(db, "users", uid);
+  const targetRef = this.currentBandId
+    ? doc(db, "bands", this.currentBandId)
+    : doc(db, "users", uid);
 
-    try {
-      // 2. Använd { merge: true } så att vi bara uppdaterar låtlistan
-      // och inte råkar skriva över bandets namn eller medlemmar!
-      this.myBands = this.myBands || [];
-      if (!this.myBands.find((b) => b.id === code)) {
-        this.myBands.push({ id: code, name: bandData.name });
-      }
-
-      // Spara både det aktiva bandet OCH din uppdaterade lista till Firebase
-      await setDoc(
-        doc(db, "users", uid),
-        {
-          currentBandId: code,
-          bandName: bandData.name,
-          myBands: this.myBands,
-        },
-        { merge: true }
-      );
-
-      console.log("Song order synced to the cloud!");
-    } catch (e) {
-      console.error("Could not sync the song order:", e);
-      this.showCustomAlert("Could not sync order to the cloud.");
-    }
+  try {
+    await setDoc(
+      targetRef,
+      { songOrder: order },
+      { merge: true }
+    );
+    console.log("Song order synced to the cloud!");
+  } catch (e) {
+    console.error("Could not sync the song order:", e);
+    this.showCustomAlert("Could not sync order to the cloud.");
   }
+}
 
   updateProjectList(selectedValue) {
     const list = this.projectList;
@@ -4307,11 +4297,11 @@ class StableChordEditor {
     const { db, doc, setDoc } = window.fb;
 
     try {
-  // 1. Skapa själva bandet i databasen OCH lägg till dig som medlem!
+      // 1. Skapa själva bandet i databasen OCH lägg till dig som medlem!
       await setDoc(doc(db, "bands", bandCode), {
         name: bandName,
-        members: [uid],  // <-- DETTA ÄR NYCKELN! Detta släpper in dig.
-        createdAt: new Date().toISOString()
+        members: [uid], // <-- DETTA ÄR NYCKELN! Detta släpper in dig.
+        createdAt: new Date().toISOString(),
       });
 
       // 2. Lägg till bandet i din lokala lista så att det syns i menyn
@@ -4324,7 +4314,7 @@ class StableChordEditor {
         {
           currentBandId: bandCode,
           bandName: bandName,
-          myBands: this.myBands
+          myBands: this.myBands,
         },
         { merge: true }
       );
@@ -4510,10 +4500,10 @@ class StableChordEditor {
       await this.fetchSongsFromCloud();
 
       // Öppna den första låten automatiskt om det finns någon i biblioteket
-      if (this.projects && Object.keys(this.projects).length > 0) {
-        const firstSongId = Object.keys(this.projects)[0];
-        this.loadProject(firstSongId);
-      }
+      // if (this.projects && Object.keys(this.projects).length > 0) {
+       //  const firstSongId = Object.keys(this.projects)[0];
+       //  this.loadProject(firstSongId);
+      // }
 
       // Stäng menyn
       this.bandModal.classList.remove("visible");

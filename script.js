@@ -3954,15 +3954,46 @@ _tryLoadFirstSong() {
     reader.readAsText(file);
   }
 
-  importSingleProject(data) {
-    this.titleInput.value = data.title || "";
-    this.authorInput.value = data.author || "";
-    this.editor.style.fontSize = data.fontSize || "16px";
-    this.loadContent(data.content || "", true);
-    if (data.scrollSpeed) this.scrollSpeed = data.scrollSpeed;
-    if (data.duration) this.updateDurationInputs(data.duration);
-    this.saveProject(data.title);
-  }
+async importSingleProject(data) {
+    if (!data || !data.title) return;
+
+    const projects =
+        JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
+    let order =
+        JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+
+    const isOverwrite = !!projects[data.title];
+    projects[data.title] = data;
+
+    if (!order.includes(data.title)) {
+        order.push(data.title);
+    }
+
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+
+    // Spara till molnet
+    if (window.fb && window.fb.auth.currentUser) {
+        try {
+            const uid = window.fb.auth.currentUser.uid;
+            const { db, doc, setDoc } = window.fb;
+            const songRef = this.currentBandId
+                ? doc(db, "bands", this.currentBandId, "songs", data.title)
+                : doc(db, "users", uid, "songs", data.title);
+            await setDoc(songRef, { ...data, updatedAt: new Date().toISOString() });
+            await this.syncOrderToCloud(order);
+        } catch (e) {
+            console.error("Cloud import failed:", e);
+        }
+    }
+
+    this.updateProjectList(this.titleInput.value); // ← behåll aktiv låt markerad
+    this.showCustomAlert(
+        `"${data.title}" ${isOverwrite ? "updated" : "imported"}.${
+            window.fb?.auth?.currentUser ? " Synced to cloud!" : ""
+        }`
+    );
+}
 
   // --- UPPDATERAD IMPORT: Tvinga filens ordning ---
  async importMultipleProjects(projectsArray) {

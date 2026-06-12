@@ -3965,81 +3965,79 @@ _tryLoadFirstSong() {
   }
 
   // --- UPPDATERAD IMPORT: Tvinga filens ordning ---
-  async importMultipleProjects(projectsArray) {
+ async importMultipleProjects(projectsArray) {
     const projects =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)
-      ) || {};
+        JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) || {};
     let order =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-      ) || [];
-    let importedCount = 0,
-      overwrittenCount = 0;
+        JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)) || [];
+    let importedCount = 0, overwrittenCount = 0;
 
     const newTitles = projectsArray.map((p) => p.title).filter((t) => t);
+    
+    // Ta bara bort titlar som faktiskt ska skrivas över — inte alla
     order = order.filter((title) => !newTitles.includes(title));
 
-    // Förbered moln-variabler
     const isCloudConnected = window.fb && window.fb.auth.currentUser;
     let uid, db, doc, setDoc;
     if (isCloudConnected) {
-      uid = window.fb.auth.currentUser.uid;
-      db = window.fb.db;
-      doc = window.fb.doc;
-      setDoc = window.fb.setDoc;
+        uid = window.fb.auth.currentUser.uid;
+        db = window.fb.db;
+        doc = window.fb.doc;
+        setDoc = window.fb.setDoc;
+    }
+
+    // *** PAUSA orderListener under importen så den inte skriver över ordningen ***
+    if (this.orderListener) {
+        this.orderListener();
+        this.orderListener = null;
     }
 
     for (const project of projectsArray) {
-      if (project && project.title) {
-        if (projects[project.title]) overwrittenCount++;
-        else importedCount++;
+        if (project && project.title) {
+            if (projects[project.title]) overwrittenCount++;
+            else importedCount++;
 
-        projects[project.title] = project;
+            projects[project.title] = project;
 
-        // SPARA TILL MOLNET DIREKT VID IMPORT
-        // SPARA TILL MOLNET DIREKT VID IMPORT
-        if (isCloudConnected) {
-          try {
-            // NYTT: Nu kollar appen om du är i ett band innan den laddar upp!
-            const songRef = this.currentBandId
-              ? doc(db, "bands", this.currentBandId, "songs", project.title)
-              : doc(db, "users", uid, "songs", project.title);
+            if (isCloudConnected) {
+                try {
+                    const songRef = this.currentBandId
+                        ? doc(db, "bands", this.currentBandId, "songs", project.title)
+                        : doc(db, "users", uid, "songs", project.title);
 
-            await setDoc(songRef, {
-              ...project,
-              updatedAt: new Date().toISOString(),
-            });
-          } catch (e) {
-            console.error(`Error loading ${project.title} to the cloud:`, e);
-          }
+                    await setDoc(songRef, {
+                        ...project,
+                        updatedAt: new Date().toISOString(),
+                    });
+                } catch (e) {
+                    console.error(`Error loading ${project.title} to the cloud:`, e);
+                }
+            }
         }
-      }
     }
 
     order.push(...newTitles);
 
-    localStorage.setItem(
-      StableChordEditor.STORAGE_KEYS.PROJECTS,
-      JSON.stringify(projects)
-    );
-    localStorage.setItem(
-      StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-      JSON.stringify(order)
-    );
-    // --- NYTT: Synka den nya ordningen till molnet så den inte skrivs över vid reload! ---
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+    localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(order));
+
+    // Synka ordningen till molnet INNAN vi startar om lyssnarna
     if (isCloudConnected) {
-      this.syncOrderToCloud(order);
+        await this.syncOrderToCloud(order);
     }
+
     this.updateProjectList();
     this.showCustomAlert(
-      `${importedCount} New songs imported. ${overwrittenCount} songs updated. ${
-        isCloudConnected ? "All synced to the cloud!" : ""
-      }`
+        `${importedCount} New songs imported. ${overwrittenCount} songs updated. ${
+            isCloudConnected ? "All synced to the cloud!" : ""
+        }`
     );
 
     if (projectsArray.length > 0) this.loadProject(projectsArray[0].title);
-  }
+
+    // *** Starta om lyssnarna nu när allt är sparat ***
+    this.fetchSongsFromCloud();
+}
 
   sanitizeFilename(name) {
     return name.replace(/[\/\\?%*:|"<>]/g, "-") || "song";

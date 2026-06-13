@@ -2578,23 +2578,23 @@ class StableChordEditor {
       : doc(db, "users", uid);
 
     // --- 1. ORDNINGSLYSSNAREN ---
-this.orderListener = onSnapshot(targetRef, (snap) => {
-    if (this.currentBandId !== listenerBandId) return;
+    this.orderListener = onSnapshot(targetRef, (snap) => {
+      if (this.currentBandId !== listenerBandId) return;
 
-    // Rensa gammal ordning HÄR — precis innan vi skriver den nya
-    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
+      // Rensa gammal ordning HÄR — precis innan vi skriver den nya
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
 
-    if (snap.exists() && snap.data().songOrder) {
+      if (snap.exists() && snap.data().songOrder) {
         const cloudOrder = snap.data().songOrder;
         localStorage.setItem(
-            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-            JSON.stringify(cloudOrder)
+          StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+          JSON.stringify(cloudOrder)
         );
-    }
-    this.orderReady = true;
-    this.updateProjectList(this.titleInput.value);
-    this._tryLoadFirstSong();
-});
+      }
+      this.orderReady = true;
+      this.updateProjectList(this.titleInput.value);
+      this._tryLoadFirstSong();
+    });
 
     // --- 2. LÅTLYSSNAREN ---
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {
@@ -4527,50 +4527,64 @@ this.orderListener = onSnapshot(targetRef, (snap) => {
     }
   }
   async switchBand(bandId, bandName) {
-    // 1. Säkerhetskontroll: Gör inget om vi redan är i detta läge
+    // 1. Prevent unnecessary switch if we're already in this band
     if (this.currentBandId === bandId) return;
 
-    // 2. Säkerhetskontroll: Förhindra krasch om användaren inte är inloggad
+    // 2. Safety check: Prevent crash if user is not logged in
     const user = window.fb?.auth?.currentUser;
     if (!user) {
-      console.warn("Ingen användare inloggad. Kan inte byta bibliotek.");
-      this.showCustomAlert("Du måste vara inloggad för att kunna byta band.");
+      console.warn("No user logged in. Cannot switch library.");
+      this.showCustomAlert("You must be logged in to switch bands.");
       return;
     }
 
     const uid = user.uid;
     const { db, doc, setDoc } = window.fb;
 
-    // 3. Tvinga värdena till 'null' om de saknas (för Solo-läget)
+    // 3. Force values to 'null' if missing (for Solo mode)
     const safeBandId = bandId || null;
     const safeBandName = bandName || null;
 
-try {
-    await setDoc(
+    try {
+      await setDoc(
         doc(db, "users", uid),
         { currentBandId: safeBandId, bandName: safeBandName },
         { merge: true }
-    );
+      );
 
-    this.currentBandId = safeBandId;
-    this.currentBandName = safeBandName;
-    this.updateBandUI();
+      this.currentBandId = safeBandId;
+      this.currentBandName = safeBandName;
+      this.updateBandUI();
+      this.bandModal.classList.remove("visible");
 
-    // Rensa bara låtdatan — låt orderListener skriva rätt ordning själv
-    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
-    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER); // ← ta bort denna rad
-    this.titleInput.value = "";
-    this.authorInput.value = "";
-    this.editor.innerHTML = "";
-    this.updateEditorHeader();
+      // Show confirmation — sync starts when user clicks OK
+      const displayName = safeBandName ? `"${safeBandName}"` : "Personal Library (Solo)";
 
-    await this.fetchSongsFromCloud();
+      await new Promise((resolve) => {
+        const dialog = document.getElementById("custom-alert");
+        document.getElementById("custom-alert-message").textContent =
+          `You are now in ${displayName}. Press OK to load the song library.`;
+        dialog.classList.add("visible");
+        document.getElementById("custom-alert-ok").onclick = () => {
+          dialog.classList.remove("visible");
+          resolve();
+        };
+      });
 
-    this.bandModal.classList.remove("visible");
-} catch (e) {
-    console.error("Fel vid bandbytet:", e);
-    this.showCustomAlert("Ett fel uppstod. Kontrollera din uppkoppling och försök igen.");
-}
+      // User clicked OK — now we sync
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
+      localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
+      this.titleInput.value = "";
+      this.authorInput.value = "";
+      this.editor.innerHTML = "";
+      this.updateEditorHeader();
+
+      await this.fetchSongsFromCloud();
+
+    } catch (e) {
+      console.error("Error switching band:", e);
+      this.showCustomAlert("Something went wrong. Please check your connection and try again.");
+    }
   }
 
   updateBandUI() {

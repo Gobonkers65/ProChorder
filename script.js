@@ -2578,20 +2578,23 @@ class StableChordEditor {
       : doc(db, "users", uid);
 
     // --- 1. ORDNINGSLYSSNAREN ---
-    this.orderListener = onSnapshot(targetRef, (snap) => {
-      if (this.currentBandId !== listenerBandId) return;
+this.orderListener = onSnapshot(targetRef, (snap) => {
+    if (this.currentBandId !== listenerBandId) return;
 
-      if (snap.exists() && snap.data().songOrder) {
+    // Rensa gammal ordning HÄR — precis innan vi skriver den nya
+    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
+
+    if (snap.exists() && snap.data().songOrder) {
         const cloudOrder = snap.data().songOrder;
         localStorage.setItem(
-          StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-          JSON.stringify(cloudOrder)
+            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+            JSON.stringify(cloudOrder)
         );
-      }
-      this.orderReady = true;
-      this.updateProjectList(this.titleInput.value); // ← alltid utanför if
-      this._tryLoadFirstSong();
-    });
+    }
+    this.orderReady = true;
+    this.updateProjectList(this.titleInput.value);
+    this._tryLoadFirstSong();
+});
 
     // --- 2. LÅTLYSSNAREN ---
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {
@@ -4542,7 +4545,7 @@ class StableChordEditor {
     const safeBandId = bandId || null;
     const safeBandName = bandName || null;
 
- try {
+try {
     await setDoc(
         doc(db, "users", uid),
         { currentBandId: safeBandId, bandName: safeBandName },
@@ -4553,24 +4556,20 @@ class StableChordEditor {
     this.currentBandName = safeBandName;
     this.updateBandUI();
 
-    // Rensa låtdata men INTE ordningen ännu
+    // Rensa bara låtdatan — låt orderListener skriva rätt ordning själv
     localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
+    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER); // ← ta bort denna rad
     this.titleInput.value = "";
     this.authorInput.value = "";
     this.editor.innerHTML = "";
     this.updateEditorHeader();
 
-    // Starta lyssnare för nya bandet
     await this.fetchSongsFromCloud();
-
-    // Rensa gammal ordning EFTER att lyssnarna startat —
-    // orderListener skriver rätt ordning från Firebase direkt efteråt
-    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
 
     this.bandModal.classList.remove("visible");
 } catch (e) {
-    console.error("Error changing band:", e);
-    this.showCustomAlert("Error. Check you internet connection and try again.");
+    console.error("Fel vid bandbytet:", e);
+    this.showCustomAlert("Ett fel uppstod. Kontrollera din uppkoppling och försök igen.");
 }
   }
 

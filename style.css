@@ -244,9 +244,12 @@ body {
     background: var(--primary-bg-hover);
   }
 }
-.project-dropdown-item.drag-over {
-  border-top: 2px solid var(--primary);
-  background: var(--primary-bg-hover);
+.drag-insert-line {
+  height: 2px;
+  background: var(--primary);
+  margin: 0 8px;
+  border-radius: 2px;
+  pointer-events: none;
 }
 
 /* --- KNAPPAR (Generellt) --- */

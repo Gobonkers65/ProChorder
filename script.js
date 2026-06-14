@@ -2577,22 +2577,28 @@ class StableChordEditor {
         : doc(db, "users", uid);
 
     // --- 1. ORDNINGSLYSSNAREN ---
-    this.orderListener = onSnapshot(targetRef, (snap) => {
-        if (this.currentBandId !== listenerBandId) return;
+this.orderListener = onSnapshot(targetRef, (snap) => {
+    if (this.currentBandId !== listenerBandId) return;
 
-        localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
+    localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
 
-        if (snap.exists() && snap.data().songOrder) {
-            const cloudOrder = snap.data().songOrder;
-            localStorage.setItem(
-                StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
-                JSON.stringify(cloudOrder)
-            );
-        }
-        this.orderReady = true;
+    if (snap.exists() && snap.data().songOrder) {
+        const cloudOrder = snap.data().songOrder;
+        localStorage.setItem(
+            StableChordEditor.STORAGE_KEYS.PROJECT_ORDER,
+            JSON.stringify(cloudOrder)
+        );
+    }
+    this.orderReady = true;
+
+    // Anropa bara updateProjectList om cloudListener redan kört —
+    // annars filtrerar den bort hela ordningen mot tomma projects!
+    if (this.cloudReady) {
         this.updateProjectList(this.titleInput.value);
-        this._tryLoadFirstSong();
-    });
+    }
+
+    this._tryLoadFirstSong();
+});
 
     // --- 2. LÅTLYSSNAREN ---
     this.cloudListener = onSnapshot(songsRef, (snapshot) => {
@@ -2648,11 +2654,7 @@ class StableChordEditor {
         localStorage.setItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER, JSON.stringify(localOrder));
 
         this.cloudReady = true;
-
-        if (this.orderReady) {
-            this.updateProjectList(this.titleInput.value);
-        }
-
+        this.updateProjectList(this.titleInput.value);
         this._tryLoadFirstSong();
 
         if (needsRefresh || isFreshLoad) {

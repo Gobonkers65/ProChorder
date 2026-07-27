@@ -9,6 +9,7 @@ class StableChordEditor {
     LAST_PROJECT: "lastProject",
     DARK_MODE: "darkMode",
     PROJECT_ORDER: "projectOrder",
+    LAST_BAND_ID: "lastBandId"
   };
 
   // --- AUTH LOGIK ---
@@ -4343,7 +4344,7 @@ list.innerHTML = '<option value="">Load song...</option>';
   // --- BAND & GRUPP LOGIK ---
   // ==========================================
 
-  async checkUserBand(uid) {
+async checkUserBand(uid) {
     try {
       const { db, doc, getDoc } = window.fb;
       const userRef = doc(db, "users", uid);
@@ -4354,6 +4355,18 @@ list.innerHTML = '<option value="">Load song...</option>';
 
         // Hämta listan på alla band du är med i (eller en tom lista om du är ny)
         this.myBands = data.myBands || [];
+
+        // --- NYTT: FÖRHINDRA LÄCKAGE MELLAN ENHETER ---
+        const incomingBandId = data.currentBandId || "solo"; // "solo" om man inte har något band
+        const localSavedBandId = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_BAND_ID);
+
+        // Om bandet har ändrats på en annan enhet, rensa det gamla lokala minnet!
+        if (localSavedBandId !== incomingBandId) {
+            localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECTS);
+            localStorage.removeItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER);
+            localStorage.setItem(StableChordEditor.STORAGE_KEYS.LAST_BAND_ID, incomingBandId);
+        }
+        // ----------------------------------------------
 
         if (data.currentBandId) {
           this.currentBandId = data.currentBandId;

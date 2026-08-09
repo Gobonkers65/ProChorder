@@ -2052,28 +2052,32 @@ class StableChordEditor {
       if (chordTextEl) chordEl.dataset.chord = chordTextEl.textContent;
     });
   }
-// Ny hjälpmetod — lägg t.ex. direkt ovanför getContentAsText()
-extractInlineText(node) {
-  let text = "";
-  node.childNodes.forEach((c) => {
-    if (c.nodeType === Node.TEXT_NODE) {
-      text += c.textContent;
-    } else if (c.nodeType !== Node.ELEMENT_NODE) {
-      // t.ex. kommentarsnoder – ignorera
-    } else if (c.matches && c.matches(".chord")) {
-      text += `[${c.dataset.chord}]`;
-    } else if (c.tagName === "A") {
-      text += `[[${c.href}|${c.textContent}]]`;
-    } else if (c.tagName === "BR") {
-      // tom rad inuti raden – inget att lägga till
-    } else {
-      // Okänt element (t.ex. en nästlad <div> webbläsaren skapat
-      // runt ackordet) — gräv vidare istället för att tappa texten tyst!
-      text += this.extractInlineText(c);
-    }
-  });
-  return text;
-}  // LÄSER AV EDITORN OCH SPARAR TILL JSON (Nu stöder den Block!)
+// NYTT: Gräver rekursivt igenom en nods barn och plockar ut text/ackord/länkar.
+  // Skyddsnät mot att webbläsaren ibland lägger en extra <div> eller annat
+  // element runt texten som skrivs precis efter ett ackord (contenteditable=false
+  // -öar gör webbläsaren oförutsägbar där). Utan det här försvann texten tyst.
+  extractInlineText(node) {
+    let text = "";
+    node.childNodes.forEach((c) => {
+      if (c.nodeType === Node.TEXT_NODE) {
+        text += c.textContent;
+      } else if (c.nodeType !== Node.ELEMENT_NODE) {
+        // t.ex. kommentarsnoder – ignorera
+      } else if (c.matches && c.matches(".chord")) {
+        text += `[${c.dataset.chord}]`;
+      } else if (c.tagName === "A") {
+        text += `[[${c.href}|${c.textContent}]]`;
+      } else if (c.tagName === "BR") {
+        // tom rad inuti raden – inget att lägga till
+      } else {
+        // Okänt element (t.ex. en nästlad <div>) — gräv vidare istället
+        // för att tappa texten tyst.
+        text += this.extractInlineText(c);
+      }
+    });
+    return text;
+  }
+
   getContentAsText() {
     let result = [];
     this.editor.childNodes.forEach((node) => {
@@ -2099,13 +2103,7 @@ extractInlineText(node) {
               // Tom rad
             } else if (child.tagName === "DIV") {
               // Text på ny rad i ett block
-              child.childNodes.forEach((c) => {
-                if (c.nodeType === Node.TEXT_NODE) lineText += c.textContent;
-                else if (c.matches && c.matches(".chord"))
-                  lineText += `[${c.dataset.chord}]`;
-                else if (c.tagName === "A")
-                  lineText += `[[${c.href}|${c.textContent}]]`;
-              });
+              lineText += this.extractInlineText(child);
             } else if (child.matches && child.matches(".chord")) {
               lineText += `[${child.dataset.chord}]`;
             } else if (child.tagName === "A") {

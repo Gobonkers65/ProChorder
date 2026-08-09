@@ -2052,8 +2052,28 @@ class StableChordEditor {
       if (chordTextEl) chordEl.dataset.chord = chordTextEl.textContent;
     });
   }
-
-  // LÄSER AV EDITORN OCH SPARAR TILL JSON (Nu stöder den Block!)
+// Ny hjälpmetod — lägg t.ex. direkt ovanför getContentAsText()
+extractInlineText(node) {
+  let text = "";
+  node.childNodes.forEach((c) => {
+    if (c.nodeType === Node.TEXT_NODE) {
+      text += c.textContent;
+    } else if (c.nodeType !== Node.ELEMENT_NODE) {
+      // t.ex. kommentarsnoder – ignorera
+    } else if (c.matches && c.matches(".chord")) {
+      text += `[${c.dataset.chord}]`;
+    } else if (c.tagName === "A") {
+      text += `[[${c.href}|${c.textContent}]]`;
+    } else if (c.tagName === "BR") {
+      // tom rad inuti raden – inget att lägga till
+    } else {
+      // Okänt element (t.ex. en nästlad <div> webbläsaren skapat
+      // runt ackordet) — gräv vidare istället för att tappa texten tyst!
+      text += this.extractInlineText(c);
+    }
+  });
+  return text;
+}  // LÄSER AV EDITORN OCH SPARAR TILL JSON (Nu stöder den Block!)
   getContentAsText() {
     let result = [];
     this.editor.childNodes.forEach((node) => {

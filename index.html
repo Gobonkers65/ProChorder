@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ProChorder 12.5</title>
+    <title>ProChorder 14</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -730,14 +730,18 @@
       } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
       // HÄR ÄR DE NYA FIRESTORE-VERKTYGEN
       import {
-        getFirestore,
-        doc,
-        getDoc,
-        setDoc,
-        collection,
-        getDocs,
-        onSnapshot,
-        deleteDoc,
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      collection,
+      getDocs,
+      onSnapshot,
+      deleteDoc,
+      arrayUnion,
+      arrayRemove,
+      query,
+      where,
       } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -754,22 +758,26 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      window.fb = {
-        auth: auth,
-        db: db,
-        googleProvider: new GoogleAuthProvider(),
-        signInWithPopup: signInWithPopup,
-        signOut: signOut,
-        onAuthStateChanged: onAuthStateChanged,
-        // EXPORTERA DATABASVERKTYGEN
-        doc: doc,
-        getDoc: getDoc,
-        setDoc: setDoc,
-        collection: collection,
-        getDocs: getDocs,
-        onSnapshot: onSnapshot,
-        deleteDoc: deleteDoc,
-      };
+
+  window.fb = {
+  auth: auth,
+  db: db,
+  googleProvider: new GoogleAuthProvider(),
+  signInWithPopup: signInWithPopup,
+  signOut: signOut,
+  onAuthStateChanged: onAuthStateChanged,
+  doc: doc,
+  getDoc: getDoc,
+  setDoc: setDoc,
+  collection: collection,
+  getDocs: getDocs,
+  onSnapshot: onSnapshot,
+  deleteDoc: deleteDoc,
+  arrayUnion: arrayUnion,
+  arrayRemove: arrayRemove,
+  query: query,
+  where: where,
+  };
     </script>
 
     <script src="script.js"></script>

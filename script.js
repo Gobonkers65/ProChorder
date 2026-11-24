@@ -2718,18 +2718,28 @@ class StableChordEditor {
 
   // Hjälpmetod — körs av båda lyssnarna, men öppnar bara låten när BÅDA är klara
   _tryLoadFirstSong() {
-    if (!this.orderReady || !this.cloudReady) return;
-    if (this.titleInput.value) return; // En låt är redan öppen
+  if (!this.orderReady || !this.cloudReady) return;
+  if (this.isEditMode) return;
 
-    const order =
-      JSON.parse(
-        localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
-      ) || [];
+  const projects =
+    JSON.parse(localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECTS)) ||
+    {};
+  if (this.titleInput.value && projects[this.titleInput.value]) return;
 
-    if (order.length > 0) {
-      this.loadProject(order[0]);
-    }
+  const order =
+    JSON.parse(
+      localStorage.getItem(StableChordEditor.STORAGE_KEYS.PROJECT_ORDER)
+    ) || [];
+  if (order.length > 0) {
+    this.loadProject(order[0]);
+  } else {
+    this.loadedProjectName = null;
+    this.titleInput.value = "";
+    this.authorInput.value = "";
+    this.editor.innerHTML = "";
+    this.updateEditorHeader();
   }
+}
 
   loadProject(name) {
     const projects =
@@ -4373,7 +4383,31 @@ async checkUserBand(uid) {
 
         // Hämta listan på alla band du är med i (eller en tom lista om du är ny)
         this.myBands = data.myBands || [];
+        // Säkerhetsnät: aktivt band ska alltid finnas i listan
+if (
+  data.currentBandId &&
+  !this.myBands.find((b) => b.id === data.currentBandId)
+) {
+  this.myBands.push({
+    id: data.currentBandId,
+    name: data.bandName || "Mitt Band",
+  });
+}
 
+// Hämta även band där du redan är medlem i databasen
+try {
+  const { collection, getDocs, query, where } = window.fb;
+  const snap = await getDocs(
+    query(collection(db, "bands"), where("members", "array-contains", uid))
+  );
+  snap.forEach((d) => {
+    if (!this.myBands.find((b) => b.id === d.id)) {
+      this.myBands.push({ id: d.id, name: d.data().name || "Mitt Band" });
+    }
+  });
+} catch (e) {
+  console.warn("Kunde inte lista band via members:", e);
+}
         // --- NYTT: FÖRHINDRA LÄCKAGE MELLAN ENHETER ---
         const incomingBandId = data.currentBandId || "solo"; // "solo" om man inte har något band
         const localSavedBandId = localStorage.getItem(StableChordEditor.STORAGE_KEYS.LAST_BAND_ID);
@@ -4438,14 +4472,14 @@ async checkUserBand(uid) {
 
       // 3. Uppdatera din profil
       await setDoc(
-        doc(db, "users", uid),
-        {
-          currentBandId: bandCode,
-          bandName: bandName,
-          myBands: this.myBands,
-        },
-        { merge: true }
-      );
+  doc(db, "users", uid),
+  {
+    currentBandId: bandCode,
+    bandName: bandName,
+    myBands: window.fb.arrayUnion({ id: bandCode, name: bandName }),
+  },
+  { merge: true }
+);
 
       this.currentBandId = bandCode;
       this.currentBandName = bandName;
@@ -4500,15 +4534,15 @@ async checkUserBand(uid) {
           this.myBands.push({ id: code, name: bandData.name });
         }
 
-        await setDoc(
-          doc(db, "users", uid),
-          {
-            currentBandId: code,
-            bandName: bandData.name,
-            myBands: this.myBands, // ← spara hela listan
-          },
-          { merge: true }
-        );
+       await setDoc(
+  doc(db, "users", uid),
+  {
+    currentBandId: code,
+    bandName: bandData.name,
+    myBands: window.fb.arrayUnion({ id: code, name: bandData.name }),
+  },
+  { merge: true }
+);
 
         this.currentBandId = code;
         this.currentBandName = bandData.name;
@@ -4538,30 +4572,40 @@ async checkUserBand(uid) {
 
     const uid = window.fb.auth.currentUser.uid;
     const { db, doc, setDoc } = window.fb;
+const bandIdToLeave = this.currentBandId;
 
-    // Ta bort det aktiva bandet från listan
-    this.myBands = (this.myBands || []).filter(
-      (b) => b.id !== this.currentBandId
-    );
+// Ta bort det aktiva bandet från listan
+this.myBands = (this.myBands || []).filter(
+  (b) => b.id !== bandIdToLeave
+);
 
-    // Fall tillbaka på ett annat band, eller gå till Solo-läge (null)
-    let nextBandId = null;
-    let nextBandName = null;
-    if (this.myBands.length > 0) {
-      nextBandId = this.myBands[0].id;
-      nextBandName = this.myBands[0].name;
-    }
+// Fall tillbaka på ett annat band, eller gå till Solo-läge (null)
+let nextBandId = null;
+let nextBandName = null;
+if (this.myBands.length > 0) {
+  nextBandId = this.myBands[0].id;
+  nextBandName = this.myBands[0].name;
+}
 
-    try {
-      await setDoc(
-        doc(db, "users", uid),
-        {
-          currentBandId: nextBandId,
-          bandName: nextBandName,
-          myBands: this.myBands,
-        },
-        { merge: true }
-      );
+try {
+  // 1. Ta bort dig ur bandets members-lista
+  await setDoc(
+    doc(db, "bands", bandIdToLeave),
+    { members: window.fb.arrayRemove(uid) },
+    { merge: true }
+  );
+
+  // 2. Uppdatera din egen profil (som tidigare)
+  await setDoc(
+    doc(db, "users", uid),
+    {
+      currentBandId: nextBandId,
+      bandName: nextBandName,
+      myBands: this.myBands,
+    },
+    { merge: true }
+  ); 
+  // .. resten av din kod i leaveBand() ...
 
       this.currentBandId = nextBandId;
       this.currentBandName = nextBandName;

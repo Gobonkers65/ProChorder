@@ -1144,7 +1144,7 @@ body.lyrics-only #editor .chord::after {
   left: -0.3em;
   color: var(--chord-color);
   font-size: 1.3em;
-  opacity: 0.8;
+  opacity: 0.35;
 }
 body.lyrics-only #editor {
   line-height: 1.2 !important;
